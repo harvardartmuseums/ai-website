@@ -1,0 +1,17 @@
+module.exports = {
+  image_list : [{objectid: "6772", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:760994"},
+                {objectid: "207847", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:CARP04272_dynmc"},
+                {objectid: "228085", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC105096_dynmc"},
+                {objectid: "204045", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC251284_dynmc"},
+                {objectid: "349221", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC254669_dynmc"},
+                {objectid: "361266", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:770371"},
+                {objectid: "331817", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC107966_dynmc"},
+                {objectid: "336239", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC110831_dynmc"},
+                {objectid: "316057", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC110746_dynmc"},
+                {objectid: "337106", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC111301_dynmc"},
+                {objectid: "230251", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC253122_dynmc"},
+                {objectid: "336269", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC252404_dynmc"},
+                {objectid: "310535", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:INV004599_dynmc"},
+                {objectid: "306169", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:INV004601_dynmc"},
+                {objectid: "344358", imageurl: "https://nrs.harvard.edu/urn-3:huam:STR010942_dynmc"}]
+}

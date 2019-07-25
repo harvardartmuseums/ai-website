@@ -1,0 +1,26 @@
+{
+  "name": "ai-site",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node ./bin/www"
+  },
+  "dependencies": {
+    "async": "^2.6.3",
+    "body-parser": "^1.19.0",
+    "cookie-parser": "~1.4.4",
+    "cross-fetch": "^3.0.4",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "express-handlebars": "^3.1.0",
+    "fetch": "^1.1.0",
+    "handlebars-helpers": "^0.10.0",
+    "handlebars.numeral": "^0.2.0",
+    "hbs": "^4.0.4",
+    "http-errors": "~1.6.3",
+    "lodash": "^4.17.14",
+    "morgan": "~1.9.1",
+    "node": "^12.6.0",
+    "node-fetch": "^2.6.0"
+  }
+}

@@ -1,0 +1,52 @@
+<section class="category-results-block">
+  <div class="content">
+    <div class="category-content">
+      <div class="category-toggle">
+        <div class="category-toggle-head">
+          <h4>Imagga</h4>
+        </div>
+        <div class="category-button-list">
+          {{#each category_list}}
+              <a href="/category/{{title}}" class="category-button" id="{{title}}">
+                <div class="category-icon">
+
+                </div>
+                <div>
+                    {{title}}
+                </div></a>
+          {{/each}}
+        </div>
+      </div>
+      <div class="category-results">
+        <div class="category-head">
+          <h2>Categories</h2>
+          <h3>{{category}}</h3>
+        </div>
+        <div class="category-images">
+          {{#each object_results}}
+            <a href="/object/{{objectid}}">
+              <div class="category-image" style="background-image:url({{primaryimageurl}})">
+                 <div class="search-confidence-bar">
+                   <div class="search-red-bar" style="width:{{category.confidence}}%"></div>
+                 </div>
+              </div>
+            </a>
+          {{/each}}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<script>
+  window.onload = function(){
+    var category_buttons = document.getElementsByClassName('category-button');
+    for(var i = 0; i < category_buttons.length; i++){
+        category_buttons[i].classList.toggle('category-button-active', false);
+    }
+    var active_button = document.getElementById('{{category}}');
+    active_button.classList.toggle('category-button-active')
+
+  }
+</script>

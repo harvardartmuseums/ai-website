@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  </head>
+  <body>
+    {{#if navbar}}
+    <section class="navbar">
+      <a class="nav-header" href="/">
+        <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
+      </a>
+      <div class="nav-links">
+        <a href="/">Home</a>
+        <a href="/">About</a>
+        <a href="/explore">Explore</a>
+        <a>
+          <div class="nav-search-container">
+          <form method="post" action="/search">
+            <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
+            <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
+          </form>
+          </div>
+        </a>
+      </div>
+    </section>
+    {{else}}
+    {{/if}}
+    {{{body}}}
+  </body>
+</html>

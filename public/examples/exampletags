@@ -1,0 +1,17 @@
+module.exports = {
+  tags_list : [{tag: "Ceramic"},
+                {tag: "Scary"},
+                {tag: "Dog"},
+                {tag: "Wedding"},
+                {tag: "Tiger"},
+                {tag: "Baseball"},
+                {tag: "Monochrome"},
+                {tag: "Arthropod"},
+                {tag: "Baby"},
+                {tag: "Acrobat"},
+                {tag: "Car"},
+                {tag: "Grandfather"},
+                {tag: "Temple"},
+                {tag: "Architecture"},
+                {tag: "Hand"}]
+}

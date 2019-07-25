@@ -1,0 +1,165 @@
+<section class="object-view-panel">
+  <div class="object-image-container">
+    {{#if ai_data.baseimageurl}}
+      <img class="object-image" src={{ai_data.baseimageurl}}></img>
+    {{else if object_info.primaryimageurl}}
+      <img class="object-image" src={{object_info.primaryimageurl}}></img>
+    {{else}}
+      No photo found
+    {{/if}}
+  </div>
+</section>
+
+<section class="object-info-panel">
+  <div class="content">
+    {{#each object_info.people}}
+      <h4>{{name}}</h4>
+      <h5>{{culture}} {{displaydate}}</h5>
+    {{/each}}
+    <h2>{{object_info.title}}, {{object_info.datebegin}}</h2>
+    <h5>{{object_info.medium}}</h5>
+    <div class="gray-line-break"></div>
+
+    {{#if ai_sorted}}
+      <div class="ai-content">
+        <div id="object-tag-section">
+          <h3>Generated tags</h3>
+          <div class="tag-box">
+            {{#each ai_sorted.tagsect}}
+              <div class="service-tags">
+                <div class="tag-heading">
+                  <h4>{{source}}</h4>
+                </div>
+                <div class="tag-list">
+                  <table class="tag-table">
+                    {{#each tags}}
+                      <tr>
+                        <td class="tag-body"><a href="/search/{{body}}">{{body}}</a></td>
+                        <td class="tag-confidence">{{confidence}}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2">
+                          <div class="confidence-bar">
+                            <div class="red-bar" style="width:{{confidence}}%"></div>
+                          </div>
+                        <td>
+                      </tr>
+                    {{/each}}
+                  </table>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </div>
+        {{#if ai_sorted.facesect}}
+          <div id="object-face-section">
+            <h3>Face analysis</h3>
+            <div class="faces-box">
+              <div class="faces-toggle">
+                <table class="faces-table">
+                  {{#each ai_sorted.facesect}}
+                    <tr class="faces-row">
+                      <td><h4>{{source}}</h4></td>
+                      <td class="faces-column">
+                        {{#each faces}}
+                          <button onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{raw.iiifFaceImageURL}})"></div></button>
+                        {{/each}}
+                      </td>
+                    </tr>
+                  {{/each}}
+                </table>
+              </div>
+              <div class="face-info">
+                {{#each ai_sorted.facesect}}
+                  {{#each faces}}
+                  <div class="face-info-box" id="{{id}}">
+                    <div class="face-content">
+                      <div class="face-image">
+                        <img src={{raw.iiifFaceImageURL}}></img>
+                      </div>
+                      <div class="face-text">
+                        <h4>{{source}}</h4>
+                        <table>
+                          {{#each sorted_raw}}
+                            <tr>
+                              <td class="face-text-type">{{type}}</td>
+                              <td class="face-text-body">{{body}}</td>
+                            </tr>
+                          {{/each}}
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                  {{/each}}
+                {{/each}}
+              </div>
+            </div>
+          </div>
+        {{/if}}
+        <div id="object-captions-section">
+          <h3>Generated captions</h3>
+          <div class="captions-colors-box">
+            <div class="captions-colors-box-content">
+              <div class="captions-colors-head">
+                <h4>Microsoft</h4>
+              </div>
+              <table class="captions-table">
+                {{#each ai_sorted.captions.Microsoft}}
+                  <tr>
+                    <td>{{body}}</td>
+                    <td class="tag-confidence">{{confidence}}<sup>%</sup></td>
+                  <tr>
+                  <tr>
+                    <td colspan="2">
+                      <div class="confidence-bar">
+                        <div class="red-bar" style="width:{{confidence}}%"></div>
+                      </div>
+                    <td>
+                  </tr>
+                {{/each}}
+              </table>
+            </div>
+          </div>
+        </div>
+        <div id="object-color-section">
+          <h3>Color analysis</h3>
+          <div class="captions-colors-box">
+            <div class="captions-colors-box-content">
+              <div class="captions-colors-head">
+                <h4>Imagga</h4>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    {{else}}
+      No AI data for this piece
+    {{/if}}
+  </div>
+</section>
+
+<script>
+  function toggleface(id) {
+      var faces = document.getElementsByClassName('face-info-box');
+      for(var i = 0; i < faces.length; i++){
+          faces[i].style.display = "none";
+      }
+      var icons = document.getElementsByClassName('face-images');
+      for(var i = 0; i < icons.length; i++){
+          icons[i].style.border = "none";
+      }
+      var div = document.getElementById(id);
+      var icon = document.getElementById(id + "icon")
+      div.style.display = div.style.display == "block" ? "none" : "block";
+      icon.style.border = icon.style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
+  }
+
+  window.onload = function(){
+    var faces = document.getElementsByClassName('face-info-box');
+    var firstface = faces[0];
+    var icons = document.getElementsByClassName('face-images');
+    var firsticon = icons[0];
+    firstface.style.display = "block";
+    firsticon.style.border = "1.5px solid var(--c-orangered)"
+  }
+</script>

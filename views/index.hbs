@@ -1,0 +1,85 @@
+<section class="homepage-header">
+  <div class="content">
+    <div class="head-two-part">
+      <div>
+        <div class="small-caps">Machine Tag Explorer</div>
+        <h1>Explore how<br>
+        <div class="highlight">a computer sees art</div></h1>
+        <div class="red-line-break"></div>
+        <p class="homepage-about">
+          Using artificial intelligence, the Harvard Art Museums has collected over 14 million machine-generated descriptions and tags covering over 100,000 artworks. Ranging from object recognition to face analysis that predicts gender, age, and emotion, the data reveals how computers interpret paintings and sculptures.
+        </p>
+        <div class="homepage-buttons">
+          <button class="link-button gray-button" onClick="document.getElementById('terms').scrollIntoView({ behavior: 'smooth' });">Learn more</button>
+          <a href="explore"><button class="link-button red-button button-space">Start exploring</button></a>
+        </div>
+      </div>
+      <div>
+        <img class="banner-image" src="/images/bannerImage.png">
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="terms-block">
+  <div id="terms" />
+  <div class="content">
+    <h2>Terms to know</h2>
+    <div class="terms-flex">
+      <div>
+          <img src="/images/icon1.png">
+          <h3>Artificial Intelligence (AI)</h3>
+          <p>is the ability of computers to perform advanced tasks previously only capable by human intelligence</p>
+      </div>
+      <div>
+        <img src="/images/icon2.png">
+          <h3>Machine Learning</h3>
+          <p>is a subset of artificial intelligence and is the ability of computers to ‘learn’ from previous errors without human input</p>
+      </div>
+      <div>
+        <img src="/images/icon3.png">
+          <h3>Computer Vision</h3>
+          <p>is a field that studies how computers ‘see’ and ‘interpret’ the visual world using machine learning</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="applications-block">
+  <div class="content">
+    <h2>Real-world applications</h2>
+    <div class="applications-flex">
+      <div class="applications-column-left">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+      </div>
+      <div class="applications-column-right">
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="explore-block">
+  <div class="content">
+    <div class="explore-image-block">
+      {{#each image_list}}
+        <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
+      {{/each}}
+    </div>
+    <div class="explore-content">
+      <h2>Start exploring</h2>
+      <p>Start looking at A.I.-generated data by clicking on an example above or using the search bar below to find paintings that contain the inputted keyword</p>
+    </div>
+    <div class="search-container">
+      <form method="post" action="/search">
+        <input type="text" placeholder="Search here..." name="search">
+        <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
+      </form>
+    </div>
+    <div class="example-terms">
+      {{#each tag_list}}
+        <a href="/search/{{tag}}"><p>{{tag}}</p></a>
+      {{/each}}
+    </div>
+  </div>
+</section>
