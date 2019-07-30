@@ -72,7 +72,6 @@ module.exports = {
     ai_sorted.tagsect.Imagga.tags = _.filter(ai_data, {type: 'tag', source: 'Imagga'})
     ai_sorted.tagsect.Google.tags = _.filter(ai_data, {type: 'tag', source: 'Google Vision'})
     ai_sorted.tagsect.Microsoft.tags = _.filter(ai_data, {type: 'tag', source: 'Microsoft Cognitive Services'})
-    console.log(_.filter(ai_data, {type: 'face'}))
     if ( _.filter(ai_data, {type: 'face'}).length !== 0) {
       ai_sorted.facesect = {Amazon:{source:'Amazon', tags:{}},
                             Microsoft:{source:'Microsoft', tags:{}},
@@ -84,6 +83,12 @@ module.exports = {
       googlefaces = _.filter(ai_data, {type: 'face', source: 'Google Vision'})
       ai_sorted.facesect.Google.faces = _.map(googlefaces, module.exports.googlefacesort(googlefaces))
     }
+    if (_.filter(ai_data, {type: 'tag', feature: 'region'}) !== 0) {
+      ai_sorted.featuresect = {Amazon:{source:'Amazon', features:{}}}
+      ai_sorted.featuresect.Amazon.features = _.uniqBy(_.filter(ai_data, {type: 'tag', feature: 'region'}), 'body')
+
+    }
+    console.log(ai_sorted.featuresect.Amazon.features)
     ai_sorted.captions = {}
     ai_sorted.captions.Microsoft = _.filter(ai_data, {type: 'description'})
     ai_sorted.categories = {}

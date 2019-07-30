@@ -1,4 +1,7 @@
 <section class="object-view-panel">
+  <a class="object-nav-header" href="/">
+    <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
+  </a>
   <div class="object-image-container">
     {{#if ai_data.baseimageurl}}
       <img class="object-image" src={{ai_data.baseimageurl}}></img>
@@ -12,12 +15,19 @@
 
 <section class="object-info-panel">
   <div class="content">
-    {{#each object_info.people}}
-      <h4>{{name}}</h4>
-      <h5>{{culture}} {{displaydate}}</h5>
-    {{/each}}
-    <h2>{{object_info.title}}, {{object_info.datebegin}}</h2>
-    <h5>{{object_info.medium}}</h5>
+    <div class="object-human-info">
+      {{#each object_info.people}}
+        <div class="artist-info">
+          <h4>{{name}}</h4>
+          <h5>{{culture}} {{displaydate}}</h5>
+        </div>
+      {{/each}}
+      <div class="object-title-outlink">
+        <h2>{{object_info.title}}, {{object_info.datebegin}}
+        <span><a href="https://www.harvardartmuseums.org/collections/object/{{object_info.objectid}}"><i class="fa fa-external-link"></i></a></span></h2>
+      </div>
+      <h5>{{object_info.medium}}</h5>
+    </div>
     <div class="gray-line-break"></div>
 
     {{#if ai_sorted}}
@@ -72,29 +82,86 @@
               <div class="face-info">
                 {{#each ai_sorted.facesect}}
                   {{#each faces}}
-                  <div class="face-info-box" id="{{id}}">
-                    <div class="face-content">
-                      <div class="face-image">
-                        <img src={{raw.iiifFaceImageURL}}></img>
-                      </div>
-                      <div class="face-text">
-                        <h4>{{source}}</h4>
-                        <table>
-                          {{#each sorted_raw}}
-                            <tr>
-                              <td class="face-text-type">{{type}}</td>
-                              <td class="face-text-body">{{body}}</td>
-                            </tr>
-                          {{/each}}
-                        </table>
+                    <div class="face-info-box" id="{{id}}">
+                      <div class="face-content">
+                        <div class="face-image">
+                          <img src={{raw.iiifFaceImageURL}}></img>
+                        </div>
+                        <div class="face-text">
+                          <h4>{{source}}</h4>
+                          <table>
+                            {{#each sorted_raw}}
+                              <tr>
+                                <td class="face-text-type">{{type}}</td>
+                                <td class="face-text-body">{{body}}</td>
+                              </tr>
+                            {{/each}}
+                          </table>
+                        </div>
                       </div>
                     </div>
-                  </div>
                   {{/each}}
                 {{/each}}
               </div>
             </div>
           </div>
+        {{/if}}
+        {{#if ai_sorted.featuresect}}
+          <section id="object-features-section">
+            <h3>Feature analysis</h3>
+            <div class="features-box">
+              <div class="toggle-head">
+                <h4>Amazon</h4>
+              </div>
+              <div class="features-content">
+                <div class="features-box-toggle">
+                  <div class="features-row">
+                    {{#each ai_sorted.featuresect.Amazon.features}}
+                      <button onclick="togglefeature('{{id}}')">
+                        <div class="feature-icon-title">{{body}}</div>
+                        {{#each raw.Instances}}
+                          <div class="feature-images {{../id}}featureicon" style="background-image:url({{iiifLabelImageURL}})"></div>
+                        {{/each}}
+                      </button>
+                    {{/each}}
+                  </div>
+                </div>
+                <div class="features-box-display">
+                  {{#each ai_sorted.featuresect}}
+                    {{#each features}}
+                      <div class="feature-info-box" id="{{id}}">
+                        <div class="feature-image">
+                          <div class="feature-slideshow">
+                            {{#each raw.Instances}}
+                              <img class="feature-slide {{../id}} {{@key}}" src={{iiifLabelImageURL}}></img>
+                            {{/each}}
+                            <!-- TO DO, if statement to remove buttons from single images -->
+                              <button class="left-slideshow-button" onclick="plusDivs(-1, {{id}})">&#10094;</button>
+                              <button class="right-slideshow-button" onclick="plusDivs(1, {{id}})">&#10095;</button>
+                          </div>
+                        </div>
+                        <div class="feature-text">
+                          <table>
+                            <tr>
+                              <td class="tag-body"><a href="/search/{{body}}">{{body}}</a></td>
+                              <td class="tag-confidence">{{confidence}}<sup>%</sup></td>
+                            </tr>
+                            <tr>
+                              <td colspan="2">
+                                <div class="confidence-bar">
+                                  <div class="red-bar" style="width:{{confidence}}%"></div>
+                                </div>
+                              <td>
+                            </tr>
+                          </table>
+                        </div>
+                      </div>
+                    {{/each}}
+                  {{/each}}
+                </div>
+              </div>
+            </div>
+          </section>
         {{/if}}
         <div id="object-captions-section">
           <h3>Generated captions</h3>
@@ -139,6 +206,51 @@
 </section>
 
 <script>
+
+  window.onload = function(){
+    var faces = document.getElementsByClassName('face-info-box');
+    var firstface = faces[0];
+    if (firstface) {
+      var icons = document.getElementsByClassName('face-images');
+      var firsticon = icons[0];
+      firstface.style.display = "block";
+      firsticon.style.border = "1.5px solid var(--c-orangered)"
+    }
+
+    var features = document.getElementsByClassName('feature-info-box');
+    var firstfeature = features[0];
+    if (firstfeature) {
+      var featureicons = document.getElementsByClassName('feature-images');
+      var firstfeatureicon = featureicons[0];
+      firstfeature.style.display = "block";
+      firstfeatureicon.style.border = "1.5px solid var(--c-orangered)"
+      var firstfeatureslide = document.getElementsByClassName('0')
+      for (i = 0; i < firstfeatureslide.length; i++) {
+        firstfeatureslide[i].style.display = "block"
+      }
+    }
+}
+
+
+  var slideIndex = 1;
+  showDivs(slideIndex);
+
+  function plusDivs(n, id) {
+    showDivs((slideIndex += n), id);
+  }
+
+  function showDivs(n, id) {
+    var i;
+    var x = document.getElementsByClassName(id);
+    console.log(x.length)
+    if (n > x.length) {slideIndex = 1}
+    if (n < 1) {slideIndex = x.length}
+    for (i = 0; i < x.length; i++) {
+      x[i].style.display = "none";
+    }
+    x[slideIndex-1].style.display = "block";
+  }
+
   function toggleface(id) {
       var faces = document.getElementsByClassName('face-info-box');
       for(var i = 0; i < faces.length; i++){
@@ -154,12 +266,21 @@
       icon.style.border = icon.style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
   }
 
-  window.onload = function(){
-    var faces = document.getElementsByClassName('face-info-box');
-    var firstface = faces[0];
-    var icons = document.getElementsByClassName('face-images');
-    var firsticon = icons[0];
-    firstface.style.display = "block";
-    firsticon.style.border = "1.5px solid var(--c-orangered)"
+  function togglefeature(id) {
+      var features = document.getElementsByClassName('feature-info-box');
+      for(var i = 0; i < features.length; i++){
+          features[i].style.display = "none";
+      }
+      var icons = document.getElementsByClassName('feature-images');
+      for(var i = 0; i < icons.length; i++){
+          icons[i].style.border = "none";
+      }
+      var div = document.getElementById(id);
+      var icons = document.getElementsByClassName(id + "featureicon")
+      div.style.display = div.style.display == "block" ? "none" : "block";
+      for(var i = 0; i < icons.length; i++){
+        icons[i].style.border = icons[i].style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
+      }
   }
+
 </script>

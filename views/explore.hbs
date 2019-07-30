@@ -1,24 +1,40 @@
-<section class="explore-block explore-page">
+<section class="explore-page">
   <div class="content">
-    <div class="explore-image-block">
-      {{#each image_list}}
-        <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
-      {{/each}}
-    </div>
     <div class="explore-content">
       <h2>Start exploring</h2>
-      <p>Start looking at A.I.-generated data by clicking on an example above or using the search bar below to find paintings that contain the inputted keyword</p>
     </div>
-    <div class="search-container">
-      <form method="post" action="/search">
-        <input type="text" placeholder="Search here..." name="search">
-        <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
-      </form>
-    </div>
-    <div class="example-terms">
-      {{#each tag_list}}
-        <a href="/search/{{tag}}"><p>{{tag}}</p></a>
-      {{/each}}
+    <div class="explore-panel">
+      <div class="explore-panel-content">
+        <div class="explore-image-block">
+          {{#each image_list}}
+            <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
+          {{/each}}
+        </div>
+        <div class="tag-search">
+          <div class="explore-subhead">
+            <h3>Annotation Search</h3>
+            <p>Use the search bar to find artworks that contain the inputted keyword</p>
+          </div>
+          <div class="search-container">
+            <form method="post" action="/search">
+              <input type="text" placeholder="Search here..." name="search">
+              <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
+            </form>
+          </div>
+          <div class="example-terms">
+            {{#each tag_list}}
+              <a href="/search/{{tag}}"><p>{{tag}}</p></a>
+            {{/each}}
+          </div>
+        </div>
+        <div class="category-search">
+          <div class="explore-subhead">
+            <h3>Category Search</h3>
+            <p>Explore how a machine auto-categorizes images into 12 unique groups</p>
+          </div>
+          <a href="/category"><button class="link-button gray-button">Category search</button></a>
+        </div>
+      </div>
     </div>
   </div>
 </section>

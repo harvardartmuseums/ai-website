@@ -21,65 +21,83 @@
   </div>
 </section>
 
-<section class="terms-block">
+<section class="learn-block">
   <div id="terms" />
   <div class="content">
-    <h2>Terms to know</h2>
-    <div class="terms-flex">
-      <div>
-          <img src="/images/icon1.png">
-          <h3>Artificial Intelligence (AI)</h3>
-          <p>is the ability of computers to perform advanced tasks previously only capable by human intelligence</p>
-      </div>
-      <div>
-        <img src="/images/icon2.png">
-          <h3>Machine Learning</h3>
-          <p>is a subset of artificial intelligence and is the ability of computers to ‘learn’ from previous errors without human input</p>
-      </div>
-      <div>
-        <img src="/images/icon3.png">
-          <h3>Computer Vision</h3>
-          <p>is a field that studies how computers ‘see’ and ‘interpret’ the visual world using machine learning</p>
+    <h2>Learn more</h2>
+    <div class="terms-content">
+      <div class="terms-flex">
+        <div class="terms-box">
+            <h4>Artificial Intelligence (AI)</h4>
+            <p>is the ability of computers to perform advanced tasks previously only capable by human intelligence</p>
+            <a href="https://simple.wikipedia.org/wiki/Artificial_intelligence">Wikipedia &#8594;</a>
+        </div>
+        <div class="terms-box">
+            <h4>Machine Learning</h4>
+            <p>is a subset of artificial intelligence and is the ability of computers to ‘learn’ from previous errors without human input</p>
+            <a href="https://simple.wikipedia.org/wiki/Machine_learning">Wikipedia &#8594;</a>
+        </div>
+        <div class="terms-box">
+            <h4>Computer Vision</h4>
+            <p>is a field that studies how computers ‘see’ and ‘interpret’ the visual world using machine learning</p>
+            <a href="https://simple.wikipedia.org/wiki/Computer_vision">Wikipedia &#8594;</a>
+        </div>
       </div>
     </div>
-  </div>
-</section>
-
-<section class="applications-block">
-  <div class="content">
-    <h2>Real-world applications</h2>
-    <div class="applications-flex">
-      <div class="applications-column-left">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+    <div class="applications-content">
+      <h3>Real-world applications</h3>
+      <div class="applications-flex">
+        <div class="applications-column-left">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+        </div>
+        <div class="applications-column-right">
+          <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
+        </div>
       </div>
-      <div class="applications-column-right">
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum</p>
-      </div>
+    </div>
+    <div class="about-button">
+      <a href="/about"><button class="link-button dark-gray-button">Read more about the project</button></a>
     </div>
   </div>
 </section>
 
 <section class="explore-block">
   <div class="content">
-    <div class="explore-image-block">
-      {{#each image_list}}
-        <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
-      {{/each}}
-    </div>
     <div class="explore-content">
       <h2>Start exploring</h2>
-      <p>Start looking at A.I.-generated data by clicking on an example above or using the search bar below to find paintings that contain the inputted keyword</p>
     </div>
-    <div class="search-container">
-      <form method="post" action="/search">
-        <input type="text" placeholder="Search here..." name="search">
-        <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
-      </form>
-    </div>
-    <div class="example-terms">
-      {{#each tag_list}}
-        <a href="/search/{{tag}}"><p>{{tag}}</p></a>
-      {{/each}}
+    <div class="explore-panel">
+      <div class="explore-panel-content">
+        <div class="explore-image-block">
+          {{#each image_list}}
+            <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
+          {{/each}}
+        </div>
+        <div class="tag-search">
+          <div class="explore-subhead">
+            <h3>Annotation Search</h3>
+            <p>Use the search bar to find artworks that contain the inputted keyword</p>
+          </div>
+          <div class="search-container">
+            <form method="post" action="/search">
+              <input type="text" placeholder="Search here..." name="search">
+              <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
+            </form>
+          </div>
+          <div class="example-terms">
+            {{#each tag_list}}
+              <a href="/search/{{tag}}"><p>{{tag}}</p></a>
+            {{/each}}
+          </div>
+        </div>
+        <div class="category-search">
+          <div class="explore-subhead">
+            <h3>Category Search</h3>
+            <p>Explore how a machine auto-categorizes images into 12 unique groups</p>
+          </div>
+          <a href="/category"><button class="link-button gray-button">Category search</button></a>
+        </div>
+      </div>
     </div>
   </div>
 </section>
