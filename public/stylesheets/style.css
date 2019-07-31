@@ -432,6 +432,9 @@ sup {
   position: absolute;
   top: 0;
   left: 0;
+  background-color: rgba(241, 241, 241, .9);
+  z-index: 9999;
+  width: 99%;
 }
 
 form {
@@ -633,10 +636,48 @@ a {
 }
 
 .object-image-container {
-  width: 80%;
+  width: 90%;
   margin: 0 auto;
-  max-height: 80%;
-  text-align: center
+  height: 100%;
+  text-align: center;
+  border-radius: 5px;
+}
+
+#openseadragon1 {
+  width: 100%!important;
+  height: 100%!important;
+  outline: none!important;
+}
+
+#openseadragon1:focus {
+  outline: none!important
+}
+
+#image-toolbar {
+  position: absolute!important;
+  background-color: rgba(241, 241, 241, .9);
+  width: 100%;
+  z-index: 9999;
+  bottom: 0px;
+  left: 0px;
+  font-size: 20px;
+  color: var(--c-gray);
+  padding: 20px 0px;
+}
+
+.openseadragon-canvas {
+  outline: none!important;
+}
+
+.openseadragon-canvas:focus {
+  outline: none!important;
+}
+
+
+.toolbar-button {
+  color: var(--c-gray);
+  margin: 5px;
+  float: right;
 }
 
 .object-image {
@@ -659,18 +700,24 @@ a {
 
 .tag-box {
   display: flex;
-  width: 100%;
+  max-width: 100%;
   justify-content: space-between;
   margin-top: 30px;
   box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.23);
   border-radius: 5px;
-  overflow-x: auto
+  overflow-x: auto;
+  padding: 0px 20px;
 }
 
 .service-tags {
   height: 340px;
   width: 100%;
-  padding: 10px 20px 10px 20px;
+  padding: 10px 0px;
+  min-width: 130px;
+}
+
+.service-tags + .service-tags {
+  margin-left: 4%;
 }
 
 .tag-heading {

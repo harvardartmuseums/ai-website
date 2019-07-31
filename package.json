@@ -21,6 +21,7 @@
     "lodash": "^4.17.14",
     "morgan": "~1.9.1",
     "node": "^12.6.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "openseadragon": "^2.4.1"
   }
 }

@@ -11,7 +11,6 @@ var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
 var example_images = require('../public/examples/exampleimages')
 
-
 /* GET home page. */
 router.get('/', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
@@ -98,6 +97,26 @@ router.get('/object/:object_id', function(req, res, next) {
       let ai_sorted = organize.divide(ai_data)
       console.log(ai_sorted.featuresect.Amazon.features[0].raw)
       res.render('object', { title: 'Object info',
+                             navbar: false,
+                             ai_data: ai_data,
+                             ai_sorted: ai_sorted,
+                             object_info: object_info,
+                           });
+    })
+  })
+});
+
+router.get('/imagetest/:object_id', function(req, res, next) {
+  const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
+  fetch(object_url).then(response => response.json())
+  .then(object_info => {
+    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + object_info.images[0].imageid + `&size=1000&apikey=` + API_KEY;
+    fetch(ai_url).then(response => response.json())
+    .then(ai_info => {
+      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc'])
+      // Divide data into general categories
+      let ai_sorted = organize.divide(ai_data)
+      res.render('imagetest', { title: 'Object info',
                              navbar: false,
                              ai_data: ai_data,
                              ai_sorted: ai_sorted,

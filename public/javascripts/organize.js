@@ -86,9 +86,7 @@ module.exports = {
     if (_.filter(ai_data, {type: 'tag', feature: 'region'}) !== 0) {
       ai_sorted.featuresect = {Amazon:{source:'Amazon', features:{}}}
       ai_sorted.featuresect.Amazon.features = _.uniqBy(_.filter(ai_data, {type: 'tag', feature: 'region'}), 'body')
-
     }
-    console.log(ai_sorted.featuresect.Amazon.features)
     ai_sorted.captions = {}
     ai_sorted.captions.Microsoft = _.filter(ai_data, {type: 'description'})
     ai_sorted.categories = {}

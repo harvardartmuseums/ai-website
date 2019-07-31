@@ -3,13 +3,12 @@
     <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
   </a>
   <div class="object-image-container">
-    {{#if ai_data.baseimageurl}}
-      <img class="object-image" src={{ai_data.baseimageurl}}></img>
-    {{else if object_info.primaryimageurl}}
-      <img class="object-image" src={{object_info.primaryimageurl}}></img>
-    {{else}}
-      No photo found
-    {{/if}}
+    <div id="openseadragon1">
+    </div>
+    <div id="image-toolbar">
+      <a id="zoom-in" href="#zoom-in" title="Zoom in"><i class="fas fa-search-plus toolbar-button"></i></a>
+      <a id="zoom-out" href="#zoom-out" title="Zoom out"><i class="fas fa-search-minus toolbar-button"></i></a>
+    </div>
   </div>
 </section>
 
@@ -203,6 +202,23 @@
     {{/if}}
   </div>
 </section>
+
+<script src="../javascripts/openseadragon/openseadragon.min.js"></script>
+
+<script type="text/javascript">
+    var viewer = OpenSeadragon({
+        id: "openseadragon1",
+        prefixUrl: "../javascripts/openseadragon/images/",
+        toolbar: "image-toolbar",
+        zoomInButton: "zoom-in",
+        zoomOutButton: "zoom-out",
+        tileSources: {
+          type: 'image',
+          url: "{{object_info.images.0.iiifbaseuri}}/full/full/0/native.jpg",
+          buildPyramid: false
+        }
+    });
+</script>
 
 <script>
 
