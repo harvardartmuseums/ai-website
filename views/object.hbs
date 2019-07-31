@@ -72,7 +72,7 @@
                       <td><h4>{{source}}</h4></td>
                       <td class="faces-column">
                         {{#each faces}}
-                          <button onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{raw.iiifFaceImageURL}})"></div></button>
+                          <button id="{{@key}}face-button" onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{raw.iiifFaceImageURL}})"></div></button>
                         {{/each}}
                       </td>
                     </tr>
@@ -117,7 +117,7 @@
                 <div class="features-box-toggle">
                   <div class="features-row">
                     {{#each ai_sorted.featuresect.Amazon.features}}
-                      <button onclick="togglefeature('{{id}}')">
+                      <button id="{{@key}}feature-button" onclick="togglefeature('{{id}}')">
                         <div class="feature-icon-title">{{body}}</div>
                         {{#each raw.Instances}}
                           <div class="feature-images {{../id}}featureicon" style="background-image:url({{iiifLabelImageURL}})"></div>
@@ -135,9 +135,8 @@
                             {{#each raw.Instances}}
                               <img class="feature-slide {{../id}} {{@key}}" src={{iiifLabelImageURL}}></img>
                             {{/each}}
-                            <!-- TO DO, if statement to remove buttons from single images -->
-                              <button class="left-slideshow-button" onclick="plusDivs(-1, {{id}})">&#10094;</button>
-                              <button class="right-slideshow-button" onclick="plusDivs(1, {{id}})">&#10095;</button>
+                            <button class="left-slideshow-button slideshow-buttons" onclick="plusDivs(-1, {{id}})">&#10094;</button>
+                            <button class="right-slideshow-button slideshow-buttons" onclick="plusDivs(1, {{id}})">&#10095;</button>
                           </div>
                         </div>
                         <div class="feature-text">
@@ -207,33 +206,18 @@
 
 <script>
 
-  window.onload = function(){
-    var faces = document.getElementsByClassName('face-info-box');
-    var firstface = faces[0];
-    if (firstface) {
-      var icons = document.getElementsByClassName('face-images');
-      var firsticon = icons[0];
-      firstface.style.display = "block";
-      firsticon.style.border = "1.5px solid var(--c-orangered)"
+  document.addEventListener('DOMContentLoaded', function() {
+    if (document.getElementById('0face-button')) {
+      document.getElementById('0face-button').click()
     }
 
-    var features = document.getElementsByClassName('feature-info-box');
-    var firstfeature = features[0];
-    if (firstfeature) {
-      var featureicons = document.getElementsByClassName('feature-images');
-      var firstfeatureicon = featureicons[0];
-      firstfeature.style.display = "block";
-      firstfeatureicon.style.border = "1.5px solid var(--c-orangered)"
-      var firstfeatureslide = document.getElementsByClassName('0')
-      for (i = 0; i < firstfeatureslide.length; i++) {
-        firstfeatureslide[i].style.display = "block"
-      }
+    if (document.getElementById('0feature-button').click()) {
+      document.getElementById('0feature-button').click()
     }
-}
+}, false);
 
 
   var slideIndex = 1;
-  showDivs(slideIndex);
 
   function plusDivs(n, id) {
     showDivs((slideIndex += n), id);
@@ -242,11 +226,20 @@
   function showDivs(n, id) {
     var i;
     var x = document.getElementsByClassName(id);
-    console.log(x.length)
     if (n > x.length) {slideIndex = 1}
     if (n < 1) {slideIndex = x.length}
     for (i = 0; i < x.length; i++) {
       x[i].style.display = "none";
+    }
+    var slideshowButtons = document.getElementsByClassName('slideshow-buttons')
+    if (x.length > 1) {
+      for (var i = 0; i < slideshowButtons.length; i++) {
+        slideshowButtons[i].style.display = "block"
+      }
+    } else {
+      for (var i = 0; i < slideshowButtons.length; i++) {
+        slideshowButtons[i].style.display = "none"
+      }
     }
     x[slideIndex-1].style.display = "block";
   }
@@ -281,6 +274,7 @@
       for(var i = 0; i < icons.length; i++){
         icons[i].style.border = icons[i].style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
       }
+      plusDivs(0, id)
   }
 
 </script>
