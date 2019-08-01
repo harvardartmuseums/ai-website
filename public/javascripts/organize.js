@@ -61,36 +61,60 @@ module.exports = {
       annotation.confidence = _.round((annotation.confidence * 100), 1)
       return annotation
     })
+    // Declare new object to fill with sorted AI data
     let ai_sorted = {}
-    ai_sorted.tagsect = {Amazon:{source: 'Amazon', tags: {}},
-                         Clarifai:{source: 'Clarifai', tags: {}},
-                         Imagga:{source: 'Imagga', tags: {}},
-                         Google:{source: 'Google', tags: {}},
-                         Microsoft:{source: 'Microsoft', tags: {}}}
+    ai_sorted.tagsect = {Amazon:{source: 'Amazon'},
+                         Clarifai:{source: 'Clarifai'},
+                         Imagga:{source: 'Imagga'},
+                         Google:{source: 'Google'},
+                         Microsoft:{source: 'Microsoft'}}
     ai_sorted.tagsect.Amazon.tags = _.filter(ai_data, {type: 'tag', source: 'AWS Rekognition'})
     ai_sorted.tagsect.Clarifai.tags = _.filter(ai_data, {type: 'tag', source: 'Clarifai'})
     ai_sorted.tagsect.Imagga.tags = _.filter(ai_data, {type: 'tag', source: 'Imagga'})
     ai_sorted.tagsect.Google.tags = _.filter(ai_data, {type: 'tag', source: 'Google Vision'})
     ai_sorted.tagsect.Microsoft.tags = _.filter(ai_data, {type: 'tag', source: 'Microsoft Cognitive Services'})
+    ai_sorted.tagsect = _.filter(ai_sorted.tagsect, function(service){
+                          if (service.tags.length > 0) {
+                            console.log(service)
+                            return service
+                          }
+                        })
     if ( _.filter(ai_data, {type: 'face'}).length !== 0) {
-      ai_sorted.facesect = {Amazon:{source:'Amazon', tags:{}},
-                            Microsoft:{source:'Microsoft', tags:{}},
-                            Google:{source:'Google', tags:{}}}
+      ai_sorted.facesect = {Amazon:{source:'Amazon'},
+                            Microsoft:{source:'Microsoft'},
+                            Google:{source:'Google'}}
       amazonfaces = _.filter(ai_data, {type: 'face', source: 'AWS Rekognition'})
       ai_sorted.facesect.Amazon.faces = _.map(amazonfaces, module.exports.amazonfacesort(amazonfaces))
       microsoftfaces = _.filter(ai_data, {type: 'face', source: 'Microsoft Cognitive Services'})
       ai_sorted.facesect.Microsoft.faces = _.map(microsoftfaces, module.exports.microsoftfacesort(microsoftfaces))
       googlefaces = _.filter(ai_data, {type: 'face', source: 'Google Vision'})
       ai_sorted.facesect.Google.faces = _.map(googlefaces, module.exports.googlefacesort(googlefaces))
+      ai_sorted.facesect = _.filter(ai_sorted.facesect, function(service){
+        if(service.faces.length > 0) {
+          return service
+        }
+      })
     }
-    if (_.filter(ai_data, {type: 'tag', feature: 'region'}) !== 0) {
+    if (_.filter(ai_data, {type: 'tag', feature: 'region'}).length !== 0) {
       ai_sorted.featuresect = {Amazon:{source:'Amazon', features:{}}}
       ai_sorted.featuresect.Amazon.features = _.uniqBy(_.filter(ai_data, {type: 'tag', feature: 'region'}), 'body')
     }
-    ai_sorted.captions = {}
-    ai_sorted.captions.Microsoft = _.filter(ai_data, {type: 'description'})
+    if (_.filter(ai_data, {type: 'description'}).length !== 0) {
+      ai_sorted.captions = {}
+      ai_sorted.captions.Microsoft = _.filter(ai_data, {type: 'description'})
+    }
     ai_sorted.categories = {}
     ai_sorted.categories.Imagga = _.filter(ai_data, {type: 'category'})
+    ai_sorted.textsect = {Amazon:{source:'Amazon'},
+                          Google:{source:'Google'}}
+    ai_sorted.textsect.Google.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "Google Vision"}), 'body')
+    console.log(ai_sorted.textsect.Google.text)
+    ai_sorted.textsect.Amazon.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "AWS Rekognition"}), 'body')
+    ai_sorted.textsect = _.filter(ai_sorted.textsect, function(service){
+      if(service.text.length > 0) {
+        return service
+      }
+    })
     return ai_sorted
   }
 }

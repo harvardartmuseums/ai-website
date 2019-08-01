@@ -41,22 +41,25 @@ router.get('/explore', function(req, res, next) {
 
 /* GET search results. */
 router.get('/search/:tag', function(req, res, next) {
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&apikey=` + API_KEY;
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     // Sort tag results by confidence percent
-    tag_results = _.orderBy(tag_results.records, ['confidence'], ['desc'])
+    tag_results = _.filter(tag_results.records, {type: 'tag'})
+    tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
+    // Create a new array of the image IDs that will show up
     let imageid_results = _.map(tag_results, 'imageid')
     // Function to create a new query to retrieve objects from image ids
     let object_url = appendscript.idappend(imageid_results)
     fetch(object_url).then(response => response.json())
     .then(object_results => {
       object_results = object_results.records
+      // Match the object list with their corresponding tag results
       object_results = appendscript.tagappend(object_results, tag_results)
       res.render('search', { title: "Search results for '" + req.params.tag + "'",
                              navbar: true,
                              object_results: object_results,
-                             tag_results: tag_results
+                             tag_results: tag_results,
                            });
     })
   })
@@ -95,7 +98,6 @@ router.get('/object/:object_id', function(req, res, next) {
       let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc'])
       // Divide data into general categories
       let ai_sorted = organize.divide(ai_data)
-      console.log(ai_sorted.featuresect.Amazon.features[0].raw)
       res.render('object', { title: 'Object info',
                              navbar: false,
                              ai_data: ai_data,
@@ -106,25 +108,6 @@ router.get('/object/:object_id', function(req, res, next) {
   })
 });
 
-router.get('/imagetest/:object_id', function(req, res, next) {
-  const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
-  fetch(object_url).then(response => response.json())
-  .then(object_info => {
-    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + object_info.images[0].imageid + `&size=1000&apikey=` + API_KEY;
-    fetch(ai_url).then(response => response.json())
-    .then(ai_info => {
-      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc'])
-      // Divide data into general categories
-      let ai_sorted = organize.divide(ai_data)
-      res.render('imagetest', { title: 'Object info',
-                             navbar: false,
-                             ai_data: ai_data,
-                             ai_sorted: ai_sorted,
-                             object_info: object_info,
-                           });
-    })
-  })
-});
 
 /* GET object info with a highlighted tag. */
 router.get('/object/:object_id/:tag', function(req, res, next) {
@@ -137,7 +120,6 @@ router.get('/object/:object_id/:tag', function(req, res, next) {
       let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc'])
       // Divide data into general categories
       let ai_sorted = organize.divide(ai_data)
-      console.log(object_info)
       res.render('object', { title: 'Object info',
                              navbar: false,
                              ai_data: ai_data,

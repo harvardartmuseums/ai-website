@@ -65,18 +65,18 @@
             <h3>Face analysis</h3>
             <div class="faces-box">
               <div class="faces-toggle">
-                <table class="faces-table">
-                  {{#each ai_sorted.facesect}}
-                    <tr class="faces-row">
-                      <td><h4>{{source}}</h4></td>
-                      <td class="faces-column">
-                        {{#each faces}}
-                          <button id="{{@key}}face-button" onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{raw.iiifFaceImageURL}})"></div></button>
-                        {{/each}}
-                      </td>
-                    </tr>
-                  {{/each}}
-                </table>
+                {{#each ai_sorted.facesect}}
+                  <div class="face-subsect">
+                    <div class="faces-sources">
+                      <h4>{{source}}</h4>
+                    </div>
+                    <div class="faces-icons">
+                      {{#each faces}}
+                        <button id="{{@key}}face-button" onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{raw.iiifFaceImageURL}})"></div></button>
+                      {{/each}}
+                    </div>
+                  </div>
+                {{/each}}
               </div>
               <div class="face-info">
                 {{#each ai_sorted.facesect}}
@@ -104,6 +104,7 @@
               </div>
             </div>
           </div>
+
         {{/if}}
         {{#if ai_sorted.featuresect}}
           <section id="object-features-section">
@@ -196,6 +197,28 @@
             </div>
           </div>
         </div>
+        {{#if ai_sorted.textsect}}
+          <div id="object-text-section">
+            <h3>Text detection</h3>
+            <div class="text-box">
+                {{#each ai_sorted.textsect}}
+                  <div class="text-service-sect">
+                    <div class="text-head">
+                      <h4>{{source}}</h4>
+                    </div>
+                    <div class="text-tags-list">
+                      {{#each text}}
+                        <div class="text-tag">
+                          <img class="text-image" src="{{raw.iiifTextImageURL}}"></img>
+                          <div class="text-icon-title">{{body}}</div>
+                        </div>
+                      {{/each}}
+                    </div>
+                  </div>
+                {{/each}}
+            </div>
+          </div>
+        {{/if}}
       </div>
     {{else}}
       No AI data for this piece
