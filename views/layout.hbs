@@ -28,13 +28,30 @@
           </div>
         </a>
       </div>
-      <a>
+      <a class="mobile-nav-hover">
         <div class="mobile-nav-menu">
           <div class="nav-button">
             <h4>Menu<h4><i class="fas fa-bars"></i>
           </div>
         </div>
       </a>
+      <div class="mobile-dropdown">
+        <a class="dropdown-close"><i class="fa fa-times"></i></a>
+        <div class="dropdown-head"><h4>Menu</h4></div>
+        <div class="dropdown-content">
+          <a href="/">Home</a>
+          <a href="/about">About</a>
+          <a href="/explore">Explore</a>
+          <a>
+            <div class="nav-search-container">
+            <form method="post" action="/search">
+              <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
+              <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
+            </form>
+            </div>
+          </a>
+        </div>
+      </div>
     </section>
     {{else}}
     {{/if}}

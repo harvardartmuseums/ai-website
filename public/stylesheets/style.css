@@ -1624,5 +1624,60 @@ button {
     width: 100%
   }
 
+  .mobile-dropdown {
+    display: none;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: white;
+    width: 50%;
+    z-index: 9999;
+    padding: 20px;
+    border-radius: 0px 0px 0px 5px;
+    box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.23);
 
+  }
+
+  .mobile-nav-hover:hover ~ .mobile-dropdown {
+    display: block;
+  }
+
+  body {
+    overflow-x: hidden;
+  }
+
+  .link-button {
+    padding: 5px 35px;
+  }
+
+  .dropdown-close {
+    float: right;
+    font-size: 18px;
+    padding: 10px
+  }
+
+  .dropdown-close:active .mobile-dropdown {
+    display: none;
+  }
+
+  .dropdown-head {
+    margin-top: 30px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--c-lightgray)
+  }
+
+  .dropdown-content {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 20px;
+  }
+
+  .dropdown-content > a {
+    margin-top: 20px;
+  }
+
+  .nav-search-container {
+    width: 100%
+  }
 }
