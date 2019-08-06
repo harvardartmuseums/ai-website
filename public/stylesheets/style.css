@@ -552,6 +552,10 @@ input:focus {
   z-index: 9999;
 }
 
+.mobile-dropdown {
+  display: none;
+}
+
 .nav-logo {
   display: inline-block;
   width: 80px;
@@ -1079,6 +1083,10 @@ button {
 
 }
 
+.search-error {
+  margin-top: 120px;
+}
+
 .search-result-box {
   width: 220px;
   height: 270px;
@@ -1541,13 +1549,23 @@ button {
   .mobile-nav-menu {
     display: block;
     float: right;
-    padding: 20px
+    padding: 20px;
+  }
+
+  .nav-button > button {
+    background-color: transparent;
+    display: inline-block;
+  }
+
+  .nav-button > button > h4 > i {
+    padding-left: 10px;
   }
 
   .nav-button > h4 {
     display: inline-block;
     padding-right: 10px;
   }
+
 
   .content {
     padding: 60px 0px;
@@ -1626,11 +1644,11 @@ button {
 
   .mobile-dropdown {
     display: none;
-    position: absolute;
+    position: fixed;
     top: 0;
-    right: 0;
+    left: 34%;
     background-color: white;
-    width: 50%;
+    width: 30%;
     z-index: 9999;
     padding: 20px;
     border-radius: 0px 0px 0px 5px;
@@ -1638,9 +1656,11 @@ button {
 
   }
 
-  .mobile-nav-hover:hover ~ .mobile-dropdown {
-    display: block;
+  .mobile-nav-hover {
+    float: right;
   }
+
+
 
   body {
     overflow-x: hidden;
@@ -1650,15 +1670,12 @@ button {
     padding: 5px 35px;
   }
 
-  .dropdown-close {
+  #dropdown-close {
     float: right;
     font-size: 18px;
     padding: 10px
   }
 
-  .dropdown-close:active .mobile-dropdown {
-    display: none;
-  }
 
   .dropdown-head {
     margin-top: 30px;

@@ -41,6 +41,8 @@ router.get('/explore', function(req, res, next) {
 
 /* GET search results. */
 router.get('/search/:tag', function(req, res, next) {
+  let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let image_list = _.sampleSize(example_images.image_list, 6)
   const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
@@ -60,9 +62,20 @@ router.get('/search/:tag', function(req, res, next) {
                              navbar: true,
                              object_results: object_results,
                              tag_results: tag_results,
+                             error: false
                            });
     })
+    .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+                                            navbar: true,
+                                            error: true,
+                                            tag_list: tag_list,
+                                            image_list: image_list})})
   })
+  .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+                                          navbar: true,
+                                          error: true,
+                                          tag_list: tag_list,
+                                          image_list: image_list})})
 });
 
 router.get('/category/:category', function(req, res, next) {
