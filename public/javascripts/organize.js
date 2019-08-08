@@ -75,7 +75,6 @@ module.exports = {
     ai_sorted.tagsect.Microsoft.tags = _.filter(ai_data, {type: 'tag', source: 'Microsoft Cognitive Services'})
     ai_sorted.tagsect = _.filter(ai_sorted.tagsect, function(service){
                           if (service.tags.length > 0) {
-                            console.log(service)
                             return service
                           }
                         })
@@ -108,7 +107,6 @@ module.exports = {
     ai_sorted.textsect = {Amazon:{source:'Amazon'},
                           Google:{source:'Google'}}
     ai_sorted.textsect.Google.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "Google Vision"}), 'body')
-    console.log(ai_sorted.textsect.Google.text)
     ai_sorted.textsect.Amazon.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "AWS Rekognition"}), 'body')
     ai_sorted.textsect = _.filter(ai_sorted.textsect, function(service){
       if(service.text.length > 0) {

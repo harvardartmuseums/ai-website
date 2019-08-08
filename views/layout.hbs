@@ -12,21 +12,25 @@
   <body>
     {{#if navbar}}
     <section class="navbar">
-      <a class="nav-header" href="/">
-        <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
-      </a>
-      <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/about">About</a>
-        <a href="/explore">Explore</a>
-        <a>
-          <div class="nav-search-container">
-          <form method="post" action="/search">
-            <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
-            <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
-          </form>
-          </div>
-        </a>
+        <div class="nav-header">
+          <a href="/">
+            <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
+          </a>
+        </div>
+      <div class="nav-link-container">
+        <div class="nav-links">
+          <a href="/">Home</a>
+          <a href="/about">About</a>
+          <a href="/explore">Explore</a>
+          <a>
+            <div class="nav-search-container">
+            <form method="post" action="/search">
+              <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
+              <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
+            </form>
+            </div>
+          </a>
+        </div>
       </div>
       <div class="mobile-nav-hover" id="mobile-nav-hover">
         <div class="mobile-nav-menu">

@@ -1,6 +1,7 @@
 var _ = require('lodash');
 var async = require('async');
-const API_KEY = '67669ae0-b77e-11e8-bf0e-e9322ccde4db';
+require('dotenv').config({path: '.env'})
+const API_KEY = process.env['API_KEY']
 
 
 module.exports = {

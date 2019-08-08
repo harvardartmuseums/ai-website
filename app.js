@@ -10,9 +10,10 @@ var path = require('path');
 var routes = require('./routes/routes');
 var app = express();
 
+require('dotenv').config({path: '.env'})
 require('cross-fetch/polyfill');
 
-const API_KEY = '67669ae0-b77e-11e8-bf0e-e9322ccde4db';
+const API_KEY = process.env['API_KEY']
 
 var hbs = exphbs.create({
     helpers: {

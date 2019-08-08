@@ -1,91 +1,102 @@
 <section class="search-results-block">
-  <div class="content">
     {{#if error}}
-      <h2>{{title}}</h2>
-      <p>Try searching for a new keyword</p>
-      <div class="explore-panel search-error">
-        <div class="explore-panel-content">
-          <div class="explore-image-block">
-            {{#each image_list}}
-              <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
-            {{/each}}
-          </div>
-          <div class="tag-search">
-            <div class="explore-subhead">
-              <h3>Annotation Search</h3>
-              <p>Use the search bar to find artworks that contain the inputted keyword</p>
-            </div>
-            <div class="search-container">
-              <form method="post" action="/search">
-                <input type="text" placeholder="Search here..." name="search">
-                <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
-              </form>
-            </div>
-            <div class="example-terms">
-              {{#each tag_list}}
-                <a href="/search/{{tag}}"><p>{{tag}}</p></a>
+      <div class="content">
+        <h2>{{title}}</h2>
+        <p>Try searching for a new keyword</p>
+        <div class="explore-panel search-error">
+          <div class="explore-panel-content">
+            <div class="explore-image-block">
+              {{#each image_list}}
+                <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
               {{/each}}
             </div>
-          </div>
-          <div class="category-search">
-            <div class="explore-subhead">
-              <h3>Category Search</h3>
-              <p>Explore how a machine auto-categorizes images into 12 unique groups</p>
+            <div class="tag-search">
+              <div class="explore-subhead">
+                <h3>Annotation Search</h3>
+                <p>Use the search bar to find artworks that contain the inputted keyword</p>
+              </div>
+              <div class="search-container">
+                <form method="post" action="/search">
+                  <input type="text" placeholder="Search here..." name="search">
+                  <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
+                </form>
+              </div>
+              <div class="example-terms">
+                {{#each tag_list}}
+                  <a href="/search/{{tag}}"><p>{{tag}}</p></a>
+                {{/each}}
+              </div>
             </div>
-            <a href="/category"><button class="link-button gray-button">Category search</button></a>
+            <div class="category-search">
+              <div class="explore-subhead">
+                <h3>Category Search</h3>
+                <p>Explore how a machine auto-categorizes images into 12 unique groups</p>
+              </div>
+              <a href="/category"><button class="link-button gray-button">Category search</button></a>
+            </div>
           </div>
         </div>
       </div>
     {{else}}
-      <div>
-        <h2>{{title}}</h2>
-        <p>Results displayed in order of confidence determined by AI</p>
-      </div>
-      <div id="search-results">
-        {{#each object_results}}
-          <a href="/object/{{objectid}}">
-            <div class="search-result-box">
-              <div class="search-result-image-box" style="background-image:url({{primaryimageurl}})">
-              </div>
-              <div class="search-result-confidence">
-                <div class="search-confidence-bar">
-                  <div class="search-red-bar" style="width:{{firsttag.confidence}}%"></div>
-                </div>
-                <div class="confidence-content">
-                  <h5>
-                    <table class="confidence-table">
-                      {{#each secondarytags}}
-                        <tr>
-                          <td >{{source}}</td>
-                          <td class="table-confidence">{{confidence}}<sup>%</sup></td>
-                        </tr>
-                      {{/each}}
-                    </table>
-                    <div class="highest-confidence">
-                      {{firsttag.source}} <span class="big-confidence">{{firsttag.confidence}}<sup>%</sup></span>
+      <div class="content-search-results">
+        <div>
+          <h2>{{title}}</h2>
+          <p>Results displayed in order of confidence determined by AI</p>
+        </div>
+        <div id="search-results">
+          {{#each object_results}}
+            <div class="object-search-result">
+              <a href="/object/{{objectid}}">
+                <div class="search-result-box">
+                  <div class="search-result-image-box" style="background-image:url({{primaryimageurl}})">
+                  </div>
+                  <div class="search-result-confidence">
+                    <div class="search-confidence-bar">
+                      <div class="search-red-bar" style="width:{{firsttag.confidence}}%"></div>
                     </div>
-                  </h5>
+                    <div class="confidence-content">
+                      <h5>
+                        <table class="confidence-table">
+                          {{#each secondarytags}}
+                            <tr>
+                              <td >{{source}}</td>
+                              <td class="table-confidence">{{confidence}}<sup>%</sup></td>
+                            </tr>
+                          {{/each}}
+                        </table>
+                        <div class="highest-confidence">
+                          {{firsttag.source}} <span class="big-confidence">{{firsttag.confidence}}<sup>%</sup></span>
+                        </div>
+                      </h5>
+                    </div>
+                  </div>
+                  <div class="search-result-overlay">
+                    <div class="overlay-content">
+                      <h4>{{title}}</h4>
+                      <h5>
+                        {{#each people}}
+                          {{name}}
+                        {{/each}}
+                      </h5>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div class="search-result-overlay">
-                <div class="overlay-content">
-                  <h4>{{title}}</h4>
-                  <h5>
-                    {{#each people}}
-                      {{name}}
-                    {{/each}}
-                  </h5>
-                </div>
-              </div>
+              </a>
             </div>
-          </a>
-        {{/each}}
+          {{/each}}
+        </div>
+      </div>
+      <div class="pagination">
+        <a href="/search/{{tag}}/{{tag_results_info.pagenumber.previouspage}}"><i class="fas fa-angle-left"></i></a>
+        <a href="/search/{{tag}}/{{tag_results_info.pagenumber.nextpage}}"><i class="fas fa-angle-right"></i></a>
       </div>
     {{/if}}
-  </div>
+
 </section>
 
 
 <script>
+
+
 
 </script>

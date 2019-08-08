@@ -1,0 +1,65 @@
+<section class="about">
+  <div class="content">
+    <h2>About the Machine Tag Explorer</h2>
+    <div class="red-line-break about-break"></div>
+    <div class="about-banner">
+      <div class="about-overview">
+        <h3>Overview</h3>
+        <p>Using artificial intelligence, the Harvard Art Museums has collected over 14 million machine-generated descriptions and tags covering over 100,000 artworks. Ranging from object recognition to face analysis that predicts gender, age, and emotion, the data reveals how computers interpret paintings, photographs, and sculptures. The Machine Tag Explorer allows users to explore the extensive collection of data by searching for artworks by machine-generated keyword and looking at aggregated data for individual pieces.</p>
+      </div>
+      <div class="about-image-container">
+        <img class="about-image" src="/images/aboutbanner.png">
+      </div>
+    </div>
+    <div class="about-why-how">
+      <div class="about-why-how-text">
+        <h3>Why?</h3>
+        <p>The Harvard Art Museums is using machine vision to categorize and effectively humanize its collection of art pieces. The machine views and annotates our collection as if walking into an art museum for the first time. Since the computer lacks any context or artistic knowledge beyond the pieces themselves, the machine’s interpretations of the artworks lean closer to reflecting the public rather than experts. By being able to use these artificially-generated annotations to search for art, browsing through the museum’s collection becomes more accessible and intuitive to non-museumgoers. </p>
+      </div>
+      <div class="about-why-how-text">
+        <h3>How?</h3>
+        <p>The Harvard Art Museums has collected artificially-generated data on artworks from five different machine-vision services: Amazon Rekognition, Clarifai, Imagga, Google Vision, and Microsoft Cognitive Services. On each art piece, these services provide interpretations otherwise known as “annotations” that include generated tags and captions and object, face, and text recognition. When a user searches for a keyword, the Machine Tag Explorer takes the user-inputted keyword and finds artworks that contain a matching machine-generated tag. From there, the user can go to an individual piece and see its collection of annotations from the five AI services.</p>
+      </div>
+    </div>
+  </div>
+</section>
+<section class="explore-block-about">
+  <div class="content">
+    <div class="explore-content">
+      <h2>Start exploring</h2>
+    </div>
+    <div class="explore-panel">
+      <div class="explore-panel-content">
+        <div class="explore-image-block">
+          {{#each image_list}}
+            <a href="/object/{{objectid}}"><div class="explore-image" style="background-image:url({{imageurl}}"></div></a>
+          {{/each}}
+        </div>
+        <div class="tag-search">
+          <div class="explore-subhead">
+            <h3>Annotation Search</h3>
+            <p>Use the search bar to find artworks that contain the inputted keyword</p>
+          </div>
+          <div class="search-container">
+            <form method="post" action="/search">
+              <input type="text" placeholder="Search here..." name="search">
+              <button class="search-button" type="submit"><i class="fa fa-search"></i></button>
+            </form>
+          </div>
+          <div class="example-terms">
+            {{#each tag_list}}
+              <a href="/search/{{tag}}"><p>{{tag}}</p></a>
+            {{/each}}
+          </div>
+        </div>
+        <div class="category-search">
+          <div class="explore-subhead">
+            <h3>Category Search</h3>
+            <p>Explore how a machine auto-categorizes images into 12 unique groups</p>
+          </div>
+          <a href="/category"><button class="link-button gray-button">Category search</button></a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

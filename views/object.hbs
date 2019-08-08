@@ -187,16 +187,6 @@
             </div>
           </div>
         </div>
-        <div id="object-color-section">
-          <h3>Color analysis</h3>
-          <div class="captions-colors-box">
-            <div class="captions-colors-box-content">
-              <div class="captions-colors-head">
-                <h4>Imagga</h4>
-              </div>
-            </div>
-          </div>
-        </div>
         {{#if ai_sorted.textsect}}
           <div id="object-text-section">
             <h3>Text detection</h3>
@@ -235,11 +225,9 @@
         toolbar: "image-toolbar",
         zoomInButton: "zoom-in",
         zoomOutButton: "zoom-out",
-        tileSources: {
-          type: 'image',
-          url: "{{object_info.images.0.iiifbaseuri}}/full/full/0/native.jpg",
-          buildPyramid: false
-        }
+        tileSources: [
+          "{{object_info.images.0.iiifbaseuri}}/info.json"
+        ]
     });
 </script>
 

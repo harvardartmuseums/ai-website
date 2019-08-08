@@ -1,8 +1,8 @@
 var express = require('express');
 var router = express.Router();
-const API_KEY = '67669ae0-b77e-11e8-bf0e-e9322ccde4db';
 var fetch = require('node-fetch')
 require('cross-fetch/polyfill');
+require('dotenv').config({path: '.env'})
 var async = require('async');
 var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
@@ -10,6 +10,8 @@ var organize = require('../public/javascripts/organize')
 var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
 var example_images = require('../public/examples/exampleimages')
+
+const API_KEY = process.env['API_KEY']
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -23,7 +25,12 @@ router.get('/', function(req, res, next) {
 });
 
 router.get('/about', function(req, res, nect) {
-  res.render('about', {title: 'About', navbar: true})
+  let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let image_list = _.sampleSize(example_images.image_list, 6)
+  res.render('about', {title: 'About',
+                        navbar: true,
+                        tag_list: tag_list,
+                        image_list: image_list})
 })
 
 
@@ -46,6 +53,8 @@ router.get('/search/:tag', function(req, res, next) {
   const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
+    let tag_results_info = tag_results.info
+    tag_results_info.pagenumber = {nextpage: 2};
     // Sort tag results by confidence percent
     tag_results = _.filter(tag_results.records, {type: 'tag'})
     tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
@@ -58,11 +67,15 @@ router.get('/search/:tag', function(req, res, next) {
       object_results = object_results.records
       // Match the object list with their corresponding tag results
       object_results = appendscript.tagappend(object_results, tag_results)
+      let tag = req.params.tag
       res.render('search', { title: "Search results for '" + req.params.tag + "'",
                              navbar: true,
                              object_results: object_results,
                              tag_results: tag_results,
-                             error: false
+                             error: false,
+                             tag: tag,
+                             firstpage: true,
+                             tag_results_info: tag_results_info
                            });
     })
     .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
@@ -77,6 +90,56 @@ router.get('/search/:tag', function(req, res, next) {
                                           tag_list: tag_list,
                                           image_list: image_list})})
 });
+
+/* GET search results. */
+router.get('/search/:tag/:page', function(req, res, next) {
+  // If it's the first page, redirect to other route
+  if (req.params.page == 1) {
+    res.redirect('/search/' + req.params.tag)
+  }
+  let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let image_list = _.sampleSize(example_images.image_list, 6)
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY + '&page=' + req.params.page;
+  fetch(tag_url).then(response => response.json())
+  .then(tag_results => {
+    let tag_results_info = tag_results.info
+    tag_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
+    // Sort tag results by confidence percent
+    tag_results = _.filter(tag_results.records, {type: 'tag'})
+    tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
+    // Create a new array of the image IDs that will show up
+    let imageid_results = _.map(tag_results, 'imageid')
+    // Function to create a new query to retrieve objects from image ids
+    let object_url = appendscript.idappend(imageid_results)
+    fetch(object_url).then(response => response.json())
+    .then(object_results => {
+      object_results = object_results.records
+      // Match the object list with their corresponding tag results
+      object_results = appendscript.tagappend(object_results, tag_results)
+      let tag = req.params.tag
+      res.render('search', { title: "Search results for '" + req.params.tag + "'",
+                             navbar: true,
+                             object_results: object_results,
+                             tag_results: tag_results,
+                             error: false,
+                             tag: tag,
+                             tag_results_info: tag_results_info,
+                             firstpage: false
+                           });
+    })
+    .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+                                            navbar: true,
+                                            error: true,
+                                            tag_list: tag_list,
+                                            image_list: image_list})})
+  })
+  .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+                                          navbar: true,
+                                          error: true,
+                                          tag_list: tag_list,
+                                          image_list: image_list})})
+});
+
 
 router.get('/category/:category', function(req, res, next) {
   const category_url = `https://api.harvardartmuseums.org/annotation/?size=100&apikey=` + API_KEY + `&q=type:category AND body:` + req.params.category
@@ -102,10 +165,12 @@ router.get('/category/:category', function(req, res, next) {
 
 /* GET object info. */
 router.get('/object/:object_id', function(req, res, next) {
+  let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let image_list = _.sampleSize(example_images.image_list, 6)
   const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
   fetch(object_url).then(response => response.json())
   .then(object_info => {
-    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + object_info.images[0].imageid + `&size=1000&apikey=` + API_KEY;
+    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + object_info.images[0].imageid + `&size=2000&apikey=` + API_KEY;
     fetch(ai_url).then(response => response.json())
     .then(ai_info => {
       let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc'])
@@ -118,7 +183,17 @@ router.get('/object/:object_id', function(req, res, next) {
                              object_info: object_info,
                            });
     })
+    .catch(error => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
+                                            navbar: true,
+                                            error: true,
+                                            tag_list: tag_list,
+                                            image_list: image_list})})
   })
+  .catch(error => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
+                                          navbar: true,
+                                          error: true,
+                                          tag_list: tag_list,
+                                          image_list: image_list})})
 });
 
 
