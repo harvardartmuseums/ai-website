@@ -13,21 +13,61 @@
 </section>
 
 <section class="object-info-panel">
-  <div class="content">
-    <div class="object-human-info">
-      {{#each object_info.people}}
-        <div class="artist-info">
-          <h4>{{name}}</h4>
-          <h5>{{culture}} {{displaydate}}</h5>
-        </div>
-      {{/each}}
-      <div class="object-title-outlink">
-        <h2>{{object_info.title}}, {{object_info.datebegin}}
-        <span><a href="https://www.harvardartmuseums.org/collections/object/{{object_info.objectid}}"><i class="fa fa-external-link"></i></a></span></h2>
+    <table class="object-human-info">
+      <tr>
+        <td class="object-info-row">
+          <div class="object-info-section">
+            <h5>Title</h5>
+            <h3>{{object_info.title}}<span><a href="https://www.harvardartmuseums.org/collections/object/{{object_info.objectid}}"><i class="fa fa-external-link"></i></a></span></h3>
+          </div>
+        </td>
+        <td class="object-info-row">
+          <div class="object-info-section">
+            <h5>Date</h5>
+            <h3>{{object_info.datebegin}}</h3>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td class="object-info-row">
+          <div class="object-info-section">
+            <h5>Artist</h5>
+            {{#each object_info.people}}
+              <h3>{{name}}, {{culture}} {{displaydate}}</h3>
+            {{/each}}
+          </div>
+        </td>
+        <td class="object-info-row">
+          <div class="object-info-section">
+            <h5>Work type</h5>
+            <h3>{{object_info.classification}}</h3>
+          </div>
+        </td>
+      </tr>
+    </table>
+    <div class="object-human-info-mobile">
+      <div class="object-info-section">
+        <h5>Title</h5>
+        <h3>{{object_info.title}}<span><a href="https://www.harvardartmuseums.org/collections/object/{{object_info.objectid}}"><i class="fa fa-external-link"></i></a></span></h3>
       </div>
-      <h5>{{object_info.medium}}</h5>
+      <div class="object-info-section">
+        <h5>Artist</h5>
+        {{#each object_info.people}}
+          <h3>{{name}}, {{culture}} {{displaydate}}</h3>
+        {{/each}}
+      </div>
+      <div class="object-info-section">
+        <h5>Date</h5>
+        <h3>{{object_info.datebegin}}</h3>
+      </div>
+      <div class="object-info-section">
+        <h5>Work type</h5>
+        <h3>{{object_info.classification}}</h3>
+      </div>
     </div>
+
     <div class="gray-line-break"></div>
+    <div class="content">
 
     {{#if ai_sorted}}
       <div class="ai-content">

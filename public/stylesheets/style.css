@@ -614,15 +614,41 @@ a {
 
 .object-info-panel {
   width: 70%;
-  margin-left: 30%
+  margin-left: 30%;
 }
 
 .object-info-panel > .content {
   width: 92%
 }
 
+.object-info-section {
+  margin-top: 20px;
+}
+
+.object-info-section > h3 {
+  margin-top: 0px;
+}
+
 .object-human-info {
-  width: 70%
+  width: 92%;
+  margin: 0 auto;
+  max-width: 1000px;
+  margin-top: 50px;
+}
+
+.object-human-info-mobile {
+  display: none;
+  width: 92%;
+  margin: 0 auto;
+  padding-top: 20px;
+}
+
+.object-human-info > tr {
+  width: 100%
+}
+
+.object-info-row {
+  width: 50%;
 }
 
 .artist-info {
@@ -665,7 +691,7 @@ a {
 
 .gray-line-break {
   margin-top: 60px;
-  width: 100px;
+  width: 100%;
   border-bottom: 1px solid var(--c-lightgray)
 }
 
@@ -1457,7 +1483,7 @@ button {
 }
 
 
-@media only screen and (min-width: 600px) and (max-width: 800px) {
+@media only screen and (min-width: 501px) and (max-width: 800px) {
   .object-view-panel {
     z-index: 9999;
     width: 100%;
@@ -1507,6 +1533,7 @@ button {
 
   .nav-link-container {
     padding-right: 30px;
+    float: right;
   }
 
   .nav-links {
@@ -1517,6 +1544,16 @@ button {
     max-width: 600px;
     display: flex;
     align-items: center;
+    justify-content: space-between;
+  }
+
+  .nav-header {
+    width: 20%;
+  }
+
+  .navbar {
+    width: 100%;
+    display: flex;
     justify-content: space-between;
   }
 
@@ -1542,7 +1579,7 @@ button {
 
 }
 
-@media only screen and (min-width: 200px) and (max-width: 600px) {
+@media only screen and (min-width: 0px) and (max-width: 500px) {
   .object-view-panel {
     z-index: 9999;
     width: 100%;
@@ -1561,12 +1598,17 @@ button {
     margin-left: 0px;
   }
 
+
   .object-info-panel > .content {
-    margin-top: 40px;
+    padding-top: 0px;
   }
 
   .object-human-info {
-    width: 100%
+    display: none
+  }
+
+  .object-human-info-mobile {
+    display: block
   }
 
   .gray-line-break {
@@ -1623,7 +1665,8 @@ button {
   }
 
   .nav-logo {
-    padding-left: 20px;
+    padding-left: 0px;
+    margin-left: 7vw;
   }
 
   h1 {
@@ -1681,6 +1724,7 @@ button {
     display: block;
     float: right;
     padding: 20px;
+    padding-right: 7vw
   }
 
   .nav-button > button {
@@ -1692,11 +1736,11 @@ button {
     padding-left: 10px;
   }
 
-  .nav-button > h4 {
+  .nav-button > button > h4 {
     display: inline-block;
-    padding-right: 10px;
+    width: 100px;
+    text-align: right;
   }
-
 
   .content {
     padding: 60px 0px;
@@ -1743,7 +1787,7 @@ button {
   }
 
   .explore-panel {
-    height: 520px;
+    height: 550px;
   }
 
   .terms-flex {
@@ -1777,11 +1821,11 @@ button {
     display: none;
     position: fixed;
     top: 0;
-    left: 34%;
+    right: 40%;
     background-color: white;
     width: 30%;
     z-index: 9999;
-    padding: 20px;
+    padding: 10%;
     border-radius: 0px 0px 0px 5px;
     box-shadow: 0px 1px 3px rgba(0, 0, 0, 0.23);
 
@@ -1827,5 +1871,25 @@ button {
 
   .nav-search-container {
     width: 100%
+  }
+
+  .about-banner {
+    flex-direction: column-reverse;
+  }
+
+  .about-overview {
+    width: 100%;
+  }
+
+  .about-image-container {
+    width: 100%
+  }
+
+  .about-why-how {
+    flex-direction: column;
+  }
+
+  .about-why-how-text {
+    width: 100%;
   }
 }
