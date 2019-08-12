@@ -87,8 +87,11 @@
         </div>
       </div>
       <div class="pagination">
-        <a href="/search/{{tag}}/{{tag_results_info.pagenumber.previouspage}}"><i class="fas fa-angle-left"></i></a>
-        <a href="/search/{{tag}}/{{tag_results_info.pagenumber.nextpage}}"><i class="fas fa-angle-right"></i></a>
+        <a id="firstpage" href="/search/{{tag}}/1"><i class="fas fa-angle-double-left"></i></a>
+        <a id="previouspage" href="/search/{{tag}}/{{tag_results_info.pagenumber.previouspage}}"><i class="fas fa-angle-left"></i></a>
+        <div id="pagenumbers"></div>
+        <a id="nextpage" href="/search/{{tag}}/{{tag_results_info.pagenumber.nextpage}}"><i class="fas fa-angle-right"></i></a>
+        <a id="lastpage" href="/search/{{tag}}/{{tag_results_info.pages}}"><i class="fas fas fa-angle-double-right"></i></a>
       </div>
     {{/if}}
 
@@ -96,7 +99,63 @@
 
 
 <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if ({{tag_results_info.page}} == 1) {
+      document.getElementById('previouspage').style.visibility = "hidden"
+      document.getElementById('firstpage').style.visibility = "hidden"
+    }
 
+    if ({{tag_results_info.page}} == {{tag_results_info.pages}}) {
+      document.getElementById('nextpage').style.visibility = "hidden"
+      document.getElementById('lastpage').style.visibility = "hidden"
+    }
+
+    console.log({{tag_results_info.pages}})
+    pageNumbers({{tag_results_info.page}}, {{tag_results_info.pages}})
+
+    pagenumberarray.forEach(function(pagenumber) {
+      if (pagenumber == {{tag_results_info.page}}) {
+        document.getElementById("pagenumbers").innerHTML+=
+          '<a href="/search/{{tag}}/' + pagenumber + '" class="active">' + pagenumber + '</a>'
+      } else {
+        document.getElementById("pagenumbers").innerHTML+=
+          '<a href="/search/{{tag}}/' + pagenumber + '">' + pagenumber + '</a>'
+      }
+    })
+
+  }, false);
+
+  function pageNumbers(currentpage, totalpages) {
+    if (totalpages >= 5) {
+      if (currentpage == 1) {
+        // add next 4 pages
+        pagenumberarray = [1, 2, 3, 4, 5]
+        return pagenumberarray
+      } else if (currentpage == 2) {
+        // add first page, add next 3 pages
+        pagenumberarray = [1, 2, 3, 4, 5]
+        return pagenumberarray
+      } else if (currentpage == (totalpages - 1)) {
+        // add last page, add previous 3 pages
+        pagenumberarray = [(currentpage - 3), (currentpage - 2), (currentpage - 1), currentpage, (currentpage + 1)]
+        return pagenumberarray
+      } else if (currentpage == totalpages) {
+        // add previous 4 pages
+        pagenumberarray = [(currentpage - 4), (currentpage - 3), (currentpage - 2), (currentpage - 1), currentpage]
+        return pagenumberarray
+      } else {
+        // add previous 2 pages, add next 2 pages
+        pagenumberarray = [(currentpage - 2), (currentpage - 1), currentpage, (currentpage + 1), (currentpage + 2)]
+        return pagenumberarray
+      }
+    } else {
+      pagenumberarray = []
+      var i;
+      for (i = 0; i < totalpages; i++) {
+        pagenumberarray[i] = i + 1
+      }
+    }
+  }
 
 
 </script>

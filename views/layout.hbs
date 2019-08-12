@@ -57,9 +57,25 @@
         </div>
       </div>
     </section>
-    {{else}}
     {{/if}}
-    {{{body}}}
+      {{{body}}}
+    {{#if navbar}}
+      <div class="footer">
+        <div class="footer-content">
+          <a href="https://www.harvardartmuseums.org"><img class="footer-logo" src="/images/artmuseumsfulllogo.png"></img></a>
+          <div class="footer-icons">
+            <a href="https://twitter.com/HAM_Technology"><img class="footer-icon" src="/images/twittericon.png"></img></a>
+            <a href="https://www.facebook.com/harvardartmuseums"><img class="footer-icon" src="/images/facebookicon.png"></img></a>
+            <a href="https://www.instagram.com/harvardartmuseums/"><img class="footer-icon" src="/images/instagramicon.png"></img></a>
+            <a href="https://github.com/harvardartmuseums"><img class="footer-icon" src="/images/githubicon.png"></img></a>
+          </div>
+          <div class="footer-email">
+            <a href="https://www.harvardartmuseums.org/about/staff-and-contact">Contact Us</a>
+            <div class="disclaimer">© 2019 President and Fellows of Harvard College</div>
+          </div>
+        </div>
+      </div>
+    {{/if}}
   </body>
 </html>
 

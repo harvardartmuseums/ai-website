@@ -13,5 +13,22 @@ module.exports = {
                 {objectid: "336269", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC252404_dynmc"},
                 {objectid: "310535", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:INV004599_dynmc"},
                 {objectid: "306169", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:INV004601_dynmc"},
-                {objectid: "344358", imageurl: "https://nrs.harvard.edu/urn-3:huam:STR010942_dynmc"}]
+                {objectid: "344358", imageurl: "https://nrs.harvard.edu/urn-3:huam:STR010942_dynmc"},
+                {objectid: "223395", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC253988_dynmc"},
+                {objectid: "199195", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:CARP00810_dynmc"},
+                {objectid: "222907", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:761132"},
+                {objectid: "333599", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC109414_dynmc"},
+                {objectid: "306253", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC105012_dynmc"},
+                {objectid: "333566", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC109386_dynmc"},
+                {objectid: "356227", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:761678"},
+                {objectid: "225995", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:INV177836_dynmc"},
+                {objectid: "20969", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:77913_dynmc"},
+                {objectid: "229061", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC251932_dynmc"},
+                {objectid: "141150", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:INV008287_dynmc"},
+                {objectid: "228871", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC231525_dynmc"},
+                {objectid: "222453", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC254953_dynmc"},
+                {objectid: "337105", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC111300_dynmc"},
+                {objectid: "4630", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC237471_dynmc"},
+                {objectid: "333601", imageurl: "https://nrs.harvard.edu/urn-3:HUAM:DDC109416_dynmc"}
+                ]
 }

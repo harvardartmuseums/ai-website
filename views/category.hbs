@@ -33,6 +33,13 @@
             </a>
           {{/each}}
         </div>
+        <div class="pagination category-pag">
+          <a id="firstpage" href="/category/{{category}}/1"><i class="fas fa-angle-double-left"></i></a>
+          <a id="previouspage" href="/category/{{category}}/{{category_results_info.pagenumber.previouspage}}"><i class="fas fa-angle-left"></i></a>
+          <div id="pagenumbers"></div>
+          <a id="nextpage" href="/category/{{category}}/{{category_results_info.pagenumber.nextpage}}"><i class="fas fa-angle-right"></i></a>
+          <a id="lastpage" href="/category/{{category}}/{{category_results_info.pages}}"><i class="fas fas fa-angle-double-right"></i></a>
+        </div>
       </div>
     </div>
   </div>
@@ -40,7 +47,7 @@
 
 
 <script>
-  window.onload = function(){
+  document.addEventListener('DOMContentLoaded', function() {
     var category_buttons = document.getElementsByClassName('category-button');
     for(var i = 0; i < category_buttons.length; i++){
         category_buttons[i].classList.toggle('category-button-active', false);
@@ -48,5 +55,51 @@
     var active_button = document.getElementById('{{category}}');
     active_button.classList.toggle('category-button-active')
 
+    if ({{category_results_info.page}} == 1) {
+      document.getElementById('previouspage').style.visibility = "hidden"
+      document.getElementById('firstpage').style.visibility = "hidden"
+    }
+
+    if ({{category_results_info.page}} == {{category_results_info.pages}}) {
+      document.getElementById('nextpage').style.visibility = "hidden"
+      document.getElementById('lastpage').style.visibility = "hidden"
+    }
+
+    pageNumbers({{category_results_info.page}}, {{category_results_info.pages}})
+    console.log(pagenumberarray)
+
+    pagenumberarray.forEach(function(pagenumber) {
+      if (pagenumber == {{category_results_info.page}}) {
+        document.getElementById("pagenumbers").innerHTML+=
+          '<a href="/category/{{category}}/' + pagenumber + '" class="active">' + pagenumber + '</a>'
+      } else {
+        document.getElementById("pagenumbers").innerHTML+=
+          '<a href="/category/{{category}}/' + pagenumber + '">' + pagenumber + '</a>'
+      }
+    })
+  }, false);
+
+  function pageNumbers(currentpage, totalpages) {
+    if (currentpage == 1) {
+      // add next 4 pages
+      pagenumberarray = [1, 2, 3, 4, 5]
+      return pagenumberarray
+    } else if (currentpage == 2) {
+      // add first page, add next 3 pages
+      pagenumberarray = [1, 2, 3, 4, 5]
+      return pagenumberarray
+    } else if (currentpage == (totalpages - 1)) {
+      // add last page, add previous 3 pages
+      pagenumberarray = [(currentpage - 3), (currentpage - 2), (currentpage - 1), currentpage, (currentpage + 1)]
+      return pagenumberarray
+    } else if (currentpage == totalpages) {
+      // add previous 4 pages
+      pagenumberarray = [(currentpage - 4), (currentpage - 3), (currentpage - 2), (currentpage - 1), currentpage]
+      return pagenumberarray
+    } else {
+      // add previous 2 pages, add next 2 pages
+      pagenumberarray = [(currentpage - 2), (currentpage - 1), currentpage, (currentpage + 1), (currentpage + 2)]
+      return pagenumberarray
+    }
   }
 </script>

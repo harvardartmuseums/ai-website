@@ -55,6 +55,9 @@ router.get('/search/:tag', function(req, res, next) {
   .then(tag_results => {
     let tag_results_info = tag_results.info
     tag_results_info.pagenumber = {nextpage: 2};
+    if (tag_results_info.pages > 33) {
+      tag_results_info.pages = 33
+    }
     // Sort tag results by confidence percent
     tag_results = _.filter(tag_results.records, {type: 'tag'})
     tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
@@ -104,6 +107,9 @@ router.get('/search/:tag/:page', function(req, res, next) {
   .then(tag_results => {
     let tag_results_info = tag_results.info
     tag_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
+    if (tag_results_info.pages > 33) {
+      tag_results_info.pages = 33
+    }
     // Sort tag results by confidence percent
     tag_results = _.filter(tag_results.records, {type: 'tag'})
     tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
@@ -142,9 +148,14 @@ router.get('/search/:tag/:page', function(req, res, next) {
 
 
 router.get('/category/:category', function(req, res, next) {
-  const category_url = `https://api.harvardartmuseums.org/annotation/?size=100&apikey=` + API_KEY + `&q=type:category AND body:` + req.params.category
+  const category_url = `https://api.harvardartmuseums.org/annotation/?size=100&sort=confidence&sortorder=desc&apikey=` + API_KEY + `&q=type:category AND body:` + req.params.category
   fetch(category_url).then(response => response.json())
   .then(category_results => {
+    let category_results_info = category_results.info
+    category_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
+    if (category_results_info.pages > 33) {
+      category_results_info.pages = 33
+    }
     category_results = _.orderBy(category_results.records, ['confidence'], ['desc'])
     let imageid_results = _.map(category_results, 'imageid')
     let object_url = appendscript.idappend(imageid_results)
@@ -157,7 +168,39 @@ router.get('/category/:category', function(req, res, next) {
                              object_results: object_results,
                              category_results: category_results,
                              category_list: imagga_categories.categories_list,
-                             category: req.params.category
+                             category: req.params.category,
+                             category_results_info: category_results_info,
+                           });
+    })
+  })
+});
+
+router.get('/category/:category/:page', function(req, res, next) {
+  if (req.params.page == 1) {
+    res.redirect('/category/' + req.params.category)
+  }
+  const category_url = `https://api.harvardartmuseums.org/annotation/?size=100&sort=confidence&sortorder=desc&apikey=` + API_KEY + `&q=type:category AND body:` + req.params.category + '&page=' + req.params.page;
+  fetch(category_url).then(response => response.json())
+  .then(category_results => {
+    let category_results_info = category_results.info
+    category_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
+    if (category_results_info.pages > 33) {
+      category_results_info.pages = 33
+    }
+    category_results = _.orderBy(category_results.records, ['confidence'], ['desc'])
+    let imageid_results = _.map(category_results, 'imageid')
+    let object_url = appendscript.idappend(imageid_results)
+    fetch(object_url).then(response => response.json())
+    .then(object_results => {
+      object_results = object_results.records
+      object_results = appendscript.categoryappend(object_results, category_results)
+      res.render('category', { title: "Category results for '" + req.params.category + "'",
+                             navbar: true,
+                             object_results: object_results,
+                             category_results: category_results,
+                             category_list: imagga_categories.categories_list,
+                             category: req.params.category,
+                             category_results_info: category_results_info
                            });
     })
   })
@@ -176,6 +219,7 @@ router.get('/object/:object_id', function(req, res, next) {
       let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc'])
       // Divide data into general categories
       let ai_sorted = organize.divide(ai_data)
+      console.log(ai_sorted)
       res.render('object', { title: 'Object info',
                              navbar: false,
                              ai_data: ai_data,
