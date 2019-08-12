@@ -1658,13 +1658,32 @@ button {
 }
 
 
-@media only screen and (min-width: 500px) and (max-width: 1100px) {
+@media only screen and (min-width: 800px) and (max-width: 1100px) {
   .footer-logo {
     width: 300px;
   }
 
   .footer-icon {
     width: 25px;
+  }
+
+  .footer-icons {
+    flex-wrap: wrap;
+  }
+}
+
+@media only screen and (min-width: 500px) and (max-width: 800px) {
+  .footer-logo {
+    width: 300px;
+  }
+
+  .footer-icon {
+    width: 25px;
+    margin: 5px;
+  }
+
+  .footer-icons {
+    flex-wrap: wrap;
   }
 }
 
