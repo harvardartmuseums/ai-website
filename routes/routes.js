@@ -16,20 +16,24 @@ const API_KEY = process.env['API_KEY']
 /* GET home page. */
 router.get('/', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
   res.render('index', { title: 'Machine Tag Explorer',
                         navbar: true,
                         tag_list: tag_list,
+                        mobile_tag_list: mobile_tag_list,
                         image_list: image_list
                       });
 });
 
 router.get('/about', function(req, res, nect) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
   res.render('about', {title: 'About',
                         navbar: true,
                         tag_list: tag_list,
+                        mobile_tag_list: mobile_tag_list,
                         image_list: image_list})
 })
 
@@ -37,10 +41,12 @@ router.get('/about', function(req, res, nect) {
 /* GET explore page. */
 router.get('/explore', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
-  let image_list = _.sampleSize(example_images.image_list, 6)
+  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
+  let image_list = _.sampleSize(example_images.image_list, 6);
   res.render('explore', { title: 'Explore',
                           navbar: true,
                           tag_list: tag_list,
+                          mobile_tag_list: mobile_tag_list,
                           image_list: image_list
                         });
 });
@@ -49,7 +55,8 @@ router.get('/explore', function(req, res, next) {
 /* GET search results. */
 router.get('/search/:tag', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
-  let image_list = _.sampleSize(example_images.image_list, 6)
+  let image_list = _.sampleSize(example_images.image_list, 6);
+  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
@@ -85,12 +92,14 @@ router.get('/search/:tag', function(req, res, next) {
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
+                                            mobile_tag_list: mobile_tag_list,
                                             image_list: image_list})})
   })
   .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                           navbar: true,
                                           error: true,
                                           tag_list: tag_list,
+                                          mobile_tag_list: mobile_tag_list,
                                           image_list: image_list})})
 });
 
@@ -101,6 +110,7 @@ router.get('/search/:tag/:page', function(req, res, next) {
     res.redirect('/search/' + req.params.tag)
   }
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
   const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY + '&page=' + req.params.page;
   fetch(tag_url).then(response => response.json())
@@ -137,12 +147,14 @@ router.get('/search/:tag/:page', function(req, res, next) {
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
+                                            mobile_tag_list: mobile_tag_list,
                                             image_list: image_list})})
   })
   .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                           navbar: true,
                                           error: true,
                                           tag_list: tag_list,
+                                          mobile_tag_list: mobile_tag_list,
                                           image_list: image_list})})
 });
 
@@ -209,6 +221,7 @@ router.get('/category/:category/:page', function(req, res, next) {
 /* GET object info. */
 router.get('/object/:object_id', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
   const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
   fetch(object_url).then(response => response.json())
@@ -231,12 +244,14 @@ router.get('/object/:object_id', function(req, res, next) {
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
+                                            mobile_tag_list: mobile_tag_list,
                                             image_list: image_list})})
   })
   .catch(error => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
                                           navbar: true,
                                           error: true,
                                           tag_list: tag_list,
+                                          mobile_tag_list: mobile_tag_list,
                                           image_list: image_list})})
 });
 

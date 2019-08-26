@@ -6,7 +6,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="https://fonts.typotheque.com/WF-023797-007265.css" type="text/css" />
     <script src="https://kit.fontawesome.com/379a4d068b.js"></script>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale = 1.0,
+maximum-scale=1.0, user-scalable=no">
 
   </head>
   <body>
@@ -24,10 +25,10 @@
           <a href="/explore">Explore</a>
           <a>
             <div class="nav-search-container">
-            <form method="post" action="/search">
-              <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
-              <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
-            </form>
+              <form method="post" action="/search">
+                <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
+                <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
+              </form>
             </div>
           </a>
         </div>
@@ -39,24 +40,25 @@
           </div>
         </div>
       </div>
-      <div class="mobile-dropdown" id="mobile-dropdown">
-        <button id="dropdown-close" onClick="closedropdown()"><i class="fa fa-times"></i></button>
-        <div class="dropdown-head"><h4>Menu</h4></div>
-        <div class="dropdown-content">
-          <a href="/">Home</a>
-          <a href="/about">About</a>
-          <a href="/explore">Explore</a>
-          <a>
-            <div class="nav-search-container">
-            <form method="post" action="/search">
-              <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
-              <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
-            </form>
-            </div>
-          </a>
-        </div>
-      </div>
     </section>
+    <div class="mobile-dropdown" id="mobile-dropdown">
+      <button id="dropdown-close" onClick="closedropdown()"><i class="fa fa-times"></i></button>
+      <div class="dropdown-head"><h4>Menu</h4></div>
+      <div class="dropdown-content">
+        <a href="/">Home</a>
+        <a href="/about">About</a>
+        <a href="/explore">Explore</a>
+        <a>
+          <div class="nav-search-container">
+          <form method="post" action="/search">
+            <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
+            <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
+          </form>
+          </div>
+        </a>
+      </div>
+    </div>
+    <button id="dropdown-back-overlay" onclick="closedropdown()"></button>
     {{/if}}
       {{{body}}}
     {{#if navbar}}
@@ -75,6 +77,18 @@
           </div>
         </div>
       </div>
+      <div class="mobile-footer">
+        <div class="mobile-footer-content">
+          <a href="https://www.harvardartmuseums.org"><img class="mobile-footer-logo" src="/images/artmuseumsfulllogo.png"></img></a>
+          <div class="disclaimer">© 2019 President and Fellows of Harvard College</div>
+          <div class="footer-icons">
+            <a href="https://twitter.com/HAM_Technology"><img class="footer-icon" src="/images/twittericon.png"></img></a>
+            <a href="https://www.facebook.com/harvardartmuseums"><img class="footer-icon" src="/images/facebookicon.png"></img></a>
+            <a href="https://www.instagram.com/harvardartmuseums/"><img class="footer-icon" src="/images/instagramicon.png"></img></a>
+            <a href="https://github.com/harvardartmuseums"><img class="footer-icon" src="/images/githubicon.png"></img></a>
+          </div>
+        </div>
+      </div>
     {{/if}}
   </body>
 </html>
@@ -83,11 +97,12 @@
 <script>
   function closedropdown() {
     document.getElementById('mobile-dropdown').style.display = "none";
+    document.getElementById('dropdown-back-overlay').style.display = "none";
   }
 
   function opendropdown() {
     document.getElementById('mobile-dropdown').style.display = "block";
-
+    document.getElementById('dropdown-back-overlay').style.display = "block";
   }
 
 </script>
