@@ -80,7 +80,8 @@
   --c-orangered: #FF3131;
   --c-yellow: #FFEF5A;
   --c-hovergray: #DFDFDF;
-  --c-hoverred: #E32020
+  --c-hoverred: #E32020;
+  --c-linkblue: #4e75a6
 }
 
 body {
@@ -344,6 +345,10 @@ sup {
 .applications-column-right {
   flex: 50%;
   margin-left: 40px;
+}
+
+.applications-column-right > p > a {
+  color: var(--c-linkblue)
 }
 
 .explore-block {
@@ -1481,7 +1486,7 @@ select::-ms-expand {
 }
 
 .category-icon {
-  width: 30%
+  width: 15%
 }
 
 .category-results {
@@ -1603,7 +1608,9 @@ select::-ms-expand {
 }
 
 .about-why-how {
-  margin-top: 80px;
+  margin-top: 40px;
+  padding-top: 40px;
+  border-top: solid 1px var(--c-lightgray);
   display: inline-block;
   width: 100%;
   display: flex;
@@ -1614,6 +1621,10 @@ select::-ms-expand {
 .about-why-how-text {
   width: 48%;
   display: inline-block;
+}
+
+.about-why-how-text > p > a{
+  color: var(--c-linkblue)
 }
 
 .about-banner {

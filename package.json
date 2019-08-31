@@ -1,6 +1,6 @@
 {
-  "name": "ai-site",
-  "version": "0.0.0",
+  "name": "AI Explorer",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "start": "node ./bin/www"
@@ -19,7 +19,6 @@
     "handlebars.numeral": "^0.2.0",
     "hbs": "^4.0.4",
     "http-errors": "~1.6.3",
-    "infinite-scroll": "^3.0.6",
     "lodash": "^4.17.14",
     "morgan": "~1.9.1",
     "node": "^12.6.0",

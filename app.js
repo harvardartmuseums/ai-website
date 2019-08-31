@@ -15,13 +15,7 @@ require('cross-fetch/polyfill');
 
 const API_KEY = process.env['API_KEY']
 
-var hbs = exphbs.create({
-    helpers: {
-        round: function(value) {
-            return Math.round(value)
-        }
-    }
-});
+var hbs = exphbs.create();
 
 // view engine setup
 app.engine('handlebars', hbs.engine);
