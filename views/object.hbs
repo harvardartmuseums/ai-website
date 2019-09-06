@@ -18,28 +18,28 @@
         <td class="object-info-row">
           <div class="object-info-section">
             <h5>Title</h5>
-            <h3>{{object_info.title}}<span><a href="https://www.harvardartmuseums.org/collections/object/{{object_info.objectid}}"><i class="fa fa-external-link"></i></a></span></h3>
+            <h3>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h3>
           </div>
         </td>
         <td class="object-info-row">
           <div class="object-info-section">
             <h5>Date</h5>
-            <h3>{{object_info.datebegin}}</h3>
+            <h3>{{object_info.dated}}</h3>
           </div>
         </td>
       </tr>
       <tr>
         <td class="object-info-row">
           <div class="object-info-section">
-            <h5>Artist</h5>
+            <h5>People</h5>
             {{#each object_info.people}}
-              <h3>{{name}}, {{culture}} {{displaydate}}</h3>
+              <h3>{{role}}: {{name}}, {{culture}} {{displaydate}}</h3>
             {{/each}}
           </div>
         </td>
         <td class="object-info-row">
           <div class="object-info-section">
-            <h5>Work type</h5>
+            <h5>Classification</h5>
             <h3>{{object_info.classification}}</h3>
           </div>
         </td>
@@ -48,20 +48,20 @@
     <div class="object-human-info-mobile">
       <div class="object-info-section">
         <h5>Title</h5>
-        <h3>{{object_info.title}}<span><a href="https://www.harvardartmuseums.org/collections/object/{{object_info.objectid}}"><i class="fa fa-external-link"></i></a></span></h3>
+        <h3>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h3>
       </div>
       <div class="object-info-section">
-        <h5>Artist</h5>
+        <h5>People</h5>
         {{#each object_info.people}}
-          <h3>{{name}}, {{culture}} {{displaydate}}</h3>
+          <h3>{{role}}: {{name}}, {{culture}} {{displaydate}}</h3>
         {{/each}}
       </div>
       <div class="object-info-section">
         <h5>Date</h5>
-        <h3>{{object_info.datebegin}}</h3>
+        <h3>{{object_info.dated}}</h3>
       </div>
       <div class="object-info-section">
-        <h5>Work type</h5>
+        <h5>Classification</h5>
         <h3>{{object_info.classification}}</h3>
       </div>
     </div>
