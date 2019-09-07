@@ -691,7 +691,7 @@ a {
 
 .object-info-panel {
   width: 70%;
-  margin-left: 30%;
+  margin-left: 30%; 
 }
 
 .object-info-panel > .content {
@@ -711,7 +711,6 @@ a {
   width: 92%;
   margin: 0 auto;
   max-width: 1000px;
-  margin-top: 50px;
 }
 
 .object-human-info-mobile {
@@ -826,7 +825,6 @@ a {
 }
 
 .ai-content {
-  margin-top: 60px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;

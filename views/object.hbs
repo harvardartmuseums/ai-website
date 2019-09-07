@@ -13,6 +13,9 @@
 </section>
 
 <section class="object-info-panel">
+    <div class="object-human-info">
+        <h2>Human Generated Data</h2>
+    </div>
     <table class="object-human-info">
       <tr>
         <td class="object-info-row">
@@ -47,6 +50,9 @@
     </table>
     <div class="object-human-info-mobile">
       <div class="object-info-section">
+        <h2>Human Generated Data</h2>
+      </div>
+      <div class="object-info-section">
         <h5>Title</h5>
         <h3>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h3>
       </div>
@@ -68,11 +74,11 @@
 
     <div class="gray-line-break"></div>
     <div class="content">
-
     {{#if ai_sorted}}
       <div class="ai-content">
+        <h2>Machine Generated Data</h2>
         <div id="object-tag-section">
-          <h3>Generated tags</h3>
+          <h3>Tags</h3>
           <div class="tag-box">
             {{#each ai_sorted.tagsect}}
               <div class="service-tags">
@@ -204,7 +210,7 @@
         {{/if}}
         {{#if ai_sorted.captions}}
           <div id="object-captions-section">
-            <h3>Generated captions</h3>
+            <h3>Captions</h3>
             <div class="captions-colors-box">
               <div class="captions-colors-box-content">
                 <div class="captions-colors-head">
@@ -231,7 +237,7 @@
         {{/if}}
         {{#if ai_sorted.textsect}}
           <div id="object-text-section">
-            <h3>Text detection</h3>
+            <h3>Text analysis</h3>
             <div class="text-box">
                 {{#each ai_sorted.textsect}}
                   <div class="text-service-sect">
