@@ -1,7 +1,5 @@
 var _ = require('lodash');
 var async = require('async');
-const API_KEY = '67669ae0-b77e-11e8-bf0e-e9322ccde4db';
-
 
 module.exports = {
   amazonfacesort: function (facedata) {
