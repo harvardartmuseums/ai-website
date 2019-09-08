@@ -17,6 +17,27 @@ const API_KEY = process.env['API_KEY']
 
 var hbs = exphbs.create();
 
+//------------------------------------------------------------------------------
+//
+// SSL stuff specific to running this app on Heroku.
+//
+//------------------------------------------------------------------------------
+var redirectToSSL = function(environments) {
+	return function(request, response, next) {
+		if (environments.indexOf(process.env.NODE_ENV) > -1) {
+      		if (request.headers['x-forwarded-proto'] != 'https') {
+				response.redirect(301, 'https://' + request.host + request.originalUrl);
+      		} else {
+      			request.original_protocol = 'https';
+      			next();
+      		}
+		} else {
+			request.original_protocol = request.protocol;
+			next();
+		}
+	}
+};
+
 // view engine setup
 app.engine('handlebars', hbs.engine);
 app.set('view engine', 'hbs');
@@ -27,6 +48,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(redirectToSSL(['staging', 'production']));
 app.use('/', routes);
 
 // catch 404 and forward to error handler
