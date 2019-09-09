@@ -3,7 +3,7 @@
 
 The AI explorer provides a front-end and a means to accessing the Harvard Museums' research on how machines interpret art by collecting data from 5 different AI services.
 
-While the Harvard Art Museums began collecting the AI data in 2014, the data was only publicly available through the museum's API. The website began development in June 2019 and launched in August 2019. This project was built in-house and is maintained by the office of Digital Infrastructure and Emerging Technology.
+While the Harvard Art Museums began collecting the AI data in 2016, the data was only publicly available through the museum's API. The website began development in June 2019 and launched in August 2019. This project was built in-house and is maintained by the office of Digital Infrastructure and Emerging Technology.
 
 ## Features
 
