@@ -47,6 +47,23 @@
           </div>
         </td>
       </tr>
+      </tr>
+      <tr>
+        <td class="object-info-row">
+          <div class="object-info-section">
+            <h5>Credit Line</h5>
+              <h3>{{object_info.creditline}}, {{object_info.objectnumber}}</h3>
+          </div>
+        </td>
+        <td class="object-info-row">
+          <div class="object-info-section">
+            {{#if object_info.copyright}}
+            <h5>Copyright</h5>
+            <h3>{{object_info.copyright}}</h3>
+            {{/if}}
+          </div>
+        </td>
+      </tr>      
     </table>
     <div class="object-human-info-mobile">
       <div class="object-info-section">
