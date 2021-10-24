@@ -73,6 +73,7 @@ module.exports = {
     ai_sorted.tagsect.Microsoft.tags = _.filter(ai_data, {type: 'tag', source: 'Microsoft Cognitive Services'})
     ai_sorted.tagsect = _.filter(ai_sorted.tagsect, function(service){
                           if (service.tags.length > 0) {
+                            service.createdate = service.tags[0].createdate.substr(0,10);
                             return service
                           }
                         })
@@ -88,6 +89,7 @@ module.exports = {
       ai_sorted.facesect.Google.faces = _.map(googlefaces, module.exports.googlefacesort(googlefaces))
       ai_sorted.facesect = _.filter(ai_sorted.facesect, function(service){
         if(service.faces.length > 0) {
+          service.createdate = service.faces[0].createdate.substr(0,10);
           return service
         }
       })
@@ -95,6 +97,7 @@ module.exports = {
     if (_.filter(ai_data, {type: 'tag', feature: 'region'}).length !== 0) {
       ai_sorted.featuresect = {Amazon:{source:'Amazon', features:{}}}
       ai_sorted.featuresect.Amazon.features = _.uniqBy(_.filter(ai_data, {type: 'tag', feature: 'region'}), 'body')
+      ai_sorted.featuresect.Amazon.createdate =  ai_sorted.featuresect.Amazon.features[0].createdate.substr(0,10);
     }
     if (_.filter(ai_data, {type: 'description'}).length !== 0) {
       ai_sorted.captions = {}
@@ -108,6 +111,7 @@ module.exports = {
     ai_sorted.textsect.Amazon.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "AWS Rekognition"}), 'body')
     ai_sorted.textsect = _.filter(ai_sorted.textsect, function(service){
       if(service.text.length > 0) {
+        service.createdate = service.text[0].createdate.substr(0,10);
         return service
       }
     })

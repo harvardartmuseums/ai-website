@@ -847,7 +847,7 @@ a {
 }
 
 .service-tags {
-  height: 340px;
+  height: 380px;
   width: 100%;
   padding: 10px 0px;
   min-width: 130px;
@@ -866,8 +866,12 @@ a {
   margin-bottom: 15px;
 }
 
+.tag-heading > h4 > span {
+  font-size: small;
+}
+
 .tag-list {
-  height: 260px;
+  height: 280px;
   padding-right: 10px;
   overflow-y: auto;
 }
