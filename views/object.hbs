@@ -290,6 +290,9 @@
         toolbar: "image-toolbar",
         zoomInButton: "zoom-in",
         zoomOutButton: "zoom-out",
+        {{#if object_info.imagepermissionlevel}}
+        maxZoomLevel: 1,
+        {{/if}}
         tileSources: [
           "{{object_info.images.0.iiifbaseuri}}/info.json"
         ]
