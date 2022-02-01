@@ -1616,12 +1616,13 @@ select::-ms-expand {
   display: inline-block;
   width: 100%;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
 
 }
 
 .about-why-how-text {
-  width: 48%;
+  width: 100%;
   display: inline-block;
 }
 
