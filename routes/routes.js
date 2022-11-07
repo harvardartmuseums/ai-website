@@ -18,16 +18,18 @@ router.get('/', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=` + API_KEY;
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     let annotation_count = tag_results.info.totalrecords.toLocaleString();
+    let image_count = tag_results.aggregations.image_count.value.toLocaleString();
     res.render('index', {title: 'AI Explorer',
                           navbar: true,
                           tag_list: tag_list,
                           mobile_tag_list: mobile_tag_list,
                           image_list: image_list,
-                          annotation_count: annotation_count})
+                          annotation_count: annotation_count,
+                          image_count: image_count})
   })
 });
 
@@ -36,16 +38,18 @@ router.get('/about', function(req, res, nect) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6);
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=` + API_KEY;
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     let annotation_count = tag_results.info.totalrecords.toLocaleString();
+    let image_count = tag_results.aggregations.image_count.value.toLocaleString();
     res.render('about', {title: 'About the AI Explorer',
                           navbar: true,
                           tag_list: tag_list,
                           mobile_tag_list: mobile_tag_list,
                           image_list: image_list,
-                          annotation_count: annotation_count})
+                          annotation_count: annotation_count,
+                          image_count: image_count})
   })
 })
 
