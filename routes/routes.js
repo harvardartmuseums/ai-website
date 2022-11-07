@@ -81,6 +81,7 @@ router.get('/search/:tag', function(req, res, next) {
     if (tag_results_info.pages > 33) {
       tag_results_info.pages = 33
     }
+    tag_results_info.search = req._parsedUrl.search
     // Sort tag results by confidence percent
     tag_results = _.filter(tag_results.records, {type: 'tag'})
     tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
@@ -88,6 +89,8 @@ router.get('/search/:tag', function(req, res, next) {
     let imageid_results = _.map(tag_results, 'imageid')
     // Function to create a new query to retrieve objects from image ids
     let object_url = appendscript.idappend(imageid_results)
+    object_url = appendscript.qsappend(req.query, object_url)
+
     fetch(object_url).then(response => response.json())
     .then(object_results => {
       object_results = object_results.records
@@ -122,9 +125,9 @@ router.get('/search/:tag', function(req, res, next) {
 /* GET search results for next page. */
 router.get('/search/:tag/:page', function(req, res, next) {
   // If it's the first page, redirect to other route
-  if (req.params.page == 1) {
-    res.redirect('/search/' + req.params.tag)
-  }
+  // if (req.params.page == 1) {
+  //   res.redirect('/search/' + req.params.tag)
+  // }
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
@@ -136,6 +139,7 @@ router.get('/search/:tag/:page', function(req, res, next) {
     if (tag_results_info.pages > 33) {
       tag_results_info.pages = 33
     }
+    tag_results_info.search = req._parsedUrl.search
     // Sort tag results by confidence percent
     tag_results = _.filter(tag_results.records, {type: 'tag'})
     tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
@@ -143,6 +147,8 @@ router.get('/search/:tag/:page', function(req, res, next) {
     let imageid_results = _.map(tag_results, 'imageid')
     // Function to create a new query to retrieve objects from image ids
     let object_url = appendscript.idappend(imageid_results)
+    object_url = appendscript.qsappend(req.query, object_url)
+
     fetch(object_url).then(response => response.json())
     .then(object_results => {
       object_results = object_results.records
@@ -184,9 +190,12 @@ router.get('/category/:category', function(req, res, next) {
     if (category_results_info.pages > 33) {
       category_results_info.pages = 33
     }
+    tag_results_info.search = req._parsedUrl.search
     category_results = _.orderBy(category_results.records, ['confidence'], ['desc'])
     let imageid_results = _.map(category_results, 'imageid')
     let object_url = appendscript.idappend(imageid_results)
+    object_url = appendscript.qsappend(req.query, object_url)
+
     fetch(object_url).then(response => response.json())
     .then(object_results => {
       object_results = object_results.records
@@ -205,9 +214,9 @@ router.get('/category/:category', function(req, res, next) {
 
 /* GET category results for next page. */
 router.get('/category/:category/:page', function(req, res, next) {
-  if (req.params.page == 1) {
-    res.redirect('/category/' + req.params.category)
-  }
+  // if (req.params.page == 1) {
+  //   res.redirect('/category/' + req.params.category)
+  // }
   const category_url = `https://api.harvardartmuseums.org/annotation/?size=100&sort=confidence&sortorder=desc&apikey=` + API_KEY + `&q=type:category AND body:` + req.params.category + '&page=' + req.params.page;
   fetch(category_url).then(response => response.json())
   .then(category_results => {
@@ -216,9 +225,12 @@ router.get('/category/:category/:page', function(req, res, next) {
     if (category_results_info.pages > 33) {
       category_results_info.pages = 33
     }
+    tag_results_info.search = req._parsedUrl.search
     category_results = _.orderBy(category_results.records, ['confidence'], ['desc'])
     let imageid_results = _.map(category_results, 'imageid')
     let object_url = appendscript.idappend(imageid_results)
+    object_url = appendscript.qsappend(req.query, object_url)
+
     fetch(object_url).then(response => response.json())
     .then(object_results => {
       object_results = object_results.records

@@ -92,11 +92,11 @@
         </div>
       </div>
       <div class="pagination">
-        <a id="firstpage" href="/search/{{tag}}/1"><i class="fas fa-angle-double-left"></i></a>
-        <a id="previouspage" href="/search/{{tag}}/{{tag_results_info.pagenumber.previouspage}}"><i class="fas fa-angle-left"></i></a>
+        <a id="firstpage" href="/search/{{tag}}/1{{tag_results_info.search}}"><i class="fas fa-angle-double-left"></i></a>
+        <a id="previouspage" href="/search/{{tag}}/{{tag_results_info.pagenumber.previouspage}}{{tag_results_info.search}}"><i class="fas fa-angle-left"></i></a>
         <div id="pagenumbers"></div>
-        <a id="nextpage" href="/search/{{tag}}/{{tag_results_info.pagenumber.nextpage}}"><i class="fas fa-angle-right"></i></a>
-        <a id="lastpage" href="/search/{{tag}}/{{tag_results_info.pages}}"><i class="fas fas fa-angle-double-right"></i></a>
+        <a id="nextpage" href="/search/{{tag}}/{{tag_results_info.pagenumber.nextpage}}{{tag_results_info.search}}"><i class="fas fa-angle-right"></i></a>
+        <a id="lastpage" href="/search/{{tag}}/{{tag_results_info.pages}}{{tag_results_info.search}}"><i class="fas fas fa-angle-double-right"></i></a>
       </div>
     {{/if}}
 
@@ -121,10 +121,10 @@
     pagenumberarray.forEach(function(pagenumber) {
       if (pagenumber == {{tag_results_info.page}}) {
         document.getElementById("pagenumbers").innerHTML+=
-          '<a href="/search/{{tag}}/' + pagenumber + '" class="active">' + pagenumber + '</a>'
+          '<a href="/search/{{tag}}/' + pagenumber + '{{tag_results_info.search}}" class="active">' + pagenumber + '</a>'
       } else {
         document.getElementById("pagenumbers").innerHTML+=
-          '<a href="/search/{{tag}}/' + pagenumber + '">' + pagenumber + '</a>'
+          '<a href="/search/{{tag}}/' + pagenumber + '{{tag_results_info.search}}">' + pagenumber + '</a>'
       }
     })
 

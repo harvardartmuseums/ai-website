@@ -13,6 +13,12 @@ module.exports = {
     search_url = search_url.slice(0, -4)
     return search_url
   },
+  qsappend: function(query, search_url) {
+    if (query.classification) {
+      search_url = search_url + `&classification=` + query.classification
+    }
+    return search_url
+  },
   tagappend: function (object_results, tag_results) {
     _.map(object_results, function(object){
       if (object.images[0]) {
