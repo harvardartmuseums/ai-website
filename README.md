@@ -1,21 +1,20 @@
 # AI Explorer
-> Harvard Art Museums
 
-The AI explorer provides a front-end and a means to accessing the Harvard Museums' research on how machines interpret art by collecting data from 5 different AI services.
+[AI explorer](https://ai.harvardartmuseums.org) is a front-end for the Harvard Museums' data set of AI generated captions, descriptions, and tag. This is part of the museum's research in to using 5 different AI computer vision services to interpret its art collections.
 
-While the Harvard Art Museums began collecting the AI data in 2016, the data was only publicly available through the museum's API. The website began development in June 2019 and launched in August 2019. This project was built in-house and is maintained by the office of Digital Infrastructure and Emerging Technology.
+While the Harvard Art Museums began collecting AI generated data in 2016, the data was only publicly available through the [museum's API](https://hvrd.art/api). The AI website began development in June 2019 and launched in August 2019. This project was built in-house and is maintained by the department of Digital Infrastructure and Emerging Technology.
 
 ## Features
 
-* Individual object data - see all annotations from 5 different A.I. services for a particular artwork
-* Search by keyword - a user-inputted keyword returns all artworks that were tagged with that word by A.I. services
-* Search by category - returns all artworks sorted into 12 different broad categories by A.I. service Imagga
+* Individual object data - see all annotations from 5 different AI services for a particular artwork
+* Search by keyword - a user-inputted keyword returns all artworks that were tagged with that word by AI services
+* Search by category - returns all artworks sorted into 12 different broad categories by AI service Imagga
 
 ## Overview
 
-The AI Explorer is an exploratory and educational website accessing the Harvard Art Museum's research data on how artificial intelligence views art. The website allows users to see how computer vision services Amazon Rekognition, Clarifai, Imagga, Google Vision, and Microsoft Cognitive Services interpret artworks in the Harvard Art Museums digital collection. Additionally, the site allows users to search by keyword in order to return artworks that were tagged by the AI services with that word.
+The AI Explorer is an exploratory and educational website accessing the Harvard Art Museum's research data on how artificial intelligence views art. The website allows users to see how computer vision services Amazon Rekognition, Clarifai, Imagga, Google Vision, and Microsoft Cognitive Services interpret artworks in the Harvard Art Museums collection. Additionally, the site allows users to search by keyword in order to return artworks that were tagged by the AI services with that word.
 
-## Requirements
+# Requirements
 
 * NodeJS
 * Harvard Art Museums API Key ([get one here](http://www.harvardartmuseums.org/collections/api))
@@ -28,7 +27,7 @@ To get started with this project, use the following commands:
 git clone https://github.com/harvardartmuseums/ai-website.git
 
 # Enter the folder that was created by the clone
-cd ai-site
+cd ai-website
 
 # Install node dependencies
 npm install
