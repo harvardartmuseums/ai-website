@@ -1,9 +1,8 @@
+require('dotenv').config({path: '.env'})
+
 var express = require('express');
 var router = express.Router();
-var fetch = require('node-fetch')
-require('cross-fetch/polyfill');
-require('dotenv').config({path: '.env'})
-var async = require('async');
+var querystring = require('querystring');
 var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
 var organize = require('../public/javascripts/organize')
@@ -19,6 +18,7 @@ router.get('/', function(req, res, next) {
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
   const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
+  
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     let annotation_count = tag_results.info.totalrecords.toLocaleString();
@@ -73,7 +73,15 @@ router.get('/search/:tag', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let image_list = _.sampleSize(example_images.image_list, 6);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY;
+
+  let qs = {
+    'q': `body:"${req.params.tag}"`,
+    'size': 300,
+    'sort': 'confidence',
+    'sortorder': 'desc',
+    'apikey': API_KEY
+  };
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     let tag_results_info = tag_results.info
@@ -104,7 +112,7 @@ router.get('/search/:tag', function(req, res, next) {
                              tag_results_info: tag_results_info
                            });
     })
-    .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+    .catch(error => {console.log(error); res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
@@ -128,7 +136,17 @@ router.get('/search/:tag/:page', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?q=body:` + req.params.tag + `&size=300&sort=confidence&sortorder=desc&apikey=` + API_KEY + '&page=' + req.params.page;
+  
+  let qs = {
+    'q': `body:"${req.params.tag}"`,
+    'size': 300,
+    'sort': 'confidence',
+    'sortorder': 'desc',
+    'page': req.params.page,
+    'apikey': API_KEY
+  };
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     let tag_results_info = tag_results.info

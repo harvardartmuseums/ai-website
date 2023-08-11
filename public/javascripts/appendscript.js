@@ -1,16 +1,16 @@
-var _ = require('lodash');
-var async = require('async');
 require('dotenv').config({path: '.env'})
+
+var _ = require('lodash');
 const API_KEY = process.env['API_KEY']
 
 
 module.exports = {
   idappend: function (results) {
-    let search_url = `https://api.harvardartmuseums.org/object?size=100&apikey=` + API_KEY + `&q=`
+    let search_url = `https://api.harvardartmuseums.org/object?size=100&apikey=` + API_KEY + `&image=`
     _.map(results, function(imageid){
-      search_url = search_url.concat('images.imageid:' + imageid + " OR ")
+      search_url = search_url.concat(imageid + "|")
     })
-    search_url = search_url.slice(0, -4)
+    search_url = search_url.slice(0, -1)
     return search_url
   },
   tagappend: function (object_results, tag_results) {

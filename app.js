@@ -1,21 +1,16 @@
-var async = require('async');
-var bodyParser = require('body-parser');
 var cookieParser = require('cookie-parser');
 var createError = require('http-errors');
 var express = require('express');
-var exphbs = require('express-handlebars');
-var fetch = require('node-fetch')
+var hbs = require('hbs');
 var logger = require('morgan');
 var path = require('path');
 var routes = require('./routes/routes');
 var app = express();
 
 require('dotenv').config({path: '.env'})
-require('cross-fetch/polyfill');
 
 const API_KEY = process.env['API_KEY']
 
-var hbs = exphbs.create();
 
 //------------------------------------------------------------------------------
 //
@@ -39,7 +34,6 @@ var redirectToSSL = function(environments) {
 };
 
 // view engine setup
-app.engine('handlebars', hbs.engine);
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 

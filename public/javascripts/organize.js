@@ -1,5 +1,4 @@
 var _ = require('lodash');
-var async = require('async');
 
 module.exports = {
   amazonfacesort: function (facedata) {
