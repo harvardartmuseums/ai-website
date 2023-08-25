@@ -75,10 +75,11 @@ router.get('/search/:tag', function(req, res, next) {
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
 
   let qs = {
-    'q': `body:"${req.params.tag}"`,
+    'q': `type:tag AND body:"${req.params.tag}"`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
+    'fields': 'imageid,confidence,source,body,type,feature',
     'apikey': API_KEY
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
@@ -90,7 +91,8 @@ router.get('/search/:tag', function(req, res, next) {
       tag_results_info.pages = 33
     }
     // Sort tag results by confidence percent
-    tag_results = _.filter(tag_results.records, {type: 'tag'})
+    // tag_results = _.filter(tag_results.records, {type: 'tag'})
+    tag_results = tag_results.records;
     tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
     // Create a new array of the image IDs that will show up
     let imageid_results = _.map(tag_results, 'imageid')
@@ -138,10 +140,11 @@ router.get('/search/:tag/:page', function(req, res, next) {
   let image_list = _.sampleSize(example_images.image_list, 6)
   
   let qs = {
-    'q': `body:"${req.params.tag}"`,
+    'q': `type:tag AND body:"${req.params.tag}"`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
+    'fields': 'imageid,confidence,source,body,type,feature',
     'page': req.params.page,
     'apikey': API_KEY
   };
@@ -155,7 +158,8 @@ router.get('/search/:tag/:page', function(req, res, next) {
       tag_results_info.pages = 33
     }
     // Sort tag results by confidence percent
-    tag_results = _.filter(tag_results.records, {type: 'tag'})
+    // tag_results = _.filter(tag_results.records, {type: 'tag'})
+    tag_results = tag_results.records;
     tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
     // Create a new array of the image IDs that will show up
     let imageid_results = _.map(tag_results, 'imageid')
