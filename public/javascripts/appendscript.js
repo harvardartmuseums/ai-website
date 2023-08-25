@@ -27,7 +27,7 @@ module.exports = {
             tag.source = 'Microsoft'
           }
           // Round the percent confidence
-          if (tag.confidence < 1) {
+          if (tag.confidence <= 1) {
             tag.confidence = _.round((tag.confidence * 100), 1)
           }
         })
@@ -46,7 +46,7 @@ module.exports = {
       if (object.images[0]) {
         let categories = _.filter(category_results, {imageid: object.images[0].imageid})
         _.map(categories, function(category){
-          if (category.confidence < 1) {
+          if (category.confidence <= 1) {
             category.confidence = _.round((category.confidence * 100), 1)
           }
         })
