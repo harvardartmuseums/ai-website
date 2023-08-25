@@ -198,7 +198,7 @@ router.get('/category/:category', function(req, res, next) {
   fetch(category_url).then(response => response.json())
   .then(category_results => {
     let category_results_info = category_results.info
-    category_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
+    category_results_info.pagenumber = {nextpage: 2}
     if (category_results_info.pages > 33) {
       category_results_info.pages = 33
     }
