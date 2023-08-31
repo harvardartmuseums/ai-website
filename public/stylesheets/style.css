@@ -1165,8 +1165,7 @@ button {
 }
 
 #object-color-section {
-  margin-top: 45px;
-  width: 48%;
+  width: 100%;
 }
 
 .captions-colors-box {
@@ -2002,10 +2001,6 @@ select::-ms-expand {
   }
 
   #object-captions-section {
-    width: 100%
-  }
-
-  #object-color-section {
     width: 100%
   }
 

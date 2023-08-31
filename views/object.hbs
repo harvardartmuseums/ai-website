@@ -123,6 +123,16 @@
             {{/each}}
           </div>
         </div>
+        <div id="object-color-section">
+          <h3>Color Analysis</h3>
+          <div class="captions-colors-box">
+            <div class="captions-colors-box-content" style="height:25px;">
+           {{#each object_info.colors}}
+              <div style="float:left;background:{{color}};height:25px;width:25px;"></div>
+           {{/each}}
+           </div>
+           </div>
+        </div>
         {{#if ai_sorted.facesect}}
           <div id="object-face-section">
             <h3>Face analysis</h3>
@@ -167,7 +177,6 @@
               </div>
             </div>
           </div>
-
         {{/if}}
         {{#if ai_sorted.featuresect}}
           <section id="object-features-section">
