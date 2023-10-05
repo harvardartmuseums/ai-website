@@ -248,10 +248,28 @@ router.get('/search/:tag/:page', function(req, res, next) {
 
 /* GET category results. */
 router.get('/category/:category', function(req, res, next) {
-  const category_url = `https://api.harvardartmuseums.org/annotation/?size=100&sort=confidence&sortorder=desc&apikey=` + API_KEY + `&q=type:category AND body:` + req.params.category
+  let aggs = {
+    "image_count": {
+        "cardinality": {
+            "field": "imageid",
+            "precision_threshold": 1000
+        }
+    }
+  };  
+  let qs = {
+    'q': `type:category AND accesslevel:1 AND body.exact:"${_.lowerCase(req.params.category)}"`,
+    'size': 100,
+    'sort': 'confidence',
+    'sortorder': 'desc',
+    'fields': 'imageid,confidence,source,body,type,feature',
+    'apikey': API_KEY, 
+    'aggregation': JSON.stringify(aggs)
+  };  
+  const category_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
   fetch(category_url).then(response => response.json())
   .then(category_results => {
-    let category_results_info = category_results.info
+    let category_results_info = category_results.info;
+    let category_stats = category_results.aggregations;
     category_results_info.pagenumber = {nextpage: 2}
     if (category_results_info.pages > 33) {
       category_results_info.pages = 33
@@ -264,6 +282,7 @@ router.get('/category/:category', function(req, res, next) {
       object_results = object_results.records
       object_results = appendscript.categoryappend(object_results, category_results)
       res.render('category', { title: "Category results for '" + req.params.category + "'",
+                               subtitle: `${category_results_info.totalrecords.toLocaleString()} occurrences of '${req.params.category}' found`,
                              navbar: true,
                              object_results: object_results,
                              category_results: category_results,
@@ -280,10 +299,31 @@ router.get('/category/:category/:page', function(req, res, next) {
   if (req.params.page == 1) {
     res.redirect('/category/' + req.params.category)
   }
-  const category_url = `https://api.harvardartmuseums.org/annotation/?size=100&sort=confidence&sortorder=desc&apikey=` + API_KEY + `&q=type:category AND body:` + req.params.category + '&page=' + req.params.page;
+
+  let aggs = {
+    "image_count": {
+        "cardinality": {
+            "field": "imageid",
+            "precision_threshold": 1000
+        }
+    }
+  };  
+  let qs = {
+    'q': `type:category AND accesslevel:1 AND body.exact:"${_.lowerCase(req.params.category)}"`,
+    'size': 100,
+    'page': req.params.page,
+    'sort': 'confidence',
+    'sortorder': 'desc',
+    'fields': 'imageid,confidence,source,body,type,feature',
+    'apikey': API_KEY, 
+    'aggregation': JSON.stringify(aggs)
+  };  
+
+  const category_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
   fetch(category_url).then(response => response.json())
   .then(category_results => {
-    let category_results_info = category_results.info
+    let category_results_info = category_results.info;
+    let category_stats = category_results.aggregations;
     category_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
     if (category_results_info.pages > 33) {
       category_results_info.pages = 33
@@ -296,6 +336,7 @@ router.get('/category/:category/:page', function(req, res, next) {
       object_results = object_results.records
       object_results = appendscript.categoryappend(object_results, category_results)
       res.render('category', { title: "Category results for '" + req.params.category + "'",
+                             subtitle: `${category_results_info.totalrecords.toLocaleString()} occurrences of '${req.params.category}' found`,
                              navbar: true,
                              object_results: object_results,
                              category_results: category_results,

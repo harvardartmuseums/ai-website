@@ -234,6 +234,33 @@
             </div>
           </section>
         {{/if}}
+        {{#if ai_sorted.categories}}
+          <div id="object-captions-section">
+            <h3>Categories</h3>
+            <div class="captions-colors-box">
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Imagga</h4>
+                </div>
+                <table class="captions-table">
+                  {{#each ai_sorted.categories.Imagga}}
+                    <tr>
+                      <td><a href="/category/{{body}}">{{body}}</a></td>
+                      <td class="tag-confidence">{{confidence}}<sup>%</sup></td>
+                    <tr>
+                    <tr>
+                      <td colspan="2">
+                        <div class="confidence-bar">
+                          <div class="red-bar" style="width:{{confidence}}%"></div>
+                        </div>
+                      <td>
+                    </tr>
+                  {{/each}}
+                </table>
+              </div>
+            </div>
+          </div>
+        {{/if}}        
         {{#if ai_sorted.captions}}
           <div id="object-captions-section">
             <h3>Captions</h3>
