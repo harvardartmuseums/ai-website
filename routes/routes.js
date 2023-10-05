@@ -74,18 +74,42 @@ router.get('/search/:tag', function(req, res, next) {
   let image_list = _.sampleSize(example_images.image_list, 6);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
 
+  let aggs = {
+      "by_source": {
+          "terms": {
+              "field": "source"
+          }
+      },
+      "image_count": {
+          "cardinality": {
+              "field": "imageid",
+              "precision_threshold": 1000
+          }
+      },
+      "confidences": {
+          "histogram": {
+              "field": "confidence",
+              "interval": 0.05,
+              "order": {"_key": "desc"}
+          }
+      }
+  };
+
   let qs = {
-    'q': `type:tag AND body:"${req.params.tag}"`,
+    'q': `type:tag AND accesslevel:1 AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
     'fields': 'imageid,confidence,source,body,type,feature',
-    'apikey': API_KEY
+    'apikey': API_KEY, 
+    'aggregation': JSON.stringify(aggs)
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
-    let tag_results_info = tag_results.info
+    let tag_results_info = tag_results.info;    
+    let tag_stats = tag_results.aggregations;
+    tag_results_info.totalrecords_localized = tag_results.info.totalrecords.toLocaleString();
     tag_results_info.pagenumber = {nextpage: 2};
     if (tag_results_info.pages > 33) {
       tag_results_info.pages = 33
@@ -105,6 +129,7 @@ router.get('/search/:tag', function(req, res, next) {
       object_results = appendscript.tagappend(object_results, tag_results)
       let tag = req.params.tag
       res.render('search', { title: "Search results for '" + req.params.tag + "'",
+                             subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${tag_stats.image_count.value.toLocaleString()} images`,
                              navbar: true,
                              object_results: object_results,
                              tag_results: tag_results,
@@ -138,21 +163,45 @@ router.get('/search/:tag/:page', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
-  
+
+  let aggs = {
+      "by_source": {
+          "terms": {
+              "field": "source"
+          }
+      },
+      "image_count": {
+          "cardinality": {
+              "field": "imageid",
+              "precision_threshold": 1000
+          }
+      },
+      "confidences": {
+          "histogram": {
+              "field": "confidence",
+              "interval": 0.05,
+              "order": {"_key": "desc"}
+          }
+      }
+  };
+
   let qs = {
-    'q': `type:tag AND body:"${req.params.tag}"`,
+    'q': `type:tag AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
     'fields': 'imageid,confidence,source,body,type,feature',
     'page': req.params.page,
-    'apikey': API_KEY
+    'apikey': API_KEY,
+    'aggregation': JSON.stringify(aggs)
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
-    let tag_results_info = tag_results.info
+    let tag_results_info = tag_results.info;
+    let tag_stats = tag_results.aggregations;
+    tag_results_info.totalrecords_localized = tag_results.info.totalrecords.toLocaleString();
     tag_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
     if (tag_results_info.pages > 33) {
       tag_results_info.pages = 33
@@ -171,7 +220,8 @@ router.get('/search/:tag/:page', function(req, res, next) {
       // Match the object list with their corresponding tag results
       object_results = appendscript.tagappend(object_results, tag_results)
       let tag = req.params.tag
-      res.render('search', { title: "Search results for '" + req.params.tag + "'",
+      res.render('search', { title: `Search results for '${req.params.tag}'`,
+                             subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${tag_stats.image_count.value.toLocaleString()} images`,
                              navbar: true,
                              object_results: object_results,
                              tag_results: tag_results,
