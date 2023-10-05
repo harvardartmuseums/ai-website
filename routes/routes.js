@@ -139,14 +139,14 @@ router.get('/search/:tag', function(req, res, next) {
                              tag_results_info: tag_results_info
                            });
     })
-    .catch(error => {console.log(error); res.render('search', {title: "No search results for '" + req.params.tag + "'",
+    .catch(() => {console.log(error); res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
                                             mobile_tag_list: mobile_tag_list,
                                             image_list: image_list})})
   })
-  .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+  .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                           navbar: true,
                                           error: true,
                                           tag_list: tag_list,
@@ -231,14 +231,14 @@ router.get('/search/:tag/:page', function(req, res, next) {
                              firstpage: false
                            });
     })
-    .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+    .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
                                             mobile_tag_list: mobile_tag_list,
                                             image_list: image_list})})
   })
-  .catch(error => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
+  .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                           navbar: true,
                                           error: true,
                                           tag_list: tag_list,
@@ -287,7 +287,7 @@ router.get('/category/:category', function(req, res, next) {
                              object_results: object_results,
                              category_results: category_results,
                              category_list: imagga_categories.categories_list,
-                             category: req.params.category,
+                             category: _.capitalize(req.params.category),
                              category_results_info: category_results_info,
                            });
     })
@@ -341,7 +341,7 @@ router.get('/category/:category/:page', function(req, res, next) {
                              object_results: object_results,
                              category_results: category_results,
                              category_list: imagga_categories.categories_list,
-                             category: req.params.category,
+                             category: _.capitalize(req.params.category),
                              category_results_info: category_results_info
                            });
     })
