@@ -46,7 +46,15 @@
       <div class="content-search-results">
         <div>
           <h2>{{title}}</h2>
-          <h3>{{subtitle}}</h3>
+          <h3>{{subtitle}}  <button id="toggle-stats" onclick="toggleStats()" style="margin-left:10px;padding:7px;border-radius:4px;cursor:pointer;border: 1px solid;background-color:#8a8a8a;color:#ffffff">Show Statistics</button></h3>
+          <div class="content-search-stats">
+            <div id="confidence-plot">
+              <p>Distribution of Confidence</p>
+            </div>
+            <div id="source-plot">
+              <p>Distribution of Sources</p>
+            </div>
+          </div>
           <p>Results displayed in order of confidence determined by AI</p>
         </div>
         <div id="search-results">
@@ -106,6 +114,9 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    let stats = document.getElementsByClassName("content-search-stats")[0];
+    stats.style.display = 'none';
+
     if ({{tag_results_info.page}} == 1) {
       document.getElementById('previouspage').style.visibility = "hidden"
       document.getElementById('firstpage').style.visibility = "hidden"
@@ -128,6 +139,9 @@
           '<a href="/search/{{tag}}/' + pagenumber + '">' + pagenumber + '</a>'
       }
     })
+
+    plotConfidence();
+    plotSources();
 
   }, false);
 
@@ -163,5 +177,73 @@
     }
   }
 
+  function plotConfidence() {
+    const d = [
+    {{#each tag_stats.confidences.buckets}}
+      { "occurence":{{doc_count}}, "confidence":{{key}} },
+    {{/each}}    
+    ];
+    d.splice(0,1);
+    
+    const plot = Plot.plot({
+        style: {display: "inline"}, 
+        marks: [
+          Plot.frame(),
+          Plot.rectY(d, {x: "confidence", y: "occurence",tip: true, interval: 0.05}),
+          Plot.axisX({label: "low", labelAnchor : "left", labelArrow: "down"}),
+          Plot.axisX({label: "degree of confidence", labelAnchor: "center", labelArrow: "none"}),
+          Plot.axisX({label: "high", labelAnchor : "right", labelArrow : "up"}),
 
+        ],
+        height: 250,
+        width: 500,
+        y: {grid: true},
+        marginTop: 20, // 🌶 if you don't set the margins, the defaults flip the scales bottom-up
+        marginBottom: 40,
+        marginLeft: 50,
+        marginRight: 20
+      });
+
+    const div = document.getElementById("confidence-plot");
+    div.append(plot);
+  }
+
+  function plotSources() {
+    const d = [
+    {{#each tag_stats.by_source.buckets}}
+      { "occurence":{{doc_count}}, "source":"{{key}}"},
+    {{/each}}    
+    ];
+
+    const plot = Plot.plot({
+        style: {display: "inline"}, 
+        y: {grid: true},
+        marks: [
+          Plot.frame(),
+          Plot.barY(d, {y: "occurence", x: "source", tip: true }),
+          Plot.axisX({labelAnchor: "center", labelArrow: "none", lineWidth: 8}),
+        ],
+        height: 250,
+        width: 500,
+        marginTop: 20, // 🌶 if you don't set the margins, the defaults flip the scales bottom-up
+        marginBottom: 40,
+        marginLeft: 50,
+        marginRight: 20
+      });
+
+    const div = document.getElementById("source-plot");
+    div.append(plot);    
+  }
+
+  function toggleStats() {
+    let button = document.getElementById("toggle-stats");
+    let stats = document.getElementsByClassName("content-search-stats")[0];
+    if (stats.style.display == 'flex') {
+      stats.style.display = 'none';
+      button.innerText = 'Show Statistics';
+    } else {
+      stats.style.display = 'flex';
+      button.innerText = 'Hide Statistics';
+    }
+  }
 </script>

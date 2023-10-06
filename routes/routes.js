@@ -90,13 +90,17 @@ router.get('/search/:tag', function(req, res, next) {
           "histogram": {
               "field": "confidence",
               "interval": 0.05,
-              "order": {"_key": "desc"}
+              "order": {"_key": "desc"},
+              "extended_bounds": {
+                "min": 0.0,
+                "max": 1.0
+              }
           }
       }
   };
 
   let qs = {
-    'q': `type:tag AND accesslevel:1 AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
+    'q': `confidence:>=0.0 AND type:tag AND accesslevel:1 AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
@@ -133,6 +137,7 @@ router.get('/search/:tag', function(req, res, next) {
                              navbar: true,
                              object_results: object_results,
                              tag_results: tag_results,
+                             tag_stats: tag_stats,
                              error: false,
                              tag: tag,
                              firstpage: true,
@@ -180,13 +185,17 @@ router.get('/search/:tag/:page', function(req, res, next) {
           "histogram": {
               "field": "confidence",
               "interval": 0.05,
-              "order": {"_key": "desc"}
+              "order": {"_key": "desc"},
+              "extended_bounds": {
+                "min": 0.0,
+                "max": 1.0
+              }
           }
-      }
+        }
   };
 
   let qs = {
-    'q': `type:tag AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
+    'q': `confidence:>=0.0 AND type:tag AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
@@ -225,6 +234,7 @@ router.get('/search/:tag/:page', function(req, res, next) {
                              navbar: true,
                              object_results: object_results,
                              tag_results: tag_results,
+                             tag_stats: tag_stats,
                              error: false,
                              tag: tag,
                              tag_results_info: tag_results_info,

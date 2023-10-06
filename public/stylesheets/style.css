@@ -1190,7 +1190,6 @@ button {
 }
 
 #search-results {
-  margin-top: 40px;
   width: 100%;
   display: flex;
   flex-wrap: wrap;
@@ -1255,6 +1254,12 @@ button {
   width: 86%;
   padding: 90px 0px;
   margin: 0px auto;
+}
+
+.content-search-stats {
+  display: flex;
+  justify-content: flex-start;
+  column-gap: 20px;
 }
 
 .search-error {
