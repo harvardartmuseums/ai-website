@@ -144,7 +144,7 @@ router.get('/search/:tag', function(req, res, next) {
                              tag_results_info: tag_results_info
                            });
     })
-    .catch(() => {console.log(error); res.render('search', {title: "No search results for '" + req.params.tag + "'",
+    .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
@@ -379,14 +379,14 @@ router.get('/object/:object_id', function(req, res, next) {
                              object_info: object_info,
                            });
     })
-    .catch(error => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
+    .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
                                             navbar: true,
                                             error: true,
                                             tag_list: tag_list,
                                             mobile_tag_list: mobile_tag_list,
                                             image_list: image_list})})
   })
-  .catch(error => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
+  .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
                                           navbar: true,
                                           error: true,
                                           tag_list: tag_list,
