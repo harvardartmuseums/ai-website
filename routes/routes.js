@@ -17,7 +17,7 @@ router.get('/', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6)
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&size=0&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
   
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
@@ -38,7 +38,7 @@ router.get('/about', function(req, res, nect) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6);
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&size=0&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     let annotation_count = tag_results.info.totalrecords.toLocaleString();
@@ -139,7 +139,7 @@ router.get('/search/:tag', function(req, res, next) {
                              tag_results: tag_results,
                              tag_stats: tag_stats,
                              error: false,
-                             tag: tag,
+                             tag: req.params.tag,
                              firstpage: true,
                              tag_results_info: tag_results_info
                            });
@@ -236,7 +236,7 @@ router.get('/search/:tag/:page', function(req, res, next) {
                              tag_results: tag_results,
                              tag_stats: tag_stats,
                              error: false,
-                             tag: tag,
+                             tag: req.params.tag,
                              tag_results_info: tag_results_info,
                              firstpage: false
                            });
