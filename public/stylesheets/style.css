@@ -564,8 +564,6 @@ input:focus {
 .navbar {
   height: 80px;
   width: 100%;
-  position: sticky;
-  position: -webkit-sticky;
   top: 0;
   background-color: rgba(255,255,255, 0.9);
   z-index: 9997;
