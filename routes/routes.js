@@ -25,6 +25,7 @@ router.get('/', function(req, res, next) {
     let image_count = tag_results.aggregations.image_count.value.toLocaleString();
     res.render('index', {title: 'AI Explorer',
                           navbar: true,
+                          year: new Date().getFullYear(),
                           tag_list: tag_list,
                           mobile_tag_list: mobile_tag_list,
                           image_list: image_list,
@@ -45,6 +46,7 @@ router.get('/about', function(req, res, nect) {
     let image_count = tag_results.aggregations.image_count.value.toLocaleString();
     res.render('about', {title: 'About the AI Explorer',
                           navbar: true,
+                          year: new Date().getFullYear(),
                           tag_list: tag_list,
                           mobile_tag_list: mobile_tag_list,
                           image_list: image_list,
@@ -61,6 +63,7 @@ router.get('/explore', function(req, res, next) {
   let image_list = _.sampleSize(example_images.image_list, 6);
   res.render('explore', { title: 'Explore',
                           navbar: true,
+                          year: new Date().getFullYear(),
                           tag_list: tag_list,
                           mobile_tag_list: mobile_tag_list,
                           image_list: image_list
@@ -135,6 +138,7 @@ router.get('/search/:tag', function(req, res, next) {
       res.render('search', { title: "Search results for '" + req.params.tag + "'",
                              subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${tag_stats.image_count.value.toLocaleString()} images`,
                              navbar: true,
+                             year: new Date().getFullYear(),
                              object_results: object_results,
                              tag_results: tag_results,
                              tag_stats: tag_stats,
@@ -232,6 +236,7 @@ router.get('/search/:tag/:page', function(req, res, next) {
       res.render('search', { title: `Search results for '${req.params.tag}'`,
                              subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${tag_stats.image_count.value.toLocaleString()} images`,
                              navbar: true,
+                             year: new Date().getFullYear(),
                              object_results: object_results,
                              tag_results: tag_results,
                              tag_stats: tag_stats,
@@ -294,6 +299,7 @@ router.get('/category/:category', function(req, res, next) {
       res.render('category', { title: "Category results for '" + req.params.category + "'",
                                subtitle: `${category_results_info.totalrecords.toLocaleString()} occurrences of '${req.params.category}' found`,
                              navbar: true,
+                             year: new Date().getFullYear(),
                              object_results: object_results,
                              category_results: category_results,
                              category_list: imagga_categories.categories_list,
@@ -348,6 +354,7 @@ router.get('/category/:category/:page', function(req, res, next) {
       res.render('category', { title: "Category results for '" + req.params.category + "'",
                              subtitle: `${category_results_info.totalrecords.toLocaleString()} occurrences of '${req.params.category}' found`,
                              navbar: true,
+                             year: new Date().getFullYear(),
                              object_results: object_results,
                              category_results: category_results,
                              category_list: imagga_categories.categories_list,
@@ -374,6 +381,7 @@ router.get('/object/:object_id', function(req, res, next) {
       let ai_sorted = organize.divide(ai_data)
       res.render('object', { title: 'AI Data for ' + object_info.title,
                              navbar: false,
+                             year: new Date().getFullYear(),
                              ai_data: ai_data,
                              ai_sorted: ai_sorted,
                              object_info: object_info,
@@ -381,6 +389,7 @@ router.get('/object/:object_id', function(req, res, next) {
     })
     .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
                                             navbar: true,
+                                            year: new Date().getFullYear(),
                                             error: true,
                                             tag_list: tag_list,
                                             mobile_tag_list: mobile_tag_list,
@@ -388,6 +397,7 @@ router.get('/object/:object_id', function(req, res, next) {
   })
   .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
                                           navbar: true,
+                                          year: new Date().getFullYear(),
                                           error: true,
                                           tag_list: tag_list,
                                           mobile_tag_list: mobile_tag_list,
