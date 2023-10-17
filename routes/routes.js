@@ -103,7 +103,7 @@ router.get('/search/:tag', function(req, res, next) {
   };
 
   let qs = {
-    'q': `confidence:>=0.0 AND type:tag AND accesslevel:1 AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
+    'q': `confidence:>=0.0 AND type:tag AND accesslevel:1 AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}" OR "${_.startCase(req.params.tag)}")`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
@@ -199,7 +199,7 @@ router.get('/search/:tag/:page', function(req, res, next) {
   };
 
   let qs = {
-    'q': `confidence:>=0.0 AND type:tag AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}")`,
+    'q': `confidence:>=0.0 AND type:tag AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}" OR "${_.startCase(req.params.tag)}")`,
     'size': 300,
     'sort': 'confidence',
     'sortorder': 'desc',
