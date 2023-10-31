@@ -80,7 +80,9 @@ router.get('/search/:tag', function(req, res, next) {
   let aggs = {
       "by_source": {
           "terms": {
-              "field": "source"
+              "field": "source",
+              "min_doc_count": 0,
+              "exclude": "Manual"
           }
       },
       "image_count": {
@@ -176,7 +178,9 @@ router.get('/search/:tag/:page', function(req, res, next) {
   let aggs = {
       "by_source": {
           "terms": {
-              "field": "source"
+              "field": "source",
+              "min_doc_count": 0,
+              "exclude": "Manual"
           }
       },
       "image_count": {
