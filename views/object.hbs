@@ -21,13 +21,16 @@
         <td class="object-info-row">
           <div class="object-info-section">
             <h5>Title</h5>
-            <h3>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h3>
+            <h4>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h4>
           </div>
         </td>
         <td class="object-info-row">
           <div class="object-info-section">
             <h5>Date</h5>
-            <h3>{{object_info.dated}}</h3>
+            <h4>{{object_info.dated}}</h4>
+            {{#unless object_info.dated}}
+              <h4>-</h4>
+            {{/unless}}
           </div>
         </td>
       </tr>
@@ -36,14 +39,17 @@
           <div class="object-info-section">
             <h5>People</h5>
             {{#each object_info.people}}
-              <h3>{{role}}: {{name}}, {{culture}} {{displaydate}}</h3>
+              <h4>{{role}}: {{name}}, {{culture}} {{displaydate}}</h4>
             {{/each}}
+            {{#unless object_info.people}}
+              <h4>-</h4>
+            {{/unless}}
           </div>
         </td>
         <td class="object-info-row">
           <div class="object-info-section">
             <h5>Classification</h5>
-            <h3>{{object_info.classification}}</h3>
+            <h4>{{object_info.classification}}</h4>
           </div>
         </td>
       </tr>
@@ -52,14 +58,14 @@
         <td class="object-info-row">
           <div class="object-info-section">
             <h5>Credit Line</h5>
-              <h3>{{object_info.creditline}}, {{object_info.objectnumber}}</h3>
+            <h4>{{object_info.creditline}}, {{object_info.objectnumber}}</h4>
           </div>
         </td>
         <td class="object-info-row">
           <div class="object-info-section">
             {{#if object_info.copyright}}
             <h5>Copyright</h5>
-            <h3>{{object_info.copyright}}</h3>
+            <h4>{{object_info.copyright}}</h4>
             {{/if}}
           </div>
         </td>
@@ -71,22 +77,36 @@
       </div>
       <div class="object-info-section">
         <h5>Title</h5>
-        <h3>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h3>
+        <h4>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h4>
       </div>
+      {{#if object_info.people}}
       <div class="object-info-section">
         <h5>People</h5>
         {{#each object_info.people}}
-          <h3>{{role}}: {{name}}, {{culture}} {{displaydate}}</h3>
+          <h4>{{role}}: {{name}}, {{culture}} {{displaydate}}</h4>
         {{/each}}
       </div>
+      {{/if}}
+      {{#if object_info.dated}}
       <div class="object-info-section">
         <h5>Date</h5>
-        <h3>{{object_info.dated}}</h3>
+        <h4>{{object_info.dated}}</h4>
       </div>
+      {{/if}}
       <div class="object-info-section">
         <h5>Classification</h5>
-        <h3>{{object_info.classification}}</h3>
+        <h4>{{object_info.classification}}</h4>
       </div>
+      <div class="object-info-section">
+        <h5>Credit Line</h5>
+        <h4>{{object_info.creditline}}, {{object_info.objectnumber}}</h4>
+      </div>
+      {{#if object_info.copyright}}
+      <div class="object-info-section">
+        <h5>Copyright</h5>
+        <h4>{{object_info.copyright}}</h4>
+      </div>
+      {{/if}}
     </div>
 
     <div class="gray-line-break"></div>
