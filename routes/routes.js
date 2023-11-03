@@ -9,6 +9,11 @@ var organize = require('../public/javascripts/organize')
 var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
 var example_images = require('../public/examples/exampleimages')
+var terms = require('../public/vocabularies/terms')
+var descriptions = require('../public/vocabularies/descriptions')
+var people = require('../public/vocabularies/people')
+var places = require('../public/vocabularies/places')
+var organizations = require('../public/vocabularies/organizations')
 
 const API_KEY = process.env['API_KEY']
 
@@ -23,7 +28,7 @@ router.get('/', function(req, res, next) {
   .then(tag_results => {
     let annotation_count = tag_results.info.totalrecords.toLocaleString();
     let image_count = tag_results.aggregations.image_count.value.toLocaleString();
-    res.render('index', {title: 'AI Explorer',
+    res.render('index', {title: 'Home',
                           navbar: true,
                           year: new Date().getFullYear(),
                           tag_list: tag_list,
@@ -44,7 +49,7 @@ router.get('/about', function(req, res, nect) {
   .then(tag_results => {
     let annotation_count = tag_results.info.totalrecords.toLocaleString();
     let image_count = tag_results.aggregations.image_count.value.toLocaleString();
-    res.render('about', {title: 'About the AI Explorer',
+    res.render('about', {title: 'About',
                           navbar: true,
                           year: new Date().getFullYear(),
                           tag_list: tag_list,
@@ -408,6 +413,99 @@ router.get('/object/:object_id', function(req, res, next) {
                                           image_list: image_list})})
 });
 
+router.get('/statistics', function(req, res, next) {
+  // cluster terms by the first character of each term
+  let termClusters = _.groupBy(terms, (i) => _.lowerCase(i.term[0]));
+  let samples = {
+    "people": _.sortBy(_.sampleSize(people, 20), "term"),
+    "places": _.sortBy(_.sampleSize(places, 20), "term"),
+    "organizations": _.sortBy(_.sampleSize(organizations, 20), "term"),
+    "terms": _.sortBy(_.sampleSize(terms, 20), "term"),
+    "descriptions": _.sortBy(_.sampleSize(descriptions, 20), "term")
+  };
+
+  let stats = {
+    term_count: terms.length.toLocaleString(),
+    people_count: people.length.toLocaleString(),
+    place_count: places.length.toLocaleString(),
+    organization_count: organizations.length.toLocaleString(),
+    description_count: descriptions.length.toLocaleString()
+  }
+
+  let aggs = {
+    "image_count": {
+      "cardinality": { 
+        "field": "imageid",
+        "precision_threshold":100
+      }
+    },
+    "date_stats": {
+      "extended_stats": {
+          "field": "createdate"
+      }
+    },    
+    "by_source": {
+      "terms": {
+        "field": "source",
+        "exclude": "Manual",
+        "order": { "_key": "asc" }     
+      },
+      "aggs": {
+        "by_type": {
+          "terms": {
+            "field": "type",
+            "min_doc_count": 0,
+            "order": { "_key": "asc" }            
+          }
+        }
+      }
+    },
+    "by_type": {
+        "terms": {
+            "field": "type",
+            "order": { "_key": "asc" }   
+        },
+        "aggs": {
+            "by_source": {
+                "terms": {
+                    "field": "source",
+                    "min_doc_count": 0,
+                    "exclude": "Manual",
+                    "order": { "_key": "asc" }
+                } 
+            }
+        }
+    }
+  };
+
+  let qs = {
+    'size': 0,
+    'apikey': API_KEY, 
+    'aggregation': JSON.stringify(aggs)
+  };
+  const stats_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+  fetch(stats_url).then(response => response.json())
+        .then(stats_results => {
+            stats.aggregations = stats_results.aggregations;
+            stats.date_of_oldest = stats.aggregations.date_stats.min_as_string.substr(0, 10);
+            stats.date_of_newest = stats.aggregations.date_stats.max_as_string.substr(0, 10);
+            stats.image_count = stats.aggregations.image_count.value.toLocaleString();
+            stats.annotation_count = stats_results.info.totalrecords.toLocaleString();
+            res.render('statistics', { title: 'Statistics',
+                                    navbar: true,
+                                    year: new Date().getFullYear(),
+                                    samples: samples,
+                                    terms: terms,
+                                    groups: termClusters,
+                                    descriptions: descriptions,
+                                    people: people,
+                                    places: places,
+                                    organizations: organizations,
+                                    stats: stats
+                                  });
+        });
+});
+
 /* REDIRECT to search page through post request from search bar */
 router.post('/search', function(req, res){
   res.redirect('/search/' + req.body.search)
@@ -422,6 +520,5 @@ router.get('/search', function(req, res){
 router.get('/category', function(req,res){
   res.redirect('/category/' + 'Interior objects')
 })
-
 
 module.exports = router;

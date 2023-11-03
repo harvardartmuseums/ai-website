@@ -149,25 +149,52 @@ sup {
   color: var(--c-gray)
 }
 
-::-webkit-scrollbar {
-  width: 5px;
+.stats > table  {
+  border-collapse: collapse;
+  border: 2px solid rgb(200,200,200);
+  letter-spacing: 1px;
+  font-size: 0.8rem;
 }
 
-/* Track */
-::-webkit-scrollbar-track {
-  background: #f1f1f1;
+.stats table td, th {
+  border: 1px solid rgb(190,190,190);
+  padding: 10px 20px;
+}
+
+.stats th {
+  background-color: rgb(235,235,235);
+}
+
+.stats td, tfoot th {
+  text-align: right;
+}
+
+.stats tr:nth-child(even) td {
+  background-color: rgb(250,250,250);
+}
+
+.stats tr:nth-child(odd) td {
+  background-color: rgb(245,245,245);
+}
+
+caption {
+  padding: 10px;
+}
+
+
+::-webkit-scrollbar {
+  width: 12px;
 }
 
 /* Handle */
 ::-webkit-scrollbar-thumb {
   background: var(--c-hovergray);
-  border-radius: 5px;
 }
 
 /* Handle on hover */
 ::-webkit-scrollbar-thumb:hover {
   background: var(--c-gray);
-}
+} 
 
 .highlight {
   display: inline;
@@ -354,25 +381,15 @@ sup {
 .explore-block {
   display: inline-block;
   width: 100%;
-
-}
-
-.explore-page {
-  display: inline-block;
-  width: 100%;
-}
-
-.explore-page > .content {
-  padding-top: 50px;
 }
 
 .explore-panel {
   background-color: white;
   border-radius: 5px;
   padding-bottom: 30px;
-  position: relative;
-  height: 470px;
-  border: 1px solid var(--c-lightgray);
+  position: relative; 
+  height: 680px;
+  border: 1px solid var(--c-gray);
 }
 
 .explore-panel-content {
@@ -383,12 +400,12 @@ sup {
 }
 
 .tag-search {
-  border-bottom: 1px solid var(--c-lightgray);
   padding-bottom: 20px;
 }
 
 .category-search {
-  text-align: center
+  text-align: center;
+  padding-bottom: 40px;
 }
 
 .category-search > a {
@@ -397,7 +414,6 @@ sup {
 
 .explore-subhead {
   text-align: center;
-  width: 500px;
   margin: 0 auto;
   margin-top: 40px;
 }
@@ -450,7 +466,7 @@ sup {
   background-position: center;
   background-repeat: no-repeat;
   border-radius: 5px;
-  border: 1px solid var(--c-lightgray);
+  border: 1px solid var(--c-gray);
 }
 
 
@@ -733,7 +749,7 @@ a {
 .artist-info + .artist-info {
   margin-left: 25px;
   padding-left: 25px;
-  border-left: 1px solid var(--c-lightgray)
+  border-left: 1px solid var(--c-gray)
 }
 
 .artist-info > h4 {
@@ -767,7 +783,7 @@ a {
 .gray-line-break {
   margin-top: 60px;
   width: 100%;
-  border-bottom: 1px solid var(--c-lightgray)
+  border-bottom: 1px solid var(--c-gray)
 }
 
 .object-image-container {
@@ -1602,6 +1618,9 @@ select::-ms-expand {
 .explore-block-about {
   display: inline-block;
   width: 100%;
+}
+
+.block-shading {
   background-color: var(--c-lightgray);
   box-shadow: inset 0px 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -1614,7 +1633,7 @@ select::-ms-expand {
 .about-why-how {
   margin-top: 40px;
   padding-top: 40px;
-  border-top: solid 1px var(--c-lightgray);
+  border-top: solid 1px var(--c-gray);
   display: inline-block;
   width: 100%;
   display: flex;
@@ -1653,6 +1672,9 @@ select::-ms-expand {
   float: right;
 }
 
+.stats-overview {
+  margin-top: 60px;
+}
 
 @media only screen and (min-width: 501px) and (max-width: 800px) {
   .object-view-panel {
@@ -1835,7 +1857,7 @@ select::-ms-expand {
     width: 60%;
     z-index: 9999;
     border-radius: 0px 0px 0px 5px;
-    border: 1px solid var(--c-lightgray);
+    border: 1px solid var(--c-gray);
   }
 
   #dropdown-back-overlay {
@@ -1863,7 +1885,7 @@ select::-ms-expand {
     .dropdown-head {
       margin-top: 30px;
       padding-bottom: 10px;
-      border-bottom: 1px solid var(--c-lightgray)
+      border-bottom: 1px solid var(--c-gray)
     }
 
     .dropdown-content {
@@ -1929,7 +1951,7 @@ select::-ms-expand {
     left: 0;
     right: 0;
     height: 35vh;
-    border: 1px solid var(--c-lightgray);
+    border: 1px solid var(--c-gray);
   }
 
   .object-info-panel {
@@ -2120,10 +2142,6 @@ select::-ms-expand {
     line-height: 1.4em;
   }
 
-  .explore-subhead {
-    width: 90%;
-  }
-
   .search-container {
     width: 100%;
   }
@@ -2210,7 +2228,7 @@ select::-ms-expand {
     width: 60%;
     z-index: 9999;
     border-radius: 0px 0px 0px 5px;
-    border: 1px solid var(--c-lightgray);
+    border: 1px solid var(--c-gray);
   }
 
   #dropdown-back-overlay {
@@ -2247,7 +2265,7 @@ select::-ms-expand {
   .dropdown-head {
     margin-top: 30px;
     padding-bottom: 10px;
-    border-bottom: 1px solid var(--c-lightgray)
+    border-bottom: 1px solid var(--c-gray)
   }
 
   .dropdown-content {
@@ -2317,7 +2335,7 @@ select::-ms-expand {
 
   .mobile-footer {
     display: block;
-    border-top: 1px solid var(--c-lightgray)
+    border-top: 1px solid var(--c-gray)
   }
 
   .mobile-footer-content {

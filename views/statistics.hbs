@@ -1,0 +1,167 @@
+<section class="explore-page">
+  <div class="content">
+    <h2>Statistics</h2>
+    <div class="red-line-break about-break"></div>
+    
+    <div class="stats-overview">
+      <h3>Total Volume of Data</h3>
+      <div class="about-why-how-text">
+        <p>The database contains <strong>{{stats.annotation_count}}</strong> publicly accessible machine-generated annotations covering <strong>{{stats.image_count}}</strong> images.</p>
+        <p>Annotations date from {{stats.date_of_oldest}} to {{stats.date_of_newest}}.</p>
+        <p>Each annotation indicates an area of interest in an image. An area can be a small portion of an image or it can be the entire image. Small regions typically contain a persons face or words. Annotations on the full image are typically tags (e.g. cat, watermelon, rock) and descriptions (e.g. a cow standing in a field).</p>
+        <p>Access to the annotations as data is available via the <a href="https://github.com/harvardartmuseums/api-docs/blob/master/sections/annotation.md">annotation endpoint</a> on the Harvard Art Museums API.</p>
+      </div>  
+    </div>
+    <div class="about-why-how">
+      <h3>Distribution of Sources by Annotation Type</h3>
+      <div>
+        <p>The percentage by source</p>
+        <div id="source-plot"></div>    
+      </div>
+      <div>
+        <p>
+            Annotation types generally describe what the annotation contains or depicts. These are the possible types.
+            <dl>
+              <dt>category</dt><dd>a broad categorization of the contents of the image</dd>
+              <dt>description</dt><dd>a full sentence caption of the contents of the image</dd>
+              <dt>face</dt><dd>a human face is found within the annotation</dd>
+              <dt>tag</dt><dd>a term or set of terms describing all or part of the image</dd>
+              <dt>text</dt><dd>some text is found within the annotation</dd>
+            </dl>
+        </p>
+      </div>
+      <div class="stats">
+        <p>The raw data</p>
+        <table style="max-width: 70%;">
+          <thead>
+            <tr>
+              <th></th>
+              {{#each stats.aggregations.by_source.buckets.0.by_type.buckets}}
+              <th>{{key}}</th>
+              {{/each}}
+            </tr>
+          </thead>
+          <tbody>
+              {{#each stats.aggregations.by_source.buckets}}
+                <tr>
+                  <th>{{key}}</th>
+                  {{#each by_type.buckets}}
+                    <td>{{doc_count}}</td>
+                  {{/each}}
+                </tr>
+              {{/each}}     
+          </tbody>
+          <tfoot>
+            <tr>
+              <th></th>
+               {{#each stats.aggregations.by_type.buckets}}
+                <th>{{doc_count}}</th>
+              {{/each}}
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="about-why-how">
+      <h3>Vocabularies</h3>
+      <div>
+        <p>The tags and descriptions cluster and breakdown in to distinct terms, phrases, and concepts.</p>
+      </div>
+      <div>
+        <h4>Terms</h4>
+        <p>The vocabulary of tags contains <strong>{{stats.term_count}} distinct terms</strong>.</p>
+        <p>Sample set:</p>
+        <p>
+          {{#each samples.terms}}
+            <a href="/search/{{term}}">{{term}} ({{count}})</a>, 
+          {{/each}}
+        </p>
+      </div>
+      <div>
+        <h4>Descriptive Phrases</h4>
+        <p>The vocabulary of descriptions contains <strong>{{stats.description_count}} phrases</strong>.</p>
+        <p>Sample set:</p>
+        <p>
+          {{#each samples.descriptions}}
+            {{term}} ({{count}}), 
+          {{/each}}
+        </p>
+      </div>
+      <div>
+        <h4>Named Entities*</h4>
+        <p>The vocabulary of named entities contains <strong>{{stats.people_count}} people</strong>.</p>
+        <p>Sample set:</p>
+        <p>
+          {{#each samples.people}}
+            {{term}} ({{count}}), 
+          {{/each}}
+        </p>
+        <p>The vocabulary of descriptions contains <strong>{{stats.place_count}} places</strong>.</p>
+        <p>Sample set:</p>
+        <p>
+          {{#each samples.places}}
+            {{term}} ({{count}}), 
+          {{/each}}
+        </p>
+        <p>The vocabulary of descriptions contains <strong>{{stats.organization_count}} organizations</strong>.</p>
+        <p>Sample set:</p>
+        <p>
+          {{#each samples.organizations}}
+            {{term}} ({{count}}), 
+          {{/each}}
+        </p>        
+      </div>
+      <div class="about-why-how">
+        <p>* Named entities are extracted using <a href="https://compromise.cool/">Compromise</a>, a javascript NLP library. It's not exact, but pretty close.</p>
+      </div>
+      {{!-- 
+      {{#each groups}}
+      <h4>{{@key}}</h4>
+      <ul>
+          {{#each this}}
+              <li><a href="/search/{{term}}">{{term}} ({{count}})</a></li>
+          {{/each}}
+      </ul>
+      {{/each}} --}}
+      {{!--
+      {{#each descriptions}}
+      <h4>{{term}} ({{count}})</h4>
+      {{/each}} --}}
+    </div>
+  </div>
+</section>
+
+<script>
+
+  document.addEventListener('DOMContentLoaded', function() {
+    plotStats();
+  });
+
+  function plotStats() {
+    const data = [
+    {{#each stats.aggregations.by_type.buckets}}
+        {{#each by_source.buckets}}
+          {type:"{{../key}}", count:{{doc_count}}, source:"{{key}}"},
+        {{/each}}
+    {{/each}}    
+    ];
+
+    const plot = Plot.plot({
+        y: {grid: true, percent: true},
+        marks: [
+          Plot.barY(data, {x: "type", y: "count", fill: "source", offset: "normalize", tip: true}),
+          Plot.ruleY([0])
+        ],
+        color: { legend: true },
+        height: 350,
+        width: 600,
+        marginTop: 20, // 🌶 if you don't set the margins, the defaults flip the scales bottom-up
+        marginBottom: 40,
+        marginLeft: 50,
+        marginRight: 20
+    })
+
+    const div = document.getElementById("source-plot");
+    div.append(plot);    
+  }
+</script>
