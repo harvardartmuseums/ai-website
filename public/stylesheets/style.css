@@ -157,6 +157,15 @@ dd {
   margin-bottom: 20px;
 }
 
+summary {
+  cursor: pointer;
+}
+
+
+.stats-list {
+  margin-left: 20px;
+}
+
 .stats > table  {
   border-collapse: collapse;
   border: 2px solid rgb(200,200,200);
@@ -209,6 +218,9 @@ caption {
   background-image: linear-gradient(#fff 60%, var(--c-yellow) 55%);
 }
 
+.highlight-term {
+  background-color: yellow;
+}
 
 .link-button {
   font: 14px sans-serif;

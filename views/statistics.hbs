@@ -8,8 +8,8 @@
       <div class="about-why-how-text">
         <p>The database contains <strong>{{stats.annotation_count}}</strong> publicly accessible machine-generated annotations covering <strong>{{stats.image_count}}</strong> images.</p>
         <p>Annotations date from {{stats.date_of_oldest}} to {{stats.date_of_newest}}.</p>
-        <p>Each annotation indicates an area of interest in an image. An area can be a small portion of an image or it can be the entire image. Small regions typically contain a persons face or words. Annotations on the full image are typically tags (e.g. cat, watermelon, rock) and descriptions (e.g. a cow standing in a field).</p>
-        <p>Access to the annotations as data is available via the <a href="https://github.com/harvardartmuseums/api-docs/blob/master/sections/annotation.md">annotation endpoint</a> on the Harvard Art Museums API.</p>
+        <p>Each annotation indicates an area of interest in an image. An area can be a small portion of an image or it can be the entire image. Small regions typically contain a human face or words. Annotations on the full image are typically tags (e.g. cat, watermelon, rock) and descriptions (e.g. a cow standing in a field).</p>
+        <p>Access to annotations as data is available via the <a href="https://github.com/harvardartmuseums/api-docs/blob/master/sections/annotation.md">annotation endpoint</a> on the Harvard Art Museums API.</p>
       </div>  
     </div>
     <div class="about-why-how">
@@ -70,11 +70,11 @@
       <div>
         <h4>Terms</h4>
         <p>The vocabulary of tags contains <strong>{{stats.term_count}} distinct terms</strong>.</p>
-        <p>Sample set:</p>
+        <p>Sample set of terms:</p>
         <p>
           <ul>
             {{#each samples.terms}}
-              <li><a href="/search/{{term}}">{{term}} ({{count}})</a></li>
+              <li><a href="/search/{{term}}">{{term}} ({{number count}})</a></li>
             {{/each}}
           </ul>
         </p>
@@ -82,11 +82,11 @@
       <div>
         <h4>Descriptive Phrases</h4>
         <p>The vocabulary of descriptions contains <strong>{{stats.description_count}} descriptive phrases</strong>.</p>
-        <p>Sample set:</p>
+        <p>Sample set of descriptive phrases:</p>
         <p>
           <ul>
             {{#each samples.descriptions}}
-              <li>{{term}} ({{count}})</li>
+              <li>{{term}} ({{number count}})</li>
             {{/each}}
           </ul>
         </p>
@@ -96,31 +96,49 @@
         <p>Descriptions can be parsed further in to clusters of named entities.</p>
         <p>The vocabulary of named entities contains <strong>{{stats.people_count}} people</strong>.</p>
         <p>Sample set of people:</p>
-        <p>
-          <ul>
+        <div class="stats-list">
           {{#each samples.people}}
-            <li>{{term}} ({{count}})</li>
+            <details>
+              <summary>{{term}} ({{number count}})</summary>
+              <p>The entity <span class="highlight-term">{{term}}</span> is present in {{number count}} descriptions.</p>
+              <ul>
+                {{#each original}}
+                  <li>{{description}}</li>
+                {{/each}}
+              </ul>
+            </details>
           {{/each}}
-          </ul>
-        </p>
+        </div>
         <p>The vocabulary of named entities contains <strong>{{stats.place_count}} places</strong>.</p>
         <p>Sample set of places:</p>
-        <p>
-          <ul>
+        <div class="stats-list">
           {{#each samples.places}}
-            <li>{{term}} ({{count}})</li>
+            <details>
+              <summary>{{term}} ({{number count}})</summary>
+              <p>The entity <span class="highlight-term">{{term}}</span> is present in {{number count}} descriptions.</p>
+              <ul>
+                {{#each original}}
+                  <li>{{description}}</li>
+                {{/each}}
+              </ul>
+            </details>
           {{/each}}
-          </ul>
-        </p>
+        </div>
         <p>The vocabulary of named entities contains <strong>{{stats.organization_count}} organizations</strong>.</p>
         <p>Sample set of organizations:</p>
-        <p>
-          <ul>
-            {{#each samples.organizations}}
-              <li>{{term}} ({{count}})</li>
-            {{/each}}
-          </ul>
-        </p>        
+        <div class="stats-list">
+          {{#each samples.organizations}}
+            <details>
+              <summary>{{term}} ({{number count}})</summary>
+              <p>The entity <span class="highlight-term">{{term}}</span> is present in {{number count}} descriptions.</p>
+              <ul>
+                {{#each original}}
+                  <li>{{description}}</li>
+                {{/each}}
+              </ul>
+            </details>
+          {{/each}}
+        </div>    
       </div>
       <div class="about-why-how">
         <p>* Named entities are extracted using <a href="https://compromise.cool/">Compromise</a>, a javascript NLP library. It's not exact, but pretty close.</p>
@@ -130,13 +148,13 @@
       <h4>{{@key}}</h4>
       <ul>
           {{#each this}}
-              <li><a href="/search/{{term}}">{{term}} ({{count}})</a></li>
+              <li><a href="/search/{{term}}">{{term}} ({{number count}})</a></li>
           {{/each}}
       </ul>
       {{/each}} --}}
       {{!--
       {{#each descriptions}}
-      <h4>{{term}} ({{count}})</h4>
+      <h4>{{term}} ({{number count}})</h4>
       {{/each}} --}}
     </div>
   </div>
