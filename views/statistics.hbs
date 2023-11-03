@@ -15,7 +15,7 @@
     <div class="about-why-how">
       <h3>Distribution of Sources by Annotation Type</h3>
       <div>
-        <p>The percentage by source</p>
+        <p>The percentage by source.</p>
         <div id="source-plot"></div>    
       </div>
       <div>
@@ -31,7 +31,7 @@
         </p>
       </div>
       <div class="stats">
-        <p>The raw data</p>
+        <p>The raw data.</p>
         <table style="max-width: 70%;">
           <thead>
             <tr>
@@ -46,16 +46,16 @@
                 <tr>
                   <th>{{key}}</th>
                   {{#each by_type.buckets}}
-                    <td>{{doc_count}}</td>
+                    <td>{{number doc_count}}</td>
                   {{/each}}
                 </tr>
               {{/each}}     
           </tbody>
           <tfoot>
             <tr>
-              <th></th>
+              <th>Total</th>
                {{#each stats.aggregations.by_type.buckets}}
-                <th>{{doc_count}}</th>
+                <th>{{number doc_count}}</th>
               {{/each}}
             </tr>
           </tfoot>
@@ -65,50 +65,61 @@
     <div class="about-why-how">
       <h3>Vocabularies</h3>
       <div>
-        <p>The tags and descriptions cluster and breakdown in to distinct terms, phrases, and concepts.</p>
+        <p>The tags and descriptions cluster and breakdown in to distinct terms, descriptive phrases, concepts, and named entities.</p>
       </div>
       <div>
         <h4>Terms</h4>
         <p>The vocabulary of tags contains <strong>{{stats.term_count}} distinct terms</strong>.</p>
         <p>Sample set:</p>
         <p>
-          {{#each samples.terms}}
-            <a href="/search/{{term}}">{{term}} ({{count}})</a>, 
-          {{/each}}
+          <ul>
+            {{#each samples.terms}}
+              <li><a href="/search/{{term}}">{{term}} ({{count}})</a></li>
+            {{/each}}
+          </ul>
         </p>
       </div>
       <div>
         <h4>Descriptive Phrases</h4>
-        <p>The vocabulary of descriptions contains <strong>{{stats.description_count}} phrases</strong>.</p>
+        <p>The vocabulary of descriptions contains <strong>{{stats.description_count}} descriptive phrases</strong>.</p>
         <p>Sample set:</p>
         <p>
-          {{#each samples.descriptions}}
-            {{term}} ({{count}}), 
-          {{/each}}
+          <ul>
+            {{#each samples.descriptions}}
+              <li>{{term}} ({{count}})</li>
+            {{/each}}
+          </ul>
         </p>
       </div>
       <div>
         <h4>Named Entities*</h4>
+        <p>Descriptions can be parsed further in to clusters of named entities.</p>
         <p>The vocabulary of named entities contains <strong>{{stats.people_count}} people</strong>.</p>
-        <p>Sample set:</p>
+        <p>Sample set of people:</p>
         <p>
+          <ul>
           {{#each samples.people}}
-            {{term}} ({{count}}), 
+            <li>{{term}} ({{count}})</li>
           {{/each}}
+          </ul>
         </p>
-        <p>The vocabulary of descriptions contains <strong>{{stats.place_count}} places</strong>.</p>
-        <p>Sample set:</p>
+        <p>The vocabulary of named entities contains <strong>{{stats.place_count}} places</strong>.</p>
+        <p>Sample set of places:</p>
         <p>
+          <ul>
           {{#each samples.places}}
-            {{term}} ({{count}}), 
+            <li>{{term}} ({{count}})</li>
           {{/each}}
+          </ul>
         </p>
-        <p>The vocabulary of descriptions contains <strong>{{stats.organization_count}} organizations</strong>.</p>
-        <p>Sample set:</p>
+        <p>The vocabulary of named entities contains <strong>{{stats.organization_count}} organizations</strong>.</p>
+        <p>Sample set of organizations:</p>
         <p>
-          {{#each samples.organizations}}
-            {{term}} ({{count}}), 
-          {{/each}}
+          <ul>
+            {{#each samples.organizations}}
+              <li>{{term}} ({{count}})</li>
+            {{/each}}
+          </ul>
         </p>        
       </div>
       <div class="about-why-how">
