@@ -6,6 +6,7 @@ module.exports = {
                       {title: "Food drinks"},
                       {title: "Paintings art"},
                       {title: "Pets animals"},
+                      {title: "Text visuals"},
                       {title: "Sunrises sunsets"},
                       {title: "Cars vehicles"},
                       {title: "Macro flowers"},
