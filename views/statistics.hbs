@@ -13,11 +13,56 @@
       </div>  
     </div>
     <div class="about-why-how">
-      <h3>Distribution of Sources by Annotation Type</h3>
-      <div>
-        <p>The percentage by source.</p>
-        <div id="source-plot"></div>    
+      <h3>Sources</h3>
+      <div class="about-why-how-text">
+        <p>Annotations are generated from 5 primary computer vision services.</p>
+        <p>Each service supplies a variety of functions for detecting and categorizing features. These are the services and features we use.</p>
       </div>
+      <dl>
+          <dt>AWS Rekognition</dt><dd>Labels, face detection, text detection</dd>
+          <dt>Clarifai</dt><dd>Concepts</dd>
+          <dt>Google Vision</dt><dd>Labels, face detection, text detection, landmark detection</dd>
+          <dt>Imagga</dt><dd>Tags, categories</dd>
+          <dt>Microsoft Cognitive Sources</dt><dd>Tags, categories, descriptions, face detection</dd>
+      </dl>
+      <div>
+        <p>Annotation counts by source.</p>
+        <div id="source-plot"></div>    
+      </div>   
+      <div class="stats">
+        <p>The raw data.</p>
+        <table style="max-width: 70%;">
+          <thead>
+            <tr>
+              <th></th>
+              {{#each stats.aggregations.by_type.buckets.0.by_source.buckets}}
+              <th>{{key}}</th>
+              {{/each}}
+            </tr>
+          </thead>
+          <tbody>
+              {{#each stats.aggregations.by_type.buckets}}
+                <tr>
+                  <th>{{key}}</th>
+                  {{#each by_source.buckets}}
+                    <td>{{number doc_count}}</td>
+                  {{/each}}
+                </tr>
+              {{/each}}     
+          </tbody>
+          <tfoot>
+            <tr>
+              <th>Total</th>
+               {{#each stats.aggregations.by_source.buckets}}
+                <th>{{number doc_count}}</th>
+              {{/each}}
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+    </div>
+    <div class="about-why-how">
+      <h3>Annotation Types</h3>
       <div>
         <p>
             Annotation types generally describe what the annotation contains or depicts. These are the possible types.
@@ -30,6 +75,10 @@
             </dl>
         </p>
       </div>
+      <div>
+        <p>Distribution of sources across annotation types.</p>
+        <div id="type-plot"></div>    
+      </div>      
       <div class="stats">
         <p>The raw data.</p>
         <table style="max-width: 70%;">
@@ -204,7 +253,7 @@
         marginRight: 20
     })
 
-    let div = document.getElementById("source-plot");
+    let div = document.getElementById("type-plot");
     div.append(plot);    
 
     // Plot #2
@@ -230,5 +279,32 @@
 
     div = document.getElementById("source-vocab-plot");
     div.append(plot2);   
+
+    // Plot #3
+    const sources = [
+    {{#each stats.aggregations.by_source.buckets}}
+        {{#each by_type.buckets}}
+          {source:"{{../key}}", count:{{doc_count}}, type:"{{key}}"},
+        {{/each}}
+    {{/each}}   
+    ];
+
+    const plot3 = Plot.plot({
+        y: {grid: true},
+        marks: [
+          Plot.barY(data, {x: "source", y: "count", fill: "type", tip: true}),
+          Plot.ruleY([0])
+        ],
+        color: { legend: true },
+        height: 350,
+        width: 600,
+        marginTop: 20, // 🌶 if you don't set the margins, the defaults flip the scales bottom-up
+        marginBottom: 40,
+        marginLeft: 60,
+        marginRight: 20
+    })
+
+    div = document.getElementById("source-plot");
+    div.append(plot3);        
   }
 </script>
