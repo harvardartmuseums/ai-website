@@ -14,6 +14,7 @@ var descriptions = require('../public/vocabularies/descriptions')
 var people = require('../public/vocabularies/people')
 var places = require('../public/vocabularies/places')
 var organizations = require('../public/vocabularies/organizations')
+var statistics = require('../public/vocabularies/stats')
 
 const API_KEY = process.env['API_KEY']
 
@@ -429,9 +430,11 @@ router.get('/statistics', function(req, res, next) {
     people_count: people.length.toLocaleString(),
     place_count: places.length.toLocaleString(),
     organization_count: organizations.length.toLocaleString(),
-    description_count: descriptions.length.toLocaleString()
+    description_count: descriptions.length.toLocaleString(),
+    sources: statistics.sources,
+    build_date: statistics.build_date
   }
-
+console.log(stats.sources)
   let aggs = {
     "image_count": {
       "cardinality": { 

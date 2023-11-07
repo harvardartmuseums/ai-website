@@ -11,9 +11,60 @@ const API_KEY = process.env['API_KEY']
 main();
 
 async function main() {
+    await fetchStats();
     await fetchTags();
     await fetchDescriptions();
 };
+
+async function fetchStats() {
+    let now = new Date();
+    let stats = {
+        build_date: now.toISOString().slice(0,10),
+        sources: [
+            {"source": "AWS Rekognition", "vocabulary_size": 0},
+            {"source": "Clarifai", "vocabulary_size": 0},
+            {"source": "Imagga", "vocabulary_size": 0},
+            {"source": "Google Vision", "vocabulary_size": 0},
+            {"source": "Microsoft Cognitive Services", "vocabulary_size": 0}
+        ]
+    };
+
+    for (let i=0; i<stats.sources.length; i++) {
+        stats.sources[i].vocabulary_size = await fetchVocabBySource(stats.sources[i].source);
+    }
+
+    fs.writeFileSync(`./public/vocabularies/stats.js`, 'module.exports = ' + JSON.stringify(stats), {flag:'w+'});
+}
+
+async function fetchVocabBySource(source) {
+    let aggs = {
+        "by_term": {
+            "terms": {
+                "field": "body.exact",
+                "size": 35000
+            }
+        }
+    };
+    
+    let qs = {
+      'q': `type:tag AND source:"${source}"`,
+      'size': 0,
+      'apikey': API_KEY, 
+      'aggregation': JSON.stringify(aggs)
+    };
+    const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+    
+    let results = await fetch(url);
+    let output = await results.json();
+    let list = output.aggregations.by_term.buckets;
+    list = _.sortBy(list, 'key');
+
+    console.log(`${list.length} terms`);
+    console.log(`Writing ${source} terms file`);
+    fs.writeFileSync(`./public/vocabularies/terms-${source}.js`, 'module.exports = ' + JSON.stringify(list), {flag:'w+'});
+
+    return list.length;
+}
 
 async function fetchTags() {
     let aggs = {

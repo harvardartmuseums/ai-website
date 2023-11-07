@@ -63,13 +63,37 @@
       </div>
     </div>
     <div class="about-why-how">
-      <h3>Vocabularies</h3>
-      <div>
-        <p>The tags and descriptions cluster and breakdown in to distinct terms, descriptive phrases, concepts, and named entities.</p>
-      </div>
-      <div>
-        <h4>Terms</h4>
-        <p>The vocabulary of tags contains <strong>{{stats.term_count}} distinct terms</strong>.</p>
+        <h3>Vocabularies<sup>1</sup></h3>
+        <div>
+          <p>The tags and descriptions cluster and breakdown in to distinct terms, descriptive phrases, concepts, and named entities.</p>
+        </div>
+        <div>
+          <h4>Terms</h4>
+          <p>The vocabulary of tags contains <strong>{{stats.term_count}} distinct terms</strong>.</p>
+          <div>
+            <p>The size of vocabulary by source.</p>
+            <div id="source-vocab-plot"></div>    
+          </div>
+          <div class="stats">
+            <p>The raw data.</p>
+            <table style="max-width: 70%;">
+              <thead>
+                <tr>
+                  <th></th>
+                  <th># of terms</th>
+                </tr>
+              </thead>
+              <tbody>
+                  {{#each stats.sources}}
+                    <tr>
+                      <th>{{source}}</th>
+                      <td>{{number vocabulary_size}}</td>
+                    </tr>
+                  {{/each}}     
+              </tbody>
+            </table>
+          </div>
+
         <p>Sample set of terms:</p>
         <p>
           <ul>
@@ -92,7 +116,7 @@
         </p>
       </div>
       <div>
-        <h4>Named Entities*</h4>
+        <h4>Named Entities<sup>2</sup></h4>
         <p>Descriptions can be parsed further in to clusters of named entities.</p>
         <p>The vocabulary of named entities contains <strong>{{stats.people_count}} people</strong>.</p>
         <p>Sample set of people:</p>
@@ -141,21 +165,11 @@
         </div>    
       </div>
       <div class="about-why-how">
-        <p>* Named entities are extracted using <a href="https://compromise.cool/">Compromise</a>, a javascript NLP library. It's not exact, but pretty close.</p>
+        <p>
+            <sup>1</sup> Vocabularies are slow to compile so they are built about once a month. The current vocabulary was built on {{stats.build_date}}.<br/>
+            <sup>2</sup> Named entities are extracted using <a href="https://compromise.cool/">Compromise</a>, a javascript NLP library. It's not exact, but pretty close.
+        </p>
       </div>
-      {{!-- 
-      {{#each groups}}
-      <h4>{{@key}}</h4>
-      <ul>
-          {{#each this}}
-              <li><a href="/search/{{term}}">{{term}} ({{number count}})</a></li>
-          {{/each}}
-      </ul>
-      {{/each}} --}}
-      {{!--
-      {{#each descriptions}}
-      <h4>{{term}} ({{number count}})</h4>
-      {{/each}} --}}
     </div>
   </div>
 </section>
@@ -190,7 +204,31 @@
         marginRight: 20
     })
 
-    const div = document.getElementById("source-plot");
+    let div = document.getElementById("source-plot");
     div.append(plot);    
+
+    // Plot #2
+    const dataVocabBySource = [
+    {{#each stats.sources}}
+      {source:"{{source}}", count:{{vocabulary_size}} },
+    {{/each}}
+    ];
+
+    const plot2 = Plot.plot({
+        y: {grid: true, percent: false, label: '# of terms'},
+        marks: [
+          Plot.barY(dataVocabBySource, {x: "source", y: "count", fill: "source", tip: true}),
+          Plot.ruleY([0])
+        ],
+        height: 350,
+        width: 600,
+        marginTop: 20, // 🌶 if you don't set the margins, the defaults flip the scales bottom-up
+        marginBottom: 40,
+        marginLeft: 50,
+        marginRight: 20      
+    })
+
+    div = document.getElementById("source-vocab-plot");
+    div.append(plot2);   
   }
 </script>

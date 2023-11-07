@@ -1,0 +1,1 @@
+module.exports = {"build_date":"2023-11-07","sources":[{"source":"AWS Rekognition","vocabulary_size":2721},{"source":"Clarifai","vocabulary_size":4539},{"source":"Imagga","vocabulary_size":9576},{"source":"Google Vision","vocabulary_size":8145},{"source":"Microsoft Cognitive Services","vocabulary_size":3456}]}
