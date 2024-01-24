@@ -281,16 +281,17 @@
             </div>
           </div>
         {{/if}}        
-        {{#if ai_sorted.captions}}
           <div id="object-captions-section">
             <h3>Captions</h3>
             <div class="captions-colors-box">
+            {{#if ai_sorted.captions}}
+              {{#each ai_sorted.captions}}
               <div class="captions-colors-box-content">
                 <div class="captions-colors-head">
-                  <h4>Microsoft</h4>
+                  <h4>{{source}}<br/><span style="font-size: small;">created on {{createdate}}</span></h4>
                 </div>
                 <table class="captions-table">
-                  {{#each ai_sorted.captions.Microsoft}}
+                  {{#each captions}}
                     <tr>
                       <td><a href="/search/{{body}}">{{body}}</a></td>
                       <td class="tag-confidence">{{confidence}}%</td>
@@ -305,9 +306,25 @@
                   {{/each}}
                 </table>
               </div>
+              {{/each}}
+            {{/if}}
+            {{#if ai_sorted.descriptions}}
+              {{#if ai_sorted.descriptions.Azure}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Azure OpenAI</h4>
+                </div>
+                <div>
+                  {{#each ai_sorted.descriptions.Azure}}
+                    <p>Created on {{createdate}}</p>
+                    <p>{{body}}</p>
+                  {{/each}}
+                </div>
+              </div>
+              {{/if}}
+            {{/if}}
             </div>
           </div>
-        {{/if}}
         {{#if ai_sorted.textsect}}
           <div id="object-text-section">
             <h3>Text analysis</h3>

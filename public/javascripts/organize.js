@@ -99,8 +99,19 @@ module.exports = {
       ai_sorted.featuresect.Amazon.createdate =  ai_sorted.featuresect.Amazon.features[0].createdate.substr(0,10);
     }
     if (_.filter(ai_data, {type: 'description'}).length !== 0) {
-      ai_sorted.captions = {}
-      ai_sorted.captions.Microsoft = _.filter(ai_data, {type: 'description'})
+      ai_sorted.captions = {Microsoft:{source:'Microsoft'}};
+      ai_sorted.captions.Microsoft.captions = _.filter(ai_data, {type: 'description', source: 'Microsoft Cognitive Services'});
+      ai_sorted.captions = _.filter(ai_sorted.captions, function(service){
+        if(service.captions.length > 0) {
+          service.createdate = service.captions[0].createdate.substr(0,10);
+          return service;
+        }
+      }) 
+      ai_sorted.descriptions = {Azure: _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'})};
+      ai_sorted.descriptions.Azure = _.map(ai_sorted.descriptions.Azure, function(item){
+        item.createdate = item.createdate.substr(0,10);
+        return item;
+      });
     }
     ai_sorted.categories = {}
     ai_sorted.categories.Imagga = _.filter(ai_data, {type: 'category'})
