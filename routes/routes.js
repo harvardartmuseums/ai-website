@@ -434,7 +434,7 @@ router.get('/statistics', function(req, res, next) {
     sources: statistics.sources,
     build_date: statistics.build_date
   }
-console.log(stats.sources)
+
   let aggs = {
     "image_count": {
       "cardinality": { 
