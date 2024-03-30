@@ -107,8 +107,14 @@ module.exports = {
           return service;
         }
       }) 
-      ai_sorted.descriptions = {Azure: _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'})};
+      ai_sorted.descriptions = {Azure: [], Claude: []};
+      ai_sorted.descriptions.Azure = _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'});
       ai_sorted.descriptions.Azure = _.map(ai_sorted.descriptions.Azure, function(item){
+        item.createdate = item.createdate.substr(0,10);
+        return item;
+      });
+      ai_sorted.descriptions.Claude = _.filter(ai_data, {type: 'description', source: 'Anthropic'});
+      ai_sorted.descriptions.Claude = _.map(ai_sorted.descriptions.Claude, function(item){
         item.createdate = item.createdate.substr(0,10);
         return item;
       });

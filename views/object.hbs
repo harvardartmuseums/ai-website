@@ -322,6 +322,19 @@
                 </div>
               </div>
               {{/if}}
+              {{#if ai_sorted.descriptions.Claude}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Anthropic Claude</h4>
+                </div>
+                <div>
+                  {{#each ai_sorted.descriptions.Claude}}
+                    <p>Created on {{createdate}}</p>
+                    <p>{{body}}</p>
+                  {{/each}}
+                </div>
+              </div>
+              {{/if}}              
             {{/if}}
             </div>
           </div>
