@@ -334,7 +334,20 @@
                   {{/each}}
                 </div>
               </div>
-              {{/if}}              
+              {{/if}}   
+              {{#if ai_sorted.descriptions.Meta}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Meta Llama</h4>
+                </div>
+                <div>
+                  {{#each ai_sorted.descriptions.Meta}}
+                    <p>Created on {{createdate}}</p>
+                    <p>{{body}}</p>
+                  {{/each}}
+                </div>
+              </div>
+              {{/if}}                          
             {{/if}}
             </div>
           </div>
