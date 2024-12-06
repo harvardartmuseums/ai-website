@@ -316,7 +316,7 @@
                 </div>
                 <div>
                   {{#each ai_sorted.descriptions.Azure}}
-                    <p>Created on {{createdate}}</p>
+                    <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
                     <p>{{body}}</p>
                   {{/each}}
                 </div>
@@ -329,7 +329,7 @@
                 </div>
                 <div>
                   {{#each ai_sorted.descriptions.Claude}}
-                    <p>Created on {{createdate}}</p>
+                    <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
                     <p>{{body}}</p>
                   {{/each}}
                 </div>
@@ -342,7 +342,7 @@
                 </div>
                 <div>
                   {{#each ai_sorted.descriptions.Meta}}
-                    <p>Created on {{createdate}}</p>
+                    <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
                     <p>{{body}}</p>
                   {{/each}}
                 </div>
