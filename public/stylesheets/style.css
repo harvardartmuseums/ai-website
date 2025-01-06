@@ -1103,9 +1103,7 @@ button {
 .feature-slide {
   border-radius: 5px;
   height: auto;
-  min-width: 100px;
   max-width: 100%;
-  display: none;
   max-height: 300px;
   margin: 0 auto;
 }

@@ -95,8 +95,12 @@ module.exports = {
     }
     if (_.filter(ai_data, {type: 'tag', feature: 'region'}).length !== 0) {
       ai_sorted.featuresect = {Amazon:{source:'Amazon', features:{}}}
-      ai_sorted.featuresect.Amazon.features = _.uniqBy(_.filter(ai_data, {type: 'tag', feature: 'region'}), 'body')
-      ai_sorted.featuresect.Amazon.createdate =  ai_sorted.featuresect.Amazon.features[0].createdate.substr(0,10);
+      amazonfeatures = _.filter(ai_data, {type: 'tag', feature: 'region', source: 'AWS Rekognition'});
+      amazonfeatures.forEach(e => {
+        selector = e.selectors[0].value.replace('xywh=','');
+        e.iiifFeatureImageURL = e.target.replace("/full/full", `/${selector}/full`);
+      });
+      ai_sorted.featuresect.Amazon.features = _.groupBy(amazonfeatures, 'body');
     }
     if (_.filter(ai_data, {type: 'description'}).length !== 0) {
       ai_sorted.captions = {Microsoft:{source:'Microsoft'}};

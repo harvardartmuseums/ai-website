@@ -109,7 +109,7 @@
       {{/if}}
     </div>
 
-    <<div class="gray-line-break"></div>>
+    <div class="gray-line-break"></div>
     <div class="content">
     {{#if ai_sorted}}
       <div class="ai-content">
@@ -209,27 +209,23 @@
                 <div class="features-box-toggle">
                   <div class="features-row">
                     {{#each ai_sorted.featuresect.Amazon.features}}
-                      <button id="{{@key}}feature-button" onclick="togglefeature('{{id}}')">
-                        <div class="feature-icon-title">{{body}}</div>
-                        {{#each raw.Instances}}
-                          <div class="feature-images {{../id}}featureicon" style="background-image:url({{iiifLabelImageURL}})"></div>
+                        <div class="feature-icon-title">{{@key}}</div>
+                        <div>
+                        {{#each this}}
+                          <button id="{{@key}}feature-button" onclick="togglefeature('{{id}}')">
+                          <div class="feature-images" id="{{id}}featureicon" style="background-image:url({{iiifFeatureImageURL}})"></div>
+                          </button>
                         {{/each}}
-                      </button>
+                        </div>
                     {{/each}}
                   </div>
                 </div>
                 <div class="features-box-display">
-                  {{#each ai_sorted.featuresect}}
-                    {{#each features}}
+                  {{#each ai_sorted.featuresect.Amazon.features}}
+                    {{#each this}}
                       <div class="feature-info-box" id="{{id}}">
                         <div class="feature-image">
-                          <div class="feature-slideshow">
-                            {{#each raw.Instances}}
-                              <img class="feature-slide {{../id}} {{@key}}" src={{iiifLabelImageURL}}></img>
-                            {{/each}}
-                            <button class="left-slideshow-button slideshow-buttons" onclick="plusDivs(-1, {{id}})">&#10094;</button>
-                            <button class="right-slideshow-button slideshow-buttons" onclick="plusDivs(1, {{id}})">&#10095;</button>
-                          </div>
+                            <img class="feature-slide" src={{iiifFeatureImageURL}}></img>
                         </div>
                         <div class="feature-text">
                           <table>
@@ -440,38 +436,10 @@
       document.getElementById('0face-button').click()
     }
 
-    if (document.getElementById('0feature-button').click()) {
+    if (document.getElementById('0feature-button')) {
       document.getElementById('0feature-button').click()
     }
-}, false);
-
-
-  var slideIndex = 1;
-
-  function plusDivs(n, id) {
-    showDivs((slideIndex += n), id);
-  }
-
-  function showDivs(n, id) {
-    var i;
-    var x = document.getElementsByClassName(id);
-    if (n > x.length) {slideIndex = 1}
-    if (n < 1) {slideIndex = x.length}
-    for (i = 0; i < x.length; i++) {
-      x[i].style.display = "none";
-    }
-    var slideshowButtons = document.getElementsByClassName('slideshow-buttons')
-    if (x.length > 1) {
-      for (var i = 0; i < slideshowButtons.length; i++) {
-        slideshowButtons[i].style.display = "block"
-      }
-    } else {
-      for (var i = 0; i < slideshowButtons.length; i++) {
-        slideshowButtons[i].style.display = "none"
-      }
-    }
-    x[slideIndex-1].style.display = "block";
-  }
+  }, false);
 
   function toggleface(id) {
       var faces = document.getElementsByClassName('face-info-box');
@@ -498,12 +466,9 @@
           icons[i].style.border = "none";
       }
       var div = document.getElementById(id);
-      var icons = document.getElementsByClassName(id + "featureicon")
+      var icons = document.getElementById(id + "featureicon")
       div.style.display = div.style.display == "block" ? "none" : "block";
-      for(var i = 0; i < icons.length; i++){
-        icons[i].style.border = icons[i].style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
-      }
-      plusDivs(0, id)
+      icons.style.border = icons.style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
   }
 
 </script>
