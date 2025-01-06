@@ -1000,7 +1000,7 @@ button {
 
 #object-features-section {
   margin-top: 45px;
-  width: 48%
+  width: 100%
 }
 
 .features-box {
@@ -1016,7 +1016,7 @@ button {
 }
 
 .features-box-toggle {
-  width: 48%;
+  width: 100%;
   padding: 10px 20px;
 }
 
@@ -1121,7 +1121,7 @@ button {
 
 #object-captions-section {
   margin-top: 45px;
-  width: 48%;
+  width: 100%;
 }
 
 #object-color-section {
@@ -1492,11 +1492,6 @@ select::-ms-expand {
 .category-image > .search-confidence-bar > .search-red-bar {
   height: 3px;
   border-radius: 0px 0px 5px 5px;
-}
-
-#object-text-section {
-  margin-top: 45px;
-  width: 48%;
 }
 
 .text-box {
@@ -1965,18 +1960,6 @@ select::-ms-expand {
 
   .ai-content {
     margin-top: 30px!important;
-  }
-
-  #object-features-section {
-    width: 100%;
-  }
-
-  #object-captions-section {
-    width: 100%
-  }
-
-  #object-text-section {
-    width: 100%;
   }
 
   .face-image {
