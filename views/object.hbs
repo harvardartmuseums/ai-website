@@ -278,6 +278,28 @@
                   {{/each}}
                 </table>
               </div>
+              {{#if ai_sorted.categories.Microsoft}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Microsoft</h4>
+                </div>
+                <table class="captions-table">
+                  {{#each ai_sorted.categories.Microsoft}}
+                    <tr>
+                      <td><a href="/category/{{body}}">{{body}}</a></td>
+                      <td class="tag-confidence">{{confidence}}%</td>
+                    <tr>
+                    <tr>
+                      <td colspan="2">
+                        <div class="confidence-bar">
+                          <div class="red-bar" style="width:{{confidence}}%"></div>
+                        </div>
+                      <td>
+                    </tr>
+                  {{/each}}
+                </table>
+              </div>   
+              {{/if}}           
             </div>
           </div>
         {{/if}}        
@@ -309,26 +331,26 @@
               {{/each}}
             {{/if}}
             {{#if ai_sorted.descriptions}}
-              {{#if ai_sorted.descriptions.Azure}}
+              {{#if ai_sorted.descriptions.OpenAI}}
               <div class="captions-colors-box-content">
                 <div class="captions-colors-head">
-                  <h4>Azure OpenAI</h4>
+                  <h4>OpenAI GPT</h4>
                 </div>
                 <div>
-                  {{#each ai_sorted.descriptions.Azure}}
+                  {{#each ai_sorted.descriptions.OpenAI}}
                     <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
                     <p>{{body}}</p>
                   {{/each}}
                 </div>
               </div>
               {{/if}}
-              {{#if ai_sorted.descriptions.Claude}}
+              {{#if ai_sorted.descriptions.Anthropic}}
               <div class="captions-colors-box-content">
                 <div class="captions-colors-head">
                   <h4>Anthropic Claude</h4>
                 </div>
                 <div>
-                  {{#each ai_sorted.descriptions.Claude}}
+                  {{#each ai_sorted.descriptions.Anthropic}}
                     <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
                     <p>{{body}}</p>
                   {{/each}}
@@ -347,7 +369,20 @@
                   {{/each}}
                 </div>
               </div>
-              {{/if}}                          
+              {{/if}}  
+              {{#if ai_sorted.descriptions.Amazon}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Amazon Nova</h4>
+                </div>
+                <div>
+                  {{#each ai_sorted.descriptions.Amazon}}
+                    <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
+                    <p>{{body}}</p>
+                  {{/each}}
+                </div>
+              </div>
+              {{/if}}                                      
             {{/if}}
             </div>
           </div>

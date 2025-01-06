@@ -107,14 +107,14 @@ module.exports = {
           return service;
         }
       }) 
-      ai_sorted.descriptions = {Azure: [], Claude: [], Meta: []};
-      ai_sorted.descriptions.Azure = _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'});
-      ai_sorted.descriptions.Azure = _.map(ai_sorted.descriptions.Azure, function(item){
+      ai_sorted.descriptions = {OpenAI: [], Anthropic: [], Meta: [], Amazon: []};
+      ai_sorted.descriptions.OpenAI = _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'});
+      ai_sorted.descriptions.OpenAI = _.map(ai_sorted.descriptions.OpenAI, function(item){
         item.createdate = item.createdate.substr(0,10);
         return item;
       });
-      ai_sorted.descriptions.Claude = _.filter(ai_data, {type: 'description', source: 'Anthropic'});
-      ai_sorted.descriptions.Claude = _.map(ai_sorted.descriptions.Claude, function(item){
+      ai_sorted.descriptions.Anthropic = _.filter(ai_data, {type: 'description', source: 'Anthropic'});
+      ai_sorted.descriptions.Anthropic = _.map(ai_sorted.descriptions.Anthropic, function(item){
         item.createdate = item.createdate.substr(0,10);
         return item;
       });
@@ -123,9 +123,15 @@ module.exports = {
         item.createdate = item.createdate.substr(0,10);
         return item;
       });
+      ai_sorted.descriptions.Amazon = _.filter(ai_data, {type: 'description', source: 'Amazon'});
+      ai_sorted.descriptions.Amazon = _.map(ai_sorted.descriptions.Amazon, function(item){
+        item.createdate = item.createdate.substr(0,10);
+        return item;
+      });
     }
     ai_sorted.categories = {}
-    ai_sorted.categories.Imagga = _.filter(ai_data, {type: 'category'})
+    ai_sorted.categories.Imagga = _.filter(ai_data, {type: 'category', source: 'Imagga'});
+    ai_sorted.categories.Microsoft = _.filter(ai_data, {type: 'category', source: 'Microsoft Cognitive Services'});
     ai_sorted.textsect = {Amazon:{source:'Amazon'},
                           Google:{source:'Google'}}
     ai_sorted.textsect.Google.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "Google Vision"}), 'body')
