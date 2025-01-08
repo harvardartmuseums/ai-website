@@ -414,22 +414,19 @@
 <script src="../javascripts/openseadragon/openseadragon.min.js"></script>
 
 <script type="text/javascript">
-    var viewer = OpenSeadragon({
-        id: "openseadragon1",
-        prefixUrl: "../javascripts/openseadragon/images/",
-        toolbar: "image-toolbar",
-        zoomInButton: "zoom-in",
-        zoomOutButton: "zoom-out",
-        {{#if object_info.imagepermissionlevel}}
-        maxZoomLevel: 1,
-        {{/if}}
-        tileSources: [
-          "{{object_info.images.0.iiifbaseuri}}/info.json"
-        ]
-    });
-</script>
-
-<script>
+  var viewer = OpenSeadragon({
+      id: "openseadragon1",
+      prefixUrl: "../javascripts/openseadragon/images/",
+      toolbar: "image-toolbar",
+      zoomInButton: "zoom-in",
+      zoomOutButton: "zoom-out",
+      {{#if object_info.imagepermissionlevel}}
+      maxZoomLevel: 1,
+      {{/if}}
+      tileSources: [
+        "{{object_info.images.0.iiifbaseuri}}/info.json"
+      ]
+  });
 
   document.addEventListener('DOMContentLoaded', function() {
     if (document.getElementById('0face-button')) {
