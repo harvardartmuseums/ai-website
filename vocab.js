@@ -13,6 +13,7 @@ main();
 async function main() {
     await fetchStats();
     await fetchTags();
+    await fetchFeatures();
     await fetchDescriptions();
 };
 
@@ -232,4 +233,55 @@ async function fetchDescriptions() {
     console.log(`${list.length} organizations`);
     console.log('Writing organizations file');
     fs.writeFileSync("./public/vocabularies/organizations.js", 'module.exports = ' + JSON.stringify(list), {flag:'w+'});
+}
+
+async function  fetchFeatures() {
+    let aggs = {
+        "by_term": {
+            "terms": {
+                "field": "body.exact",
+                "size": 35000
+            },
+            "aggs": {
+                "by_source": {
+                    "terms": {
+                        "field": "source"
+                    }
+                }
+            }
+        }
+    };
+    
+    let qs = {
+      'q': `type:tag AND feature:region`,
+      'size': 0,
+      'apikey': API_KEY, 
+      'aggregation': JSON.stringify(aggs)
+    };
+    const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+    
+    let results = await fetch(url);
+    let output = await results.json();
+    
+    let terms = _.map(output.aggregations.by_term.buckets, (item) => {
+        item.original_key = item.key;
+        item.key = _.lowerCase(item.key);
+        return item;
+    })
+    terms = _.sortBy(terms, 'key');
+    let u = _.groupBy(terms, 'key');
+    let list = [];
+
+    _.forEach(u, (v,k,c) => {
+        let i = {
+            term: k,
+            count: _.sumBy(v, "doc_count"),
+            original: v
+        };
+        list.push(i);
+    })
+
+    console.log(`${list.length} features`);
+    console.log('Writing features file');
+    fs.writeFileSync("./public/vocabularies/features.js", 'module.exports = ' + JSON.stringify(list), {flag:'w+'});    
 }
