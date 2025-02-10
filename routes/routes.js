@@ -79,7 +79,12 @@ router.get('/explore', function(req, res, next) {
 
 
 /* GET search results. */
-router.get('/search/:tag', function(req, res, next) {
+router.get('/search/:tag/:page?', function(req, res, next) {
+  let page = 1;
+  if (req.params.page > 1) {
+    page = req.params.page;
+  }  
+
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let image_list = _.sampleSize(example_images.image_list, 6);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
@@ -114,6 +119,7 @@ router.get('/search/:tag', function(req, res, next) {
   let qs = {
     'q': `confidence:>=0.0 AND (type:tag OR type:description) AND accesslevel:1 AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}" OR "${_.startCase(req.params.tag)}")`,
     'size': 300,
+    'page': page,
     'sort': 'confidence',
     'sortorder': 'desc',
     'fields': 'imageid,confidence,source,body,type,feature',
@@ -121,15 +127,14 @@ router.get('/search/:tag', function(req, res, next) {
     'aggregation': JSON.stringify(aggs)
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
     let tag_results_info = tag_results.info;    
     let tag_stats = tag_results.aggregations;
     tag_results_info.totalrecords_localized = tag_results.info.totalrecords.toLocaleString();
-    tag_results_info.pagenumber = {nextpage: 2};
-    if (tag_results_info.pages > 33) {
-      tag_results_info.pages = 33
-    }
+    tag_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1}
+
     // Sort tag results by confidence percent
     // tag_results = _.filter(tag_results.records, {type: 'tag'})
     tag_results = tag_results.records;
@@ -153,7 +158,6 @@ router.get('/search/:tag', function(req, res, next) {
                              tag_stats: tag_stats,
                              error: false,
                              tag: req.params.tag,
-                             firstpage: true,
                              tag_results_info: tag_results_info
                            });
     })
@@ -215,108 +219,12 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
   });
 });
 
-/* GET search results for next page. */
-router.get('/search/:tag/:page', function(req, res, next) {
-  // If it's the first page, redirect to other route
-  if (req.params.page == 1) {
-    res.redirect('/search/' + req.params.tag)
-  }
-  let tag_list = _.sampleSize(example_tags.tags_list, 5);
-  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
-  let image_list = _.sampleSize(example_images.image_list, 6)
-
-  let aggs = {
-      "by_source": {
-          "terms": {
-              "field": "source",
-              "min_doc_count": 0,
-              "exclude": "Manual"
-          }
-      },
-      "image_count": {
-          "cardinality": {
-              "field": "imageid",
-              "precision_threshold": 1000
-          }
-      },
-      "confidences": {
-          "histogram": {
-              "field": "confidence",
-              "interval": 0.05,
-              "order": {"_key": "desc"},
-              "extended_bounds": {
-                "min": 0.0,
-                "max": 1.0
-              }
-          }
-        }
-  };
-
-  let qs = {
-    'q': `confidence:>=0.0 AND (type:tag OR type:description) AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}" OR "${_.startCase(req.params.tag)}")`,
-    'size': 300,
-    'sort': 'confidence',
-    'sortorder': 'desc',
-    'fields': 'imageid,confidence,source,body,type,feature',
-    'page': req.params.page,
-    'apikey': API_KEY,
-    'aggregation': JSON.stringify(aggs)
-  };
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
-
-  fetch(tag_url).then(response => response.json())
-  .then(tag_results => {
-    let tag_results_info = tag_results.info;
-    let tag_stats = tag_results.aggregations;
-    tag_results_info.totalrecords_localized = tag_results.info.totalrecords.toLocaleString();
-    tag_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
-    if (tag_results_info.pages > 33) {
-      tag_results_info.pages = 33
-    }
-    // Sort tag results by confidence percent
-    // tag_results = _.filter(tag_results.records, {type: 'tag'})
-    tag_results = tag_results.records;
-    tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
-    // Create a new array of the image IDs that will show up
-    let imageid_results = _.map(tag_results, 'imageid')
-    // Function to create a new query to retrieve objects from image ids
-    let object_url = appendscript.idappend(imageid_results)
-    fetch(object_url).then(response => response.json())
-    .then(object_results => {
-      object_results = object_results.records
-      // Match the object list with their corresponding tag results
-      object_results = appendscript.tagappend(object_results, tag_results)
-      let tag = req.params.tag
-      res.render('search', { title: `Search results for '${req.params.tag}'`,
-                             subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${tag_stats.image_count.value.toLocaleString()} images`,
-                             navbar: true,
-                             year: new Date().getFullYear(),
-                             object_results: object_results,
-                             tag_results: tag_results,
-                             tag_stats: tag_stats,
-                             error: false,
-                             tag: req.params.tag,
-                             tag_results_info: tag_results_info,
-                             firstpage: false
-                           });
-    })
-    .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
-                                            navbar: true,
-                                            error: true,
-                                            tag_list: tag_list,
-                                            mobile_tag_list: mobile_tag_list,
-                                            image_list: image_list})})
-  })
-  .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
-                                          navbar: true,
-                                          error: true,
-                                          tag_list: tag_list,
-                                          mobile_tag_list: mobile_tag_list,
-                                          image_list: image_list})})
-});
-
 /* GET category results. */
-router.get('/category/:category', function(req, res, next) {
+router.get('/category/:category/:page?', function(req, res, next) {
+  let page = 1;
+  if (req.params.page > 1) {
+    page = req.params.page;
+  }  
   let aggs = {
     "image_count": {
         "cardinality": {
@@ -328,6 +236,7 @@ router.get('/category/:category', function(req, res, next) {
   let qs = {
     'q': `type:category AND accesslevel:1 AND body.exact:"${_.lowerCase(req.params.category)}"`,
     'size': 100,
+    'page': page,
     'sort': 'confidence',
     'sortorder': 'desc',
     'fields': 'imageid,confidence,source,body,type,feature',
@@ -339,10 +248,7 @@ router.get('/category/:category', function(req, res, next) {
   .then(category_results => {
     let category_results_info = category_results.info;
     let category_stats = category_results.aggregations;
-    category_results_info.pagenumber = {nextpage: 2}
-    if (category_results_info.pages > 33) {
-      category_results_info.pages = 33
-    }
+    category_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1}
     category_results = _.orderBy(category_results.records, ['confidence'], ['desc'])
     let imageid_results = _.map(category_results, 'imageid')
     let object_url = appendscript.idappend(imageid_results)
@@ -359,61 +265,6 @@ router.get('/category/:category', function(req, res, next) {
                              category_list: imagga_categories.categories_list,
                              category: _.capitalize(req.params.category),
                              category_results_info: category_results_info,
-                           });
-    })
-  })
-});
-
-/* GET category results for next page. */
-router.get('/category/:category/:page', function(req, res, next) {
-  if (req.params.page == 1) {
-    res.redirect('/category/' + req.params.category)
-  }
-
-  let aggs = {
-    "image_count": {
-        "cardinality": {
-            "field": "imageid",
-            "precision_threshold": 1000
-        }
-    }
-  };  
-  let qs = {
-    'q': `type:category AND accesslevel:1 AND body.exact:"${_.lowerCase(req.params.category)}"`,
-    'size': 100,
-    'page': req.params.page,
-    'sort': 'confidence',
-    'sortorder': 'desc',
-    'fields': 'imageid,confidence,source,body,type,feature',
-    'apikey': API_KEY, 
-    'aggregation': JSON.stringify(aggs)
-  };  
-
-  const category_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
-  fetch(category_url).then(response => response.json())
-  .then(category_results => {
-    let category_results_info = category_results.info;
-    let category_stats = category_results.aggregations;
-    category_results_info.pagenumber = {nextpage: parseFloat(req.params.page) + 1, previouspage:  parseFloat(req.params.page) - 1}
-    if (category_results_info.pages > 33) {
-      category_results_info.pages = 33
-    }
-    category_results = _.orderBy(category_results.records, ['confidence'], ['desc'])
-    let imageid_results = _.map(category_results, 'imageid')
-    let object_url = appendscript.idappend(imageid_results)
-    fetch(object_url).then(response => response.json())
-    .then(object_results => {
-      object_results = object_results.records
-      object_results = appendscript.categoryappend(object_results, category_results)
-      res.render('category', { title: "Category results for '" + req.params.category + "'",
-                             subtitle: `${category_results_info.totalrecords.toLocaleString()} occurrences of '${req.params.category}' found`,
-                             navbar: true,
-                             year: new Date().getFullYear(),
-                             object_results: object_results,
-                             category_results: category_results,
-                             category_list: imagga_categories.categories_list,
-                             category: _.capitalize(req.params.category),
-                             category_results_info: category_results_info
                            });
     })
   })
