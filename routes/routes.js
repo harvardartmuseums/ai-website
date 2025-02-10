@@ -200,6 +200,9 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
     tag_results.records.forEach(tag => {
       coords = tag.selectors[0].value.replace('xywh=','');
       tag.imagefragmenturl = tag.target.replace('/full/full', `/${coords}/full`);
+      if (tag.confidence <= 1) {
+        tag.confidence = _.round((tag.confidence * 100), 1)
+      }
     });
 
     let imageid_list = _.map(tag_results.records, 'imageid');
