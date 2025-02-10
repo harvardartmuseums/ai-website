@@ -56,5 +56,18 @@ module.exports = {
     object_results = _.orderBy(object_results, ['category.confidence'], ['desc'])
     object_results = _.remove(object_results, o => typeof o.category !== 'undefined')
     return object_results
+  },
+  objectappend: function (image_results, object_results) {
+    _.map(image_results, function(image) {
+      let object = _.find(object_results, o =>         
+          _.some(o.images, {imageid: image.imageid})
+      );
+      if (object !== undefined) {
+        image.object = object;
+      } else {
+        image.object = {objectid: -1};
+      }
+    });
+    return image_results;
   }
 }

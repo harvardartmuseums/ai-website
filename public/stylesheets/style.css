@@ -334,7 +334,7 @@ caption {
   border-radius: 5px;
   padding-bottom: 30px;
   position: relative; 
-  height: 480px;
+  height: 650px;
   border: 1px solid var(--c-gray);
 }
 
@@ -1698,7 +1698,7 @@ select::-ms-expand {
   }
 
   .explore-panel {
-    height: 430px
+    height: 650px
   }
 
   .terms-box + .terms-box {
@@ -2106,7 +2106,7 @@ select::-ms-expand {
   }
 
   .explore-panel {
-    height: 550px;
+    height: 700px;
     border: none;
   }
 

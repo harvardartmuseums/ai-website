@@ -10,6 +10,7 @@ var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
 var example_images = require('../public/examples/exampleimages')
 var terms = require('../public/vocabularies/terms')
+var features = require('../public/vocabularies/features')
 var descriptions = require('../public/vocabularies/descriptions')
 var people = require('../public/vocabularies/people')
 var places = require('../public/vocabularies/places')
@@ -169,6 +170,49 @@ router.get('/search/:tag', function(req, res, next) {
                                           tag_list: tag_list,
                                           mobile_tag_list: mobile_tag_list,
                                           image_list: image_list})})
+});
+
+router.get('/feature/:tag/:page?', function(req, res, next) {
+  let tag = _.lowerCase(req.params.tag);
+  let page = 1;
+  if (req.params.page > 1) {
+    page = req.params.page;
+  }
+  let qs = {
+    'q': `confidence:>=0.0 AND type:tag AND feature:region AND body.exact:("${tag}" OR "${_.capitalize(tag)}" OR "${_.startCase(tag)}")`,
+    'size': 52,
+    'page': page,
+    'sort': 'confidence',
+    'sortorder': 'desc',
+    'fields': 'imageid,confidence,source,body,type,feature,selectors,target',
+    'apikey': API_KEY,
+  };
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+
+  fetch(tag_url).then(response => response.json())
+  .then(tag_results => {
+    let feature_results_info = tag_results.info;
+    feature_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1};
+    tag_results.records.forEach(tag => {
+      coords = tag.selectors[0].value.replace('xywh=','');
+      tag.imagefragmenturl = tag.target.replace('/full/full', `/${coords}/full`);
+    });
+
+    let imageid_list = _.map(tag_results.records, 'imageid');
+    let object_url = appendscript.idappend(imageid_list);
+    fetch(object_url).then(response => response.json())
+    .then(object_results => {
+      tag_results.records = appendscript.objectappend(tag_results.records, object_results.records);
+      
+      res.render('feature', {title: `Results for feature '${tag}'`,
+                              subtitle: `${feature_results_info.totalrecords.toLocaleString()} occurrences of '${tag}' found`,
+                              navbar: true, 
+                              feature_list: features,
+                              feature: tag,
+                              results: tag_results.records,
+                              feature_results_info: feature_results_info});
+      });
+  });
 });
 
 /* GET search results for next page. */
@@ -376,25 +420,36 @@ router.get('/category/:category/:page', function(req, res, next) {
 });
 
 /* GET object info. */
-router.get('/object/:object_id', function(req, res, next) {
+router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
-  let image_list = _.sampleSize(example_images.image_list, 6)
+  let image_list = _.sampleSize(example_images.image_list, 6);
+
   const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
+  
   fetch(object_url).then(response => response.json())
   .then(object_info => {
-    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + object_info.images[0].imageid + `&size=2000&apikey=` + API_KEY;
+    let imageid = object_info.images[0].imageid;
+    if (req.params.image_id > 0) {
+      imageid = req.params.image_id;
+    }
+
+    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
     fetch(ai_url).then(response => response.json())
     .then(ai_info => {
-      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc'])
+      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
       // Divide data into general categories
       let ai_sorted = organize.divide(ai_data)
+
+      let display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+
       res.render('object', { title: 'AI Data for ' + object_info.title,
                              navbar: false,
                              year: new Date().getFullYear(),
                              ai_data: ai_data,
                              ai_sorted: ai_sorted,
                              object_info: object_info,
+                             display_image: display_image,  
                            });
     })
     .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
@@ -522,6 +577,11 @@ router.get('/search', function(req, res){
 /* REDIRECT to an arbitrary category once a user lands on category page. */
 router.get('/category', function(req,res){
   res.redirect('/category/' + 'Interior objects')
+})
+
+/* REDIRECT to an arbitrary category once a user lands on category page. */
+router.get('/feature', function(req,res){
+  res.redirect('/feature/' + 'apple')
 })
 
 module.exports = router;

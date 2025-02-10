@@ -230,7 +230,7 @@
                         <div class="feature-text">
                           <table>
                             <tr>
-                              <td class="tag-body"><a href="/search/{{body}}">{{body}}</a></td>
+                              <td class="tag-body"><a href="/feature/{{body}}">{{body}}</a></td>
                               <td class="tag-confidence">{{confidence}}%</td>
                             </tr>
                             <tr>
@@ -411,7 +411,7 @@
   </div>
 </section>
 
-<script src="../javascripts/openseadragon/openseadragon.min.js"></script>
+<script src="/javascripts/openseadragon/openseadragon.min.js"></script>
 
 <script type="text/javascript">
   var viewer = OpenSeadragon({
@@ -424,7 +424,7 @@
       maxZoomLevel: 1,
       {{/if}}
       tileSources: [
-        "{{object_info.images.0.iiifbaseuri}}/info.json"
+        "{{display_image.iiifbaseuri}}/info.json"
       ]
   });
 
