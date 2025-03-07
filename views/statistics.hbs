@@ -270,6 +270,7 @@
     const plot2 = Plot.plot({
         y: {grid: true, percent: false, label: '# of terms'},
         marks: [
+          Plot.axisX({label: null, lineWidth: 6, marginBottom: 40}),
           Plot.barY(dataVocabBySource, {x: "source", y: "count", fill: "source", tip: true}),
           Plot.ruleY([0])
         ],
@@ -296,6 +297,7 @@
     const plot3 = Plot.plot({
         y: {grid: true},
         marks: [
+          Plot.axisX({label: null, lineWidth: 6, marginBottom: 40}),
           Plot.barY(data, {x: "source", y: "count", fill: "type", tip: true}),
           Plot.ruleY([0])
         ],

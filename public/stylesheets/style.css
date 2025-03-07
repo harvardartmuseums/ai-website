@@ -1215,7 +1215,7 @@ button {
 }
 
 .content-search-stats {
-  display: flex;
+  flex-wrap: wrap;
   justify-content: flex-start;
   column-gap: 20px;
 }
