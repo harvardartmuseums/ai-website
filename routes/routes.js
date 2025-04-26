@@ -359,6 +359,8 @@ router.get('/statistics', function(req, res, next) {
     "by_source": {
       "terms": {
         "field": "source",
+        "min_doc_count": 0,
+        "size": 20,
         "exclude": "Manual",
         "order": { "_key": "asc" }     
       },
@@ -382,6 +384,7 @@ router.get('/statistics', function(req, res, next) {
                 "terms": {
                     "field": "source",
                     "min_doc_count": 0,
+                    "size": 20,
                     "exclude": "Manual",
                     "order": { "_key": "asc" }
                 } 
