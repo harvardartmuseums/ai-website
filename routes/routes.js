@@ -93,6 +93,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
       "by_source": {
           "terms": {
               "field": "source",
+              "size": 20,
               "min_doc_count": 0,
               "exclude": "Manual"
           }
