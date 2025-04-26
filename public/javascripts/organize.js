@@ -53,6 +53,13 @@ module.exports = {
       face.sorted_raw.shift()
     })
   },
+  imaggafacesort: function (facedata) {
+    _.map(facedata, function(face) {
+      let faceinfo = {type: 'Traits', body: face.body}
+      face.sorted_raw = _.concat(face.sorted_raw, faceinfo)
+      face.sorted_raw.shift()
+    })
+  },
   divide: function (ai_data) {
     ai_data = _.map(ai_data, function(annotation){
       annotation.confidence = _.round((annotation.confidence * 100), 1)
@@ -76,16 +83,25 @@ module.exports = {
                             return service
                           }
                         })
+
+    // Process faces
     if ( _.filter(ai_data, {type: 'face'}).length !== 0) {
       ai_sorted.facesect = {Amazon:{source:'Amazon'},
                             Microsoft:{source:'Microsoft'},
-                            Google:{source:'Google'}}
+                            Google:{source:'Google'},
+                            Imagga:{source:'Imagga'}};
       amazonfaces = _.filter(ai_data, {type: 'face', source: 'AWS Rekognition'})
       ai_sorted.facesect.Amazon.faces = _.map(amazonfaces, module.exports.amazonfacesort(amazonfaces))
+
       microsoftfaces = _.filter(ai_data, {type: 'face', source: 'Microsoft Cognitive Services'})
       ai_sorted.facesect.Microsoft.faces = _.map(microsoftfaces, module.exports.microsoftfacesort(microsoftfaces))
+      
       googlefaces = _.filter(ai_data, {type: 'face', source: 'Google Vision'})
       ai_sorted.facesect.Google.faces = _.map(googlefaces, module.exports.googlefacesort(googlefaces))
+      
+      imaggafaces = _.filter(ai_data, {type: 'face', source: 'Imagga'})
+      ai_sorted.facesect.Imagga.faces = _.map(imaggafaces, module.exports.imaggafacesort(imaggafaces))
+      
       ai_sorted.facesect = _.filter(ai_sorted.facesect, function(service){
         if(service.faces.length > 0) {
           service.createdate = service.faces[0].createdate.substr(0,10);
@@ -93,6 +109,8 @@ module.exports = {
         }
       })
     }
+
+    // Process features/object detection
     if (_.filter(ai_data, {type: 'tag', feature: 'region'}).length !== 0) {
       ai_sorted.featuresect = {Amazon:{source:'Amazon', features:{}}}
       amazonfeatures = _.filter(ai_data, {type: 'tag', feature: 'region', source: 'AWS Rekognition'});
@@ -102,6 +120,8 @@ module.exports = {
       });
       ai_sorted.featuresect.Amazon.features = _.groupBy(amazonfeatures, 'body');
     }
+
+    // Process descriptions and captions
     if (_.filter(ai_data, {type: 'description'}).length !== 0) {
       ai_sorted.captions = {Microsoft:{source:'Microsoft'}};
       ai_sorted.captions.Microsoft.captions = _.filter(ai_data, {type: 'description', source: 'Microsoft Cognitive Services'});
@@ -111,7 +131,9 @@ module.exports = {
           return service;
         }
       }) 
-      ai_sorted.descriptions = {OpenAI: [], Anthropic: [], Meta: [], Amazon: []};
+
+      // long descriptions
+      ai_sorted.descriptions = {OpenAI: [], Anthropic: [], Meta: [], Amazon: [], Google: [], Mistral: []};
       ai_sorted.descriptions.OpenAI = _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'});
       ai_sorted.descriptions.OpenAI = _.map(ai_sorted.descriptions.OpenAI, function(item){
         item.createdate = item.createdate.substr(0,10);
@@ -132,10 +154,24 @@ module.exports = {
         item.createdate = item.createdate.substr(0,10);
         return item;
       });
+      ai_sorted.descriptions.Google = _.filter(ai_data, {type: 'description', source: 'Google Gemini'});
+      ai_sorted.descriptions.Google = _.map(ai_sorted.descriptions.Google, function(item){
+        item.createdate = item.createdate.substr(0,10);
+        return item;
+      });
+      ai_sorted.descriptions.Mistral = _.filter(ai_data, {type: 'description', source: 'Mistral'});
+      ai_sorted.descriptions.Mistral = _.map(ai_sorted.descriptions.Mistral, function(item){
+        item.createdate = item.createdate.substr(0,10);
+        return item;
+      });
     }
+
+    // Process categories
     ai_sorted.categories = {}
     ai_sorted.categories.Imagga = _.filter(ai_data, {type: 'category', source: 'Imagga'});
     ai_sorted.categories.Microsoft = _.filter(ai_data, {type: 'category', source: 'Microsoft Cognitive Services'});
+
+    // Process text
     ai_sorted.textsect = {Amazon:{source:'Amazon'},
                           Google:{source:'Google'}}
     ai_sorted.textsect.Google.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "Google Vision"}), 'body')

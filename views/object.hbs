@@ -378,7 +378,33 @@
                   {{/each}}
                 </div>
               </div>
-              {{/if}}                                      
+              {{/if}}         
+              {{#if ai_sorted.descriptions.Google}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Google Gemini</h4>
+                </div>
+                <div>
+                  {{#each ai_sorted.descriptions.Google}}
+                    <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
+                    <p>{{body}}</p>
+                  {{/each}}
+                </div>
+              </div>
+              {{/if}}       
+              {{#if ai_sorted.descriptions.Mistral}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Mistral Pixtral</h4>
+                </div>
+                <div>
+                  {{#each ai_sorted.descriptions.Mistral}}
+                    <p>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</p>
+                    <p>{{body}}</p>
+                  {{/each}}
+                </div>
+              </div>
+              {{/if}}                                                       
             {{/if}}
             </div>
           </div>
