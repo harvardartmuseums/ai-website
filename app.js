@@ -2,6 +2,9 @@ var cookieParser = require('cookie-parser');
 var createError = require('http-errors');
 var express = require('express');
 var hbs = require('hbs');
+var helpers = require('handlebars-helpers')({
+	handlebars: hbs
+});
 var logger = require('morgan');
 var path = require('path');
 var routes = require('./routes/routes');
