@@ -306,7 +306,7 @@
               {{#each ai_sorted.captions}}
               <div class="captions-colors-box-content">
                 <div class="captions-colors-head">
-                  <h4>{{source}}<br/><span style="font-size: small;">created on {{createdate}}</span></h4>
+                  <h4>{{source}}<br/><span style="font-size: small;">created {{#if captions.0.model}}by {{captions.0.model}} {{/if}}on {{createdate}}</span></h4>
                 </div>
                 <table class="captions-table">
                   {{#each captions}}

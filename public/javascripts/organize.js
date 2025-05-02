@@ -123,8 +123,16 @@ module.exports = {
 
     // Process descriptions and captions
     if (_.filter(ai_data, {type: 'description'}).length !== 0) {
-      ai_sorted.captions = {Microsoft:{source:'Microsoft'}};
-      ai_sorted.captions.Microsoft.captions = _.filter(ai_data, {type: 'description', source: 'Microsoft Cognitive Services'});
+      ai_sorted.captions = {
+        Microsoft: {
+          source: 'Microsoft',
+          captions: _.filter(ai_data, {type: 'description', source: 'Microsoft Cognitive Services'})
+        }, 
+        Clarifai: {
+          source:'Clarifai',
+          captions: _.filter(ai_data, {type: 'description', source: 'Clarifai'})
+        }
+      };
       ai_sorted.captions = _.filter(ai_sorted.captions, function(service){
         if(service.captions.length > 0) {
           service.createdate = service.captions[0].createdate.substr(0,10);
