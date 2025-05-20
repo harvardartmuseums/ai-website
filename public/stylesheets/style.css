@@ -1340,10 +1340,10 @@ button {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  column-gap: 30px;
 }
 
 .category-toggle {
-  width: 24%;
   border: 1px solid var(--c-lightgray);
   border-radius: 5px;
   padding-bottom: 20px;
@@ -1424,7 +1424,7 @@ select::-ms-expand {
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  height: 400px;
+  height: 500px;
 }
 
 .category-button {
@@ -1454,7 +1454,7 @@ select::-ms-expand {
 }
 
 .category-results {
-  width: 70%
+  width: 90%
 }
 
 .category-images {
@@ -1462,7 +1462,8 @@ select::-ms-expand {
   flex-direction: row;
   flex-wrap: wrap;
   width: 100%;
-  justify-content: space-between;
+  justify-content: start;
+  column-gap: 1%;
   margin-top: 30px;
 }
 
