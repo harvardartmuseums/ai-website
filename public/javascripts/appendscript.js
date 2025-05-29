@@ -15,7 +15,7 @@ module.exports = {
   },
   tagappend: function (object_results, tag_results) {
     _.map(object_results, function(object){
-      if (object.images[0]) {
+      if (object.images?.[0]) {
         let tags = _.filter(tag_results, {imageid: object.images[0].imageid})
         _.map(tags, function(tag){
           // Rename sources to shorter versions
@@ -43,7 +43,7 @@ module.exports = {
   },
   categoryappend: function (object_results, category_results) {
     _.map(object_results, function(object) {
-      if (object.images[0]) {
+      if (object.images?.[0]) {
         let categories = _.filter(category_results, {imageid: object.images[0].imageid})
         _.map(categories, function(category){
           if (category.confidence <= 1) {
