@@ -223,6 +223,53 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
   });
 });
 
+router.get('/face/:page?', function(req, res, next) {
+  let tag = _.lowerCase(req.params.tag);
+  let page = 1;
+  if (req.params.page > 1) {
+    page = req.params.page;
+  }
+  let qs = {
+    'q': `confidence:>=0.0 AND accesslevel:1 AND type:face AND source:"AWS Rekognition"`,
+    'size': 52,
+    'page': page,
+    'sort': 'confidence',
+    'sortorder': 'desc',
+    'fields': 'imageid,idsid,confidence,source,body,type,feature,selectors,target',
+    'apikey': API_KEY,
+  };
+  const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+
+  fetch(tag_url).then(response => response.json())
+  .then(tag_results => {
+    let feature_results_info = tag_results.info;
+    feature_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1};
+    tag_results.records.forEach(tag => {
+      coords = tag.selectors[0].value.replace('xywh=','');
+      tag.imagefragmenturl = `https://ids.lib.harvard.edu/ids/iiif/${tag.idsid}/${coords}/full/0/default.jpg`;
+      // tag.imagefragmenturl = tag.target.replace('/full/full', `/${coords}/full`);
+      if (tag.confidence <= 1) {
+        tag.confidence = _.round((tag.confidence * 100), 1)
+      }
+    });
+
+    let imageid_list = _.map(tag_results.records, 'imageid');
+    let object_url = appendscript.idappend(imageid_list);
+    fetch(object_url).then(response => response.json())
+    .then(object_results => {
+      tag_results.records = appendscript.objectappend(tag_results.records, object_results.records);
+      
+      res.render('face', {title: `Results for faces`,
+                              subtitle: `${feature_results_info.totalrecords.toLocaleString()} faces found`,
+                              navbar: true, 
+                              feature_list: features,
+                              feature: 'face',
+                              results: tag_results.records,
+                              feature_results_info: feature_results_info});
+      });
+  });
+});
+
 /* GET category results. */
 router.get('/category/:category/:page?', function(req, res, next) {
   let page = 1;
@@ -238,7 +285,7 @@ router.get('/category/:category/:page?', function(req, res, next) {
     }
   };  
   let qs = {
-    'q': `type:category AND accesslevel:1 AND body.exact:"${_.lowerCase(req.params.category)}"`,
+    'q': `confidence:>=0.0 AND type:category AND accesslevel:1 AND body.exact:"${_.lowerCase(req.params.category)}"`,
     'size': 100,
     'page': page,
     'sort': 'confidence',
