@@ -180,8 +180,10 @@ router.get('/search/:tag/:page?', function(req, res, next) {
 router.get('/feature/:tag/:page?', function(req, res, next) {
   let tag = _.lowerCase(req.params.tag);
   let page = 1;
-  if (req.params.page > 1) {
+  if (req.params.page > 1 && req.params.page < 9616) { // This is to keep the search request from going deeper than 500K records in to the dataset. Elasticsearch will throw an error. 500,000/52 = 9615.38
     page = req.params.page;
+  } else {
+    // send them to /dev/null ?!?!
   }
   let qs = {
     'q': `confidence:>=0.0 AND type:tag AND feature:region AND body.exact:("${tag}" OR "${_.capitalize(tag)}" OR "${_.startCase(tag)}")`,
@@ -226,8 +228,10 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
 router.get('/face/:page?', function(req, res, next) {
   let tag = _.lowerCase(req.params.tag);
   let page = 1;
-  if (req.params.page > 1) {
+  if (req.params.page > 1 && req.params.page < 9616) { // This is to keep the search request from going deeper than 500K records in to the dataset. Elasticsearch will throw an error. 500,000/52 = 9615.38
     page = req.params.page;
+  } else {
+    // send them to /dev/null ?!?!
   }
   let qs = {
     'q': `confidence:>=0.0 AND accesslevel:1 AND type:face AND source:"AWS Rekognition"`,
@@ -273,9 +277,11 @@ router.get('/face/:page?', function(req, res, next) {
 /* GET category results. */
 router.get('/category/:category/:page?', function(req, res, next) {
   let page = 1;
-  if (req.params.page > 1) {
+  if (req.params.page > 1 && req.params.page < 5000) { // This is to keep the search request from going deeper than 500K records in to the dataset. Elasticsearch will throw an error. 500,000/100 = 5000
     page = req.params.page;
-  }  
+  } else {
+    // send them to /dev/null ?!?!
+  }
   let aggs = {
     "image_count": {
         "cardinality": {
