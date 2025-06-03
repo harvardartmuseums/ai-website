@@ -31,6 +31,31 @@
           <dt>Mistral Pixtral (via AWS Bedrock)</dt><dd>Description generation via prompting</dd>
           <dt>OpenAI GPT (via Azure)</dt><dd>Description generation via prompting</dd>
       </dl>
+
+      <div>
+        <p>Image coverage by source.</p>
+        <div id="coverage-plot"></div>
+      </div>   
+      <div class="stats">
+        {{!-- <p>The raw data.</p>
+        <table style="max-width: 70%;">
+          <thead>
+            <tr>
+              <th></th>
+              <th>Percent of Images Covered</th>
+            </tr>
+          </thead>
+          <tbody>
+              {{#each stats.aggregations.by_source.buckets}}
+                <tr>
+                  <th>{{key}}</th>
+                  <td>{{round image_coverage.percentage}}%</td>
+                </tr>
+              {{/each}}     
+          </tbody>
+        </table> --}}
+      </div>
+      
       <div>
         <p>Annotation counts by source.</p>
         <div id="source-plot"></div>    
@@ -313,6 +338,32 @@
     })
 
     div = document.getElementById("source-plot");
-    div.append(plot3);        
+    div.append(plot3);       
+
+   // Plot #4
+    const sources_coverage = [
+    {{#each stats.aggregations.by_source.buckets}}
+        {source:"{{key}}", percent:{{round image_coverage.percentage}} },
+    {{/each}}   
+    ];
+
+    const plot4 = Plot.plot({
+        y: {grid: true, percent: false, domain: [0, 100]},
+        marks: [
+          Plot.axisX({label: null, lineWidth: 6, marginBottom: 40}),
+          Plot.barY(sources_coverage, {x: "source", y: "percent", fill: "source", tip: true}),
+          Plot.ruleY([0])
+        ],
+        color: { legend: false },
+        height: 350,
+        width: 600,
+        marginTop: 20, // 🌶 if you don't set the margins, the defaults flip the scales bottom-up
+        marginBottom: 40,
+        marginLeft: 60,
+        marginRight: 20
+    })
+
+    div = document.getElementById("coverage-plot");
+    div.append(plot4);       
   }
 </script>

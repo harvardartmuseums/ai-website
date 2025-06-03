@@ -413,6 +413,12 @@ router.get('/statistics', function(req, res, next) {
         "order": { "_key": "asc" }     
       },
       "aggs": {
+        "image_coverage": {
+            "cardinality": {
+                "field": "imageid",
+                "precision_threshold": 1000
+            }
+        },
         "by_type": {
           "terms": {
             "field": "type",
@@ -448,8 +454,11 @@ router.get('/statistics', function(req, res, next) {
   };
   const stats_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
   fetch(stats_url).then(response => response.json())
-        .then(stats_results => {
+  .then(stats_results => {
             stats.aggregations = stats_results.aggregations;
+            stats.aggregations.by_source.buckets.forEach(a => {
+              a.image_coverage.percentage = (a.image_coverage.value/stats.aggregations.image_count.value)*100;
+            });
             stats.date_of_oldest = stats.aggregations.date_stats.min_as_string.substr(0, 10);
             stats.date_of_newest = stats.aggregations.date_stats.max_as_string.substr(0, 10);
             stats.image_count = stats.aggregations.image_count.value.toLocaleString();
