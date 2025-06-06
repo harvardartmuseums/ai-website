@@ -5,7 +5,7 @@
     <div class="about-banner">
       <div class="about-overview">
         <h3>Overview</h3>
-        <p>Starting in 2016 the Harvard Art Museums department of Digital Infrastructure and Emerging Technology (DIET) began using artificial intelligence to describe the museums collection. Since then we've built a research dataset of {{annotation_count}} machine-generated descriptions and tags covering {{image_count}} images of artworks. Ranging from feature recognition to face analysis that predicts gender, age, and emotion, the data reveals how computers interpret paintings, photographs, and sculptures. This website allows users to explore the extensive collection of data by searching for artworks by machine-generated keyword and looking at aggregated data for individual pieces.</p>
+        <p>Since 2016, the Harvard Art Museums’ department of Digital Infrastructure and Emerging Technology (DIET) has made artificial intelligence a part of our day-to-day work, using it to generate new descriptions for our entire collection. We continue to build and refine a living research dataset—now at {{annotation_count}} machine-generated descriptions and tags for {{image_count}} images of artworks and counting. By applying a range of AI techniques, from feature recognition to face analysis that predicts gender, age, and emotion, we capture how computers interpret the full diversity of objects in our care. This website invites you to explore this dynamic dataset: search by machine-generated keywords or dive into rich, aggregated data for individual works as the collection and its digital annotations evolve.</p>
       </div>
       <div class="about-image-container">
         <img class="about-image" src="/images/aboutbanner.png" alt="A collage containing a stone sculpture of a bearded man's head with analysis by AWS Rekognition, and a an abstract painting with analysis by Microsoft Cognitive Services.">
@@ -14,12 +14,12 @@
     <div class="about-why-how">
       <div class="about-why-how-text">
         <h3>Why?</h3>
-        <p>The Harvard Art Museums is using computer vision and AI for two primary reasons. The first is to categorize, tag, describe, and annotate its collection of art in ways that the staff of curators don't. Since the computer lacks any context or formal training in art history, the machine views and annotates our collection as if walking into an art museum for the first time. The perspective offered by AI leans closer to reflecting the public rather than experts. Currently, the <a href="https://www.harvardartmuseums.org/collections">Harvard Art Museums’ search interface</a> relies on descriptions written by art historians. The addition of AI-generated annotations makes the Harvard Art Museums’ art collection more accessible to non-specialists.</p>
-        <p>The second reason is to build a dataset for researching how AI services operate. All of the services we use are <a href="https://en.wikipedia.org/wiki/Black_box">black boxes</a>. This means the services do not disclose the algorithms and training sets used in their systems so we are left to guess how they operate. We use them and provide the data, in part, to call attention to the differences and biases inherent in AI services. </p>
+        <p>We turn to computer vision and AI for two main reasons. First, we aim to enrich the ways our collection is categorized and described—beyond what our curators can provide alone. While these AI systems offer fresh perspectives, we rarely know exactly how they’ve been trained; some may rely solely on general visual data, while others could draw on curatorial expertise or crowd-sourced input. As a result, the interpretations they generate sometimes feel like those of a museum newcomer, yet at other times echo more specialized or even expert voices. By layering the machine-generated viewpoints onto our collection, we create new entry points for exploration—inviting both specialists and casual visitors to see the art in new and unexpected ways.</p>
+        <p>Second, we aim to build and study a dataset that reveals how commercial AI services operate. The models we use—all proprietary <a href="https://en.wikipedia.org/wiki/Black_box">“black boxes”</a>—don’t disclose their inner workings, forcing us to infer their methods and biases from their outputs. By compiling and sharing this data, we expose the differences, limitations, and biases present in AI-generated interpretations.</p>
       </div>
       <div class="about-why-how-text">
         <h3>How?</h3>
-        <p>The Harvard Art Museums collects artificially-generated data on artworks from eleven different AI and computer-vision services:</p>
+        <p>We collect AI-generated data on our artworks from eleven different services:</p>
         <ul>
           <li><a href="https://aws.amazon.com/ai/generative-ai/nova/">Amazon Nova</a></li>
           <li><a href="https://aws.amazon.com/rekognition/">Amazon Rekognition</a></li>
@@ -33,11 +33,11 @@
           <li><a href="https://aws.amazon.com/bedrock/llama/">Meta's Llama (via AWS Bedrock)</a></li>
           <li><a href="https://aws.amazon.com/bedrock/mistral/">Mistral's Pixtral (via AWS Bedrock)</a></li>
         </ul>
-        <p>For each artwork, these services produce interpretations otherwise known as “annotations” that include generated descriptions, tags, and captions as well as object, face, and text recognition. When a user searches for a keyword, this site takes the user-inputted keyword and finds artworks that contain a matching machine-generated tag or phrase. From there, the user can go to an individual artwork to see and compare the annotations from the AI services.</p>
+        <p>These platforms generate a variety of <a href="https://github.com/harvardartmuseums/api-docs/blob/master/sections/annotation.md">annotations</a> for each artwork, including descriptions, tags, captions, and data from object, face, and text recognition. When you search for a keyword, our site scours all machine-generated tags and phrases to match your query, then directs you to artworks where you can compare annotations from the different AI services.</p>
       </div>
       <div class="about-why-how-text">
         <h3>What?</h3>
-        <p>We've learned a bit about our collections thanks to these services. Hear about our discoveries in the presentation, ‘Elephants on Parade or: A Cavalcade of Discoveries from Five CV Systems‘, given by <a href="https://harvardartmuseums.org/about/staff/109">Jeff Steward</a> at the <a href="https://www.aeolian-network.net/events/workshop-2/">AEOLIAN Network workshop</a> ‘Reimagining Industry / Academic / Cultural Heritage Partnerships in AI’ on Monday, October 25, 2021. Then <a href="/statistics">dive in to statistics</a> about the annotations and services.</p>
+        <p>Through this process, we’ve gained new insights into our collection and how machines “see” art. To learn more about our discoveries, watch <a href="https://harvardartmuseums.org/about/staff/109">Jeff Steward’s</a> presentation, "Elephants on Parade or: A Cavalcade of Discoveries from Five CV Systems," delivered at the <a href="https://www.aeolian-network.net/events/workshop-2/">AEOLIAN Network workshop</a> ‘Reimagining Industry / Academic / Cultural Heritage Partnerships in AI’ (Monday, October 25, 2021). Afterwards, <a href="/statistics">dive into the statistics</a> and explore the fascinating world of AI art annotations for yourself.</p>
         <iframe width="100%" height="400" src="https://www.youtube-nocookie.com/embed/1smG2aGZImY" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
       </div>      
     </div>
@@ -50,12 +50,20 @@
     <div class="about-why-how">
       <div class="about-why-how-text">
         <h3>Additional Reading, Viewing, and Listening</h3>
+        <h4>Related to Harvard Art Museums</h4>
         <p><a href="https://plot.online/plot/points/the-pig-and-the-algorithm/">The Pig and the Algorithm</a><br> Kate Palmer Albers, <em>Plot</em>, March 4, 2017</p>
         <p><a href="https://themuseumsai.network/toolkit/">AI: A Museum Planning Toolkit</a><br> Dr Oonagh Murphy and Dr Elena Villaespesa, January 2020</p>
         <p><a href="https://www.aeolian-network.net/case-study-2-computer-vision-and-cultural-heritage/">Computer Vision and Cultural Heritage: A Case Study</a><br> Catherine Nicole Coleman, AEOLIAN Network, April 2022</p>
         <p><a href="https://www.jbe-platform.com/content/journals/10.1075/idj.22013.rod">Surprise Machines</a><br> Rodighiero, Dario, Lins Derry, Douglas Duhaime, Jordan Kruguer, Maximilian C. Mueller, Christopher Pietsch, Jeffrey T. Schnapp, Jeff Steward, and metaLAB, <em>Information Design Journal</em>, December 2022</p>
         <p><a href="https://youtu.be/OOJN-PSYC_0">Dreaming of AI: Perspectives on AI Use in Cultural Heritage (YouTube)</a><br>BPOC Webinar, September 29, 2023</p>
         <p><a href="https://youtu.be/4WjfEECtKGo">Co-Opting AI: Museums (YouTube)</a><br>Institute for Public Knowledge, Sloane Lab, and the Digital Technology for Democracy Lab at the University of Virginia February 25, 2025</p>      
+
+        <h4>Other Museums</h4>
+        <p><a href="https://experiments.withgoogle.com/moma">MoMA &amp; Machine Learning</a><br>Google Arts &amp; Culture, March 2018</p>
+        <p><a href="https://www.metmuseum.org/perspectives/met-microsoft-mit-exploring-art-open-access-ai-whats-next">Exploring Art with Open Access and AI: What's Next?</a><br>Jennie Choi, The Met, June 11, 2019</p>
+        <p><a href="https://www.clevelandart.org/articles/artlens-ai-share-your-view">ArtLens AI: Share Your View</a><br>Anna Faxon, Haley Kedziora, The Cleveland Museum of Art, September 10, 2020</p>
+        <p><a href="https://www.artic.edu/digital-publications/37/perspectives-on-data/22/crowdsourcing-metadata-in-museums-expanding-descriptions-access-transparency-and-experience">Crowdsourcing Metadata in Museums: Expanding Descriptions, Access, Transparency, and Experience</a><br>Jessica BrodeFrank, in Perspectives on Data, ed. Emily Lew Fry and Erin Canning, Art Institute of Chicago, 2022</p>
+        <p><a href="https://beta.nasjonalmuseet.no/2023/08/add-semantic-search-to-a-online-collection/">Semantic search in an online collection</a><br>Tord Nilsen, Nasjonalmuseet, August 12, 2023</p>
       </div>
     </div>
   </div>

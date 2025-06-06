@@ -271,7 +271,7 @@ caption {
   background-color: #f9f9f9	;
   border: 1px solid var(--c-lightgray);
   border-radius: 5px;
-  padding: 20px 0px;
+  padding:  20px 5px 20px 5px;
   transition: .5s ease;
   /* border-top: 2px solid var(--c-orangered) */
 }
