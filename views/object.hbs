@@ -405,6 +405,19 @@
                 </div>
               </div>
               {{/if}}                                                       
+              {{#if ai_sorted.descriptions.Qwen}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>Qwen</h4>
+                </div>
+                <div>
+                  {{#each ai_sorted.descriptions.Qwen}}
+                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
+                    <p>{{{markdown body}}}</p>
+                  {{/each}}
+                </div>
+              </div>
+              {{/if}}                                                       
             {{/if}}
             </div>
           </div>

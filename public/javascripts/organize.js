@@ -141,7 +141,7 @@ module.exports = {
       }) 
 
       // long descriptions
-      ai_sorted.descriptions = {OpenAI: [], Anthropic: [], Meta: [], Amazon: [], Google: [], Mistral: []};
+      ai_sorted.descriptions = {OpenAI: [], Anthropic: [], Meta: [], Amazon: [], Google: [], Mistral: [], Qwen: []};
       ai_sorted.descriptions.OpenAI = _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'});
       ai_sorted.descriptions.OpenAI = _.map(ai_sorted.descriptions.OpenAI, function(item){
         item.createdate = item.createdate.substr(0,10);
@@ -169,6 +169,11 @@ module.exports = {
       });
       ai_sorted.descriptions.Mistral = _.filter(ai_data, {type: 'description', source: 'Mistral'});
       ai_sorted.descriptions.Mistral = _.map(ai_sorted.descriptions.Mistral, function(item){
+        item.createdate = item.createdate.substr(0,10);
+        return item;
+      });
+      ai_sorted.descriptions.Qwen = _.filter(ai_data, {type: 'description', source: 'Qwen'});
+      ai_sorted.descriptions.Qwen = _.map(ai_sorted.descriptions.Qwen, function(item){
         item.createdate = item.createdate.substr(0,10);
         return item;
       });
