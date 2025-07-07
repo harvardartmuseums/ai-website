@@ -199,53 +199,64 @@
           </div>
         {{/if}}
         {{#if ai_sorted.featuresect}}
-          <section id="object-features-section">
+          <section id="object-face-section">
             <h3>Feature analysis</h3>
-            <div class="features-box">
-              <div class="toggle-head">
-                <h4>Amazon</h4>
-              </div>
-              <div class="features-content">
-                <div class="features-box-toggle">
-                  <div class="features-row">
-                    {{#each ai_sorted.featuresect.Amazon.features}}
-                        <div class="feature-icon-title">{{@key}}</div>
-                        <div>
-                        {{#each this}}
-                          <button id="{{@key}}feature-button" onclick="togglefeature('{{id}}')">
-                          <div class="feature-images" id="{{id}}featureicon" style="background-image:url({{iiifFeatureImageURL}})"></div>
-                          </button>
+            <div class="faces-box">
+              <div class="faces-toggle">
+                {{#each ai_sorted.featuresect}}
+                  <div class="face-subsect">
+                    <div class="faces-sources">
+                      <h4>{{source}}</h4>
+                    </div>
+                    <div class="faces-icons">
+                      {{#isEmpty features}}
+                        <div><p>No features identified</p></div>
+                      {{else}}
+                        {{#each features}}
+                            <div class="feature-icon-title">{{@key}}</div>
+                            <div>
+                            {{#each this}}
+                              <button id="{{@key}}feature-button" onclick="togglefeature('{{id}}')">
+                              <div class="feature-images" id="{{id}}featureicon" style="background-image:url({{iiifFeatureImageURL}})"></div>
+                              </button>
+                            {{/each}}
+                            </div>
                         {{/each}}
-                        </div>
-                    {{/each}}
+                      {{/isEmpty}}
                   </div>
                 </div>
-                <div class="features-box-display">
-                  {{#each ai_sorted.featuresect.Amazon.features}}
+                {{/each}}
+              </div>
+              <div class="face-info">
+                  {{#each ai_sorted.featuresect}}
+                    {{#each features}}
                     {{#each this}}
                       <div class="feature-info-box" id="{{id}}">
-                        <div class="feature-image">
+                        <div class="feature-content">
+                          <div class="feature-image">
                             <img class="feature-slide" src={{iiifFeatureImageURL}}></img>
-                        </div>
-                        <div class="feature-text">
-                          <table>
-                            <tr>
-                              <td class="tag-body"><a href="/feature/{{body}}">{{body}}</a></td>
-                              <td class="tag-confidence">{{confidence}}%</td>
-                            </tr>
-                            <tr>
-                              <td colspan="2">
-                                <div class="confidence-bar">
-                                  <div class="red-bar" style="width:{{confidence}}%"></div>
-                                </div>
-                              <td>
-                            </tr>
-                          </table>
+                          </div>
+                          <div class="feature-text">
+                            <h4>{{source}}</h4>
+                            <table>
+                              <tr>
+                                <td class="tag-body"><a href="/feature/{{body}}">{{body}}</a></td>
+                                <td class="tag-confidence">{{confidence}}%</td>
+                              </tr>
+                              <tr>
+                                <td colspan="2">
+                                  <div class="confidence-bar">
+                                    <div class="red-bar" style="width:{{confidence}}%"></div>
+                                  </div>
+                                <td>
+                              </tr>
+                            </table>
+                          </div>
                         </div>
                       </div>
+                      {{/each}}
                     {{/each}}
                   {{/each}}
-                </div>
               </div>
             </div>
           </section>
@@ -254,12 +265,16 @@
           <div id="object-captions-section">
             <h3>Categories</h3>
             <div class="captions-colors-box">
+              {{#each ai_sorted.categories}}
               <div class="captions-colors-box-content">
                 <div class="captions-colors-head">
-                  <h4>Imagga</h4>
+                  <h4>{{source}}<br/><span style="font-size: small;">created on {{createdate}}</span></h4>
                 </div>
+                {{#isEmpty categories}}
+                <p>No categories identified</p>
+                {{else}}
                 <table class="captions-table">
-                  {{#each ai_sorted.categories.Imagga}}
+                  {{#each categories}}
                     <tr>
                       <td><a href="/category/{{body}}">{{body}}</a></td>
                       <td class="tag-confidence">{{confidence}}%</td>
@@ -273,29 +288,9 @@
                     </tr>
                   {{/each}}
                 </table>
+                {{/isEmpty}}
               </div>
-              {{#if ai_sorted.categories.Microsoft}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>Microsoft</h4>
-                </div>
-                <table class="captions-table">
-                  {{#each ai_sorted.categories.Microsoft}}
-                    <tr>
-                      <td><a href="/category/{{body}}">{{body}}</a></td>
-                      <td class="tag-confidence">{{confidence}}%</td>
-                    <tr>
-                    <tr>
-                      <td colspan="2">
-                        <div class="confidence-bar">
-                          <div class="red-bar" style="width:{{confidence}}%"></div>
-                        </div>
-                      <td>
-                    </tr>
-                  {{/each}}
-                </table>
-              </div>   
-              {{/if}}           
+              {{/each}}
             </div>
           </div>
         {{/if}}        
@@ -327,97 +322,19 @@
               {{/each}}
             {{/if}}
             {{#if ai_sorted.descriptions}}
-              {{#if ai_sorted.descriptions.OpenAI}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>OpenAI GPT</h4>
+              {{#each ai_sorted.descriptions}}
+                <div class="captions-colors-box-content">
+                  <div class="captions-colors-head">
+                    <h4>{{source}}</h4>
+                  </div>
+                  <div>
+                    {{#each descriptions}}
+                      <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
+                      <p>{{{markdown body}}}</p>
+                    {{/each}}
+                  </div>
                 </div>
-                <div>
-                  {{#each ai_sorted.descriptions.OpenAI}}
-                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                    <p>{{{markdown body}}}</p>
-                  {{/each}}
-                </div>
-              </div>
-              {{/if}}
-              {{#if ai_sorted.descriptions.Anthropic}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>Anthropic Claude</h4>
-                </div>
-                <div>
-                  {{#each ai_sorted.descriptions.Anthropic}}
-                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                    <p>{{{markdown body}}}</p>
-                  {{/each}}
-                </div>
-              </div>
-              {{/if}}   
-              {{#if ai_sorted.descriptions.Meta}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>Meta Llama</h4>
-                </div>
-                <div>
-                  {{#each ai_sorted.descriptions.Meta}}
-                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                    <p>{{{markdown body}}}</p>
-                  {{/each}}
-                </div>
-              </div>
-              {{/if}}  
-              {{#if ai_sorted.descriptions.Amazon}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>Amazon Nova</h4>
-                </div>
-                <div>
-                  {{#each ai_sorted.descriptions.Amazon}}
-                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                    <p>{{{markdown body}}}</p>
-                  {{/each}}
-                </div>
-              </div>
-              {{/if}}         
-              {{#if ai_sorted.descriptions.Google}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>Google Gemini</h4>
-                </div>
-                <div>
-                  {{#each ai_sorted.descriptions.Google}}
-                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                    <p>{{{markdown body}}}</p>
-                  {{/each}}
-                </div>
-              </div>
-              {{/if}}       
-              {{#if ai_sorted.descriptions.Mistral}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>Mistral Pixtral</h4>
-                </div>
-                <div>
-                  {{#each ai_sorted.descriptions.Mistral}}
-                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                    <p>{{{markdown body}}}</p>
-                  {{/each}}
-                </div>
-              </div>
-              {{/if}}                                                       
-              {{#if ai_sorted.descriptions.Qwen}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>Qwen</h4>
-                </div>
-                <div>
-                  {{#each ai_sorted.descriptions.Qwen}}
-                    <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                    <p>{{{markdown body}}}</p>
-                  {{/each}}
-                </div>
-              </div>
-              {{/if}}                                                       
+              {{/each}}                                                     
             {{/if}}
             </div>
           </div>
