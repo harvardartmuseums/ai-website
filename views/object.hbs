@@ -328,10 +328,14 @@
                     <h4>{{source}}</h4>
                   </div>
                   <div>
-                    {{#each descriptions}}
-                      <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
-                      <p>{{{markdown body}}}</p>
-                    {{/each}}
+                    {{#isEmpty descriptions}}
+                      <p>No captions written</p>
+                    {{else}}
+                      {{#each descriptions}}
+                        <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
+                        <p>{{{markdown body}}}</p>
+                      {{/each}}
+                    {{/isEmpty}}
                   </div>
                 </div>
               {{/each}}                                                     
