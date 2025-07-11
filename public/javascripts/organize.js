@@ -137,6 +137,7 @@ module.exports = {
 
 		// Process descriptions and captions
 		if (_.filter(ai_data, {type: 'description'}).length !== 0) {
+			// short captions
 			ai_sorted.captions = {
 				Microsoft: {
 					source: 'Microsoft',
@@ -152,55 +153,24 @@ module.exports = {
 
 			// long descriptions
 			ai_sorted.descriptions = {
-				Clarifai: {source: 'Salesforce', descriptions: []},
-				OpenAI: {source: 'OpenAI GPT', descriptions: []}, 
-				Anthropic: {source: 'Anthropic Claude', descriptions: []},
-				Meta: {source: 'Meta Llama', descriptions: []},
-				Amazon: {source: 'Amazon Nova', descriptions: []},
-				Google: {source: 'Google Gemini', descriptions: []},
-				Mistral: {source: 'Mistral Pixtral', descriptions: []},
-				Qwen: {source: 'Qwen', descriptions: []},
+				Clarifai: {source: 'Clarifai', internalname: 'Clarifai', descriptions: []},
+				Salesforce: {source: 'Salesforce', internalname: 'Salesforce', descriptions: []},
+				OpenAI: {source: 'OpenAI GPT', internalname: 'Azure OpenAI Service', descriptions: []}, 
+				Anthropic: {source: 'Anthropic Claude', internalname: 'Anthropic', descriptions: []},
+				Meta: {source: 'Meta Llama', internalname: 'Meta', descriptions: []},
+				Amazon: {source: 'Amazon Nova', internalname: 'Amazon', descriptions: []},
+				Google: {source: 'Google Gemini', internalname: 'Google Gemini', descriptions: []},
+				Mistral: {source: 'Mistral Pixtral', internalname: 'Mistral', descriptions: []},
+				Qwen: {source: 'Qwen', internalname: 'Qwen', descriptions: []},
 			};
-			ai_sorted.descriptions.OpenAI.descriptions = _.filter(ai_data, {type: 'description', source: 'Azure OpenAI Service'});
-			ai_sorted.descriptions.OpenAI.descriptions = _.map(ai_sorted.descriptions.OpenAI.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
-			ai_sorted.descriptions.Anthropic.descriptions = _.filter(ai_data, {type: 'description', source: 'Anthropic'});
-			ai_sorted.descriptions.Anthropic.descriptions = _.map(ai_sorted.descriptions.Anthropic.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
-			ai_sorted.descriptions.Meta.descriptions = _.filter(ai_data, {type: 'description', source: 'Meta'});
-			ai_sorted.descriptions.Meta.descriptions = _.map(ai_sorted.descriptions.Meta.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
-			ai_sorted.descriptions.Amazon.descriptions = _.filter(ai_data, {type: 'description', source: 'Amazon'});
-			ai_sorted.descriptions.Amazon.descriptions = _.map(ai_sorted.descriptions.Amazon.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
-			ai_sorted.descriptions.Google.descriptions = _.filter(ai_data, {type: 'description', source: 'Google Gemini'});
-			ai_sorted.descriptions.Google.descriptions = _.map(ai_sorted.descriptions.Google.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
-			ai_sorted.descriptions.Mistral.descriptions = _.filter(ai_data, {type: 'description', source: 'Mistral'});
-			ai_sorted.descriptions.Mistral.descriptions = _.map(ai_sorted.descriptions.Mistral.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
-			ai_sorted.descriptions.Qwen.descriptions = _.filter(ai_data, {type: 'description', source: 'Qwen'});
-			ai_sorted.descriptions.Qwen.descriptions = _.map(ai_sorted.descriptions.Qwen.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
-			ai_sorted.descriptions.Clarifai.descriptions = _.filter(ai_data, {type: 'description', source: 'Clarifai'});
-			ai_sorted.descriptions.Clarifai.descriptions = _.map(ai_sorted.descriptions.Clarifai.descriptions, function(item){
-				item.createdate = item.createdate.substr(0,10);
-				return item;
-			});
+
+			for (let service in ai_sorted.descriptions) {
+				let descriptions = _.filter(ai_data, {type: 'description', source: ai_sorted.descriptions[service].internalname});
+				ai_sorted.descriptions[service].descriptions = _.map(descriptions, function(item){
+					item.createdate = item.createdate.substr(0,10);
+					return item;
+				});
+			}
 		}
 
 		// Process categories
