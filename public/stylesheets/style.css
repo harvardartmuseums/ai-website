@@ -1172,14 +1172,6 @@ button {
   margin-top: 40px;
 }
 
-.fa-angle-double-left, .fa-angle-double-right {
-  color: lightgray
-}
-
-.fa-angle-right, .fa-angle-left {
-  color: var(--c-gray)
-}
-
 #pagenumbers a {
   color: var(--c-gray);
   font: 18px "Neutral Regular 3", sans-serif;
