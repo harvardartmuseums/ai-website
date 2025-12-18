@@ -10,6 +10,22 @@
   --c-linkblue: #4e75a6
 }
 
+@font-face {
+	font-family: "Neutral Regular 3";
+	src: url("/fonts/NeutralL-Regular.woff2") format("woff2");
+	font-display: auto;
+}
+@font-face {
+	font-family: "Neutral Medium 3";
+	src: url("/fonts/NeutralL-Medium.woff2") format("woff2");
+	font-display: auto;
+}
+@font-face {
+	font-family: "Neutral Bold 3";
+	src: url("/fonts/NeutralL-Bold.woff2") format("woff2");
+	font-display: auto;
+}
+
 body {
   font-family: "Neutral Regular 3";
   font-size: 14px;
