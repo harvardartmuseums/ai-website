@@ -395,7 +395,86 @@ router.get('/statistics', function(req, res, next) {
     organization_count: organizations.length.toLocaleString(),
     description_count: descriptions.length.toLocaleString(),
     sources: statistics.sources,
-    build_date: statistics.build_date
+    build_date: statistics.build_date,
+    model_history: [
+      {
+        date_of_change: "2025-12-31",
+        service: "Clarifai",
+        summary: "Clarifai Legacy Models Decommissioning on December 31",
+        details: `See https://docs.clarifai.com/product-updates/upcoming-api-changes/decommission-legacy-models/`
+      },
+      {
+        date_of_change: "2026-01-30",
+        service: "AWS",
+        summary: "Bedrock Model Deprecation Notice – Claude 3 Opus 'anthropic.claude-3-opus-20240229-v1:0'",
+        details: `Hello,
+
+We are contacting you because you have used the following model ID 'anthropic.claude-3-opus-20240229-v1:0' [1] on Amazon Bedrock in the past 30 days.
+
+This is the final notice that on January 30, 2026, the model will reach end-of-life [2] and will no longer be accessible in Amazon Bedrock.
+
+We recommend migrating your usage to newer models launched by Anthropic or another model on Amazon Bedrock by updating your application code [3].
+
+If you have any questions, please reach out to AWS support [4].
+
+[1] https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html#versions-for-legacy
+[3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
+[4] https://aws.amazon.com/support`
+      },
+      {
+        date_of_change: "2026-03-31",
+        service: "Azure",
+        summary: "Azure OpenAI gpt-4o model version(s) 2024-05-13 and 2024-08-06 retired",
+        details: `Azure OpenAI gpt-4o model version(s) 2024-05-13 and 2024-08-06 will be retired 31 March 2026
+
+On 31 March 2026, Azure OpenAI gpt-4o model version(s) 2024-05-13 and 2024-08-06 will be retired.
+
+As part of this retirement, the replacement model will be set to gpt-5.1 version 2025-11-13 on 9 March 2026. If you've selected the option to auto upgrade your standard, data-zone standard, or global standard deployment(s), they will be automatically upgraded to the replacement model version during the weeks prior to retirement. Learn more about setting your deployment upgrade options.
+
+After the retirement date, model gpt-4o version(s) 2024-05-13 and 2024-08-06 will no longer be available or operable. This retirement will only timpact base-model deployments.
+
+Beginning on 31 March 2026, fine-tuning on model gpt-4o version(s) 2024-05-13 and 2024-08-06 will no longer be allowed. Existing fine-tuned deployments will continue to operate for an additional year.`
+      },
+      {
+        date_of_change: "2026-04-28",
+        service: "AWS",
+        summary: "Bedrock Model Deprecation Notice – Claude 3.7 Sonnet 'anthropic.claude-3-7-sonnet-20250219-v1:0'",
+        details: `Hello,
+
+We are contacting you because you have used model ID anthropic.claude-3-7-sonnet-20250219-v1:0 [1] on Amazon Bedrock in the past 30 days. Effective immediately, by moving Claude 3.7 Sonnet into the Legacy state [2], Anthropic is initiating the deprecation process for this model in the applicable Regions provided later in this message. Once the model enters the Legacy state, no additional Service Quota increases will be granted in the applicable Regions for the model. Claude 3.7 Sonnet will stay in the Legacy state until January 27, 2026, when the model will enter the Extended Access state. On April 28, 2026, the model will go end-of-life and will no longer be accessible from any of the following applicable regions.
+
+Applicable Regions:
+US-EAST-1
+US-EAST-2
+US-WEST-2
+AP-NORTHEAST-1
+AP-NORTHEAST-2
+AP-NORTHEAST-3
+AP-SOUTH-1
+AP-SOUTH-2
+AP-SOUTHEAST-1
+AP-SOUTHEAST-2
+EU-CENTRAL-1
+EU-NORTH-1
+EU-WEST-1
+EU-WEST-3
+
+Important dates:
+- January 27, 2026: Extended access will begin.
+- April 28, 2026: This model will no longer be available for use and requests made to this model ID will fail.
+
+We recommend migrating your usage to the Claude Sonnet 4.5 from Anthropic [1] by updating your application code [3]. You can request an increase to your Claude Sonnet 4.5 quotas through Service Quotas [4].
+
+If you have any questions or concerns, please reach out to AWS Support [5].
+
+[1] https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html#versions-for-legacy
+[3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
+[4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[5] https://aws.amazon.com/support`
+      }
+    ]
   }
 
   let aggs = {

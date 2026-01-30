@@ -252,6 +252,27 @@
         </p>
       </div>
     </div>
+    <div class="about-why-how">
+      <h3>Model History</h3>
+      <div class="stats">
+        <p>Models come and go. This table is a record of changes to models on the services we use.</p>
+        <table style="max-width: 100%;">
+          <thead style="text-align: left;">
+            <tr>
+              <th>Date of Change</th>
+              <th>Change Details</th>
+            </tr>
+          </thead>
+          <tbody>
+              {{#each stats.model_history}}
+                <tr>
+                  <td style="text-align: left;">{{date_of_change}}</td>
+                  <td style="text-align: left;"><details><summary>{{service}}: {{summary}}</summary>{{{markdown details}}}</details></td>
+                </tr>
+              {{/each}}     
+          </tbody>
+        </table>
+    </div>
   </div>
 </section>
 
