@@ -473,7 +473,36 @@ If you have any questions or concerns, please reach out to AWS Support [5].
 [3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
 [4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
 [5] https://aws.amazon.com/support`
-      }
+      },
+      {
+        date_of_change: "2026-05-19",
+        service: "AWS",
+        summary: "Bedrock Model Deprecation Notice – Command R+",
+        details: `Hello,
+        
+We are contacting you because you have used model ID cohere.command-r-plus-v1:0 [1] on Amazon Bedrock in the past 30 days. Cohere will be sunsetting this model as of May 19, 2026.
+
+Effective February 19, 2026, we are moving Command R+ into the Legacy state [2] in all AWS Regions. Once the model enters the Legacy state, no additional Service Quota increases will be granted for the model. For customers that need more time to migrate beyond May 19, 2026, Cohere is offering extended access with premium pricing until August 19, 2026. The model will no longer be available on Amazon Bedrock after August 19, 2026, in any AWS Region.
+
+Important dates:
+February 19, 2026: Legacy state begins
+May 19, 2026: Model sunset date; extended access available with premium pricing
+August 19, 2026: This model will no longer be available for use and requests made to this model ID will fail
+
+Updated Pricing for On Demand Inference (Effective May 19, 2026):
+Input tokens: $0.006 per 1,000 tokens
+Output tokens: $0.03 per 1,000 tokens
+
+Please note: If you have an existing private pricing agreement with Cohere or use provisioned throughput, your current pricing terms will continue to apply.
+
+We recommend migrating your usage to alternative models [1] available on Amazon Bedrock, such as Anthropic Claude Sonnet 4.5, Amazon Nova Pro, or Mistral Large 3 by updating your application code [3]. You can request an increase to your quotas for these models through Service Quotas [4].
+
+[1] https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html
+[3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
+[4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[5] https://aws.amazon.com/support`
+      },    
     ]
   }
 
