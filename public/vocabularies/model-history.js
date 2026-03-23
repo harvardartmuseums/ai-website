@@ -1,3 +1,11 @@
+// Entry Template:
+//       {
+//         date_of_change: "2026-09-10",
+//         service: "AWS",
+//         summary: "Bedrock Model Deprecation Notice – Claude 3 Haiku 'anthropic.claude-3-haiku-20240307-v1:0'",
+//         details: `MESSAGE`
+//       }
+
 module.exports = [
       {
         date_of_change: "2025-12-31",
@@ -104,7 +112,68 @@ We recommend migrating your usage to alternative models [1] available on Amazon 
 [3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
 [4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
 [5] https://aws.amazon.com/support`
-      },   
+      },
+      {
+        date_of_change: "2026-07-07",
+        service: "AWS",
+        summary: "Bedrock Model Deprecation Notice – Llama 3.2 11B 'meta.llama3-2-11b-instruct-v1:0'",
+        details: `Hello,
+
+[AWS Health may periodically trigger reminder notifications about this communication if resources remain unresolved.]
+
+We are contacting you because you have used model ID 'meta.llama3-2-11b-instruct-v1:0' [1] on Amazon Bedrock in the past 30 days.
+
+Llama 3.2 11B is currently in the Legacy state [2] in the US-EAST-1 region. No additional Service Quota increases will be granted for this model. Llama 3.2 11B will remain in the Legacy
+state until April 7, 2026, when the model will enter the Extended Access state. On July 7, 2026, the model will go end-of-life and will no longer be accessible in Amazon Bedrock.
+
+Note: This scheduled change event may appear as a duplicate. AWS Health will periodically update this event with the latest resource status.
+
+Important dates:
+
+- January 7, 2026: Legacy state began
+- April 7, 2026: Extended access begins
+- July 7, 2026: This model will no longer be available for use and requests made to this model ID will fail
+
+We recommend migrating your usage to the latest Meta model [1] by updating your application code [3]. You can request an increase to your quotas through Service Quotas [4].
+
+If you have any questions or concerns, please reach out to AWS Support [5].
+
+[1] https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html
+[3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
+[4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[5] https://aws.amazon.com/support`
+      },  
+      {
+        date_of_change: "2026-07-07",
+        service: "AWS",
+        summary: "Bedrock Model Deprecation Notice – Llama 3.2 90B 'meta.llama3-2-90b-instruct-v1:0'",
+        details: `Hello,
+
+[AWS Health may periodically trigger reminder notifications about this communication if resources remain unresolved.]
+
+We are contacting you because you have used model ID 'meta.llama3-2-90b-instruct-v1:0' [1] on Amazon Bedrock in the past 30 days.
+
+Llama 3.2 90B is currently in the Legacy state [2] in the US-EAST-1 region. No additional Service Quota increases will be granted for this model. Llama 3.2 90B will remain in the Legacy state until April 7, 2026, when the model will enter the Extended Access state. On July 7, 2026, the model will go end-of-life and will no longer be accessible in Amazon Bedrock.
+
+Note: This scheduled change event may appear as a duplicate. AWS Health will periodically update this event with the latest resource status.
+
+Important dates:
+
+- January 7, 2026: Legacy state began
+- April 7, 2026: Extended access begins
+- July 7, 2026: This model will no longer be available for use and requests made to this model ID will fail
+
+We recommend migrating your usage to the latest Meta model [1] by updating your application code [3]. You can request an increase to your quotas through Service Quotas [4].
+
+If you have any questions or concerns, please reach out to AWS Support [5].
+
+[1] https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html
+[3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
+[4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[5] https://aws.amazon.com/support`
+      },        
       {
         date_of_change: "2026-09-10",
         service: "AWS",
@@ -132,5 +201,5 @@ If you have any questions or concerns, please contact AWS Support [5].
 [4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
 [5] https://aws.amazon.com/support
 `
-      }       
+      }
 ];
