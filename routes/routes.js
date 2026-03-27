@@ -433,6 +433,12 @@ router.get('/statistics', function(req, res, next) {
             "min_doc_count": 0,
             "order": { "_key": "asc" }            
           }
+        },
+        "by_model": { 
+          "terms": { 
+            "field": "model.keyword", 
+            "size": 50
+          }
         }
       }
     },
