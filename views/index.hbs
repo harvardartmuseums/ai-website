@@ -6,13 +6,13 @@
         <h1>Explore how<br>
         <div class="highlight">a computer sees art</div></h1>
         <div class="red-line-break"></div>
-        <div class="head-text-desktop">
+        <div class="head-text-desktop hide-mobile">
           <p class="homepage-about">
             Harnessing artificial intelligence, the Harvard Art Museums have gathered {{annotation_count}} machine-generated descriptions and tags for {{image_count}} images from across their collections. Using techniques such as object recognition and face analysis—which estimates gender, age, and emotion—this data offers insights into how computers perceive and interpret a wide range of artworks and objects.
           </p>
           <div class="homepage-buttons">
-            <button class="link-button gray-button" onClick="document.getElementById('terms').scrollIntoView({ behavior: 'smooth' });">Learn more</button>
-            <a href="explore"><button class="link-button red-button button-space">Start exploring</button></a>
+            <button class="btn btn--gray" onClick="document.getElementById('terms').scrollIntoView({ behavior: 'smooth' });">Learn more</button>
+            <a href="explore"><button class="btn btn--red btn--spaced">Start exploring</button></a>
           </div>
         </div>
       </div>
@@ -20,13 +20,13 @@
         <img class="banner-image" src="/images/bannerImage.png" alt="A collage of four artworks with red boxes drawn around the bodies and faces of the subjects.">
       </div>
     </div>
-    <div class="head-text-mobile">
+    <div class="head-text-mobile show-mobile">
       <p class="homepage-about">
         Using artificial intelligence, the Harvard Art Museums has collected {{annotation_count}} machine-generated descriptions and tags covering {{image_count}} images of artworks. Ranging from object recognition to face analysis that predicts gender, age, and emotion, the data reveals how computers interpret paintings, photographs, and sculptures.
       </p>
       <div class="homepage-buttons">
-        <button class="link-button gray-button" onClick="document.getElementById('terms').scrollIntoView({ behavior: 'smooth' });">Learn more</button>
-        <a href="explore"><button class="link-button red-button button-space">Start exploring</button></a>
+        <button class="btn btn--gray" onClick="document.getElementById('terms').scrollIntoView({ behavior: 'smooth' });">Learn more</button>
+        <a href="explore"><button class="btn btn--red btn--spaced">Start exploring</button></a>
       </div>
     </div>
   </div>
@@ -38,22 +38,22 @@
     <h2>Learn more</h2>
     <div class="terms-content">
       <div class="terms-flex">
-        <div class="terms-box">
+        <div class="content-box content-box--spaced-large content-box--centered content-box--filled content-box--interactive terms-box">
             <h4>Artificial Intelligence (AI)</h4>
             <p>is the ability of computers to perform advanced tasks previously only capable by human intelligence</p>
             <a href="https://simple.wikipedia.org/wiki/Artificial_intelligence">Wikipedia &#8594;</a>
         </div>
-        <div class="terms-box">
+        <div class="content-box content-box--spaced-large content-box--centered content-box--filled content-box--interactive terms-box">
             <h4>Machine Learning (ML)</h4>
             <p>is a subset of artificial intelligence and is the ability of computers to ‘learn’ from previous errors without human input</p>
             <a href="https://simple.wikipedia.org/wiki/Machine_learning">Wikipedia &#8594;</a>
         </div>
-        <div class="terms-box">
+        <div class="content-box content-box--spaced-large content-box--centered content-box--filled content-box--interactive terms-box">
             <h4>Computer Vision (CV)</h4>
             <p>is a field that studies how computers ‘see’ and ‘interpret’ the visual world using machine learning</p>
             <a href="https://simple.wikipedia.org/wiki/Computer_vision">Wikipedia &#8594;</a>
         </div>
-        <div class="terms-box">
+        <div class="content-box content-box--spaced-large content-box--centered content-box--filled content-box--interactive terms-box">
             <h4>Large Language Model (LLM)</h4>
             <p>is a type of artificial intelligence that can understand and create human language.</p>
             <a href="https://simple.wikipedia.org/wiki/Large_language_model">Wikipedia &#8594;</a>
@@ -72,10 +72,10 @@
       </div>
     </div>
     <div class="about-button">
-      <a href="/about"><button class="link-button dark-gray-button">Read more about the project</button></a>
+      <a href="/about"><button class="btn btn--dark-gray">Read more about the project</button></a>
     </div>
     <div class="about-button">
-      <a href="/statistics"><button class="link-button dark-gray-button">Dive in to statistics about the annotations</button></a>
+      <a href="/statistics"><button class="btn btn--dark-gray">Dive in to statistics about the annotations</button></a>
     </div>
   </div>
 </section>

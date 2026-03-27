@@ -18,7 +18,7 @@
           </a>
         </div>
       <div class="nav-link-container">
-        <div class="nav-links">
+        <div class="nav-links hide-mobile">
           <a href="/">Home</a>
           <a href="/about">About</a>
           <a href="/explore">Explore</a>
@@ -26,22 +26,22 @@
           <a>
             <div class="nav-search-container">
               <form method="post" action="/search">
-                <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
-                <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
+                <input type="text" id="nav-text-input" class="search-input" placeholder="Search here..." name="search">
+                <button class="search-button nav-search-button" type="submit"><i class="fa fa-search"></i></button>
               </form>
             </div>
           </a>
         </div>
       </div>
-      <div class="mobile-nav-hover" id="mobile-nav-hover">
-        <div class="mobile-nav-menu">
+      <div class="mobile-nav-hover show-mobile" id="mobile-nav-hover">
+        <div class="mobile-nav-menu show-mobile">
           <div class="nav-button">
             <button onClick="opendropdown()"><h4>Menu<i class="fa fa-bars"></h4></i></button>
           </div>
         </div>
       </div>
     </section>
-    <div class="mobile-dropdown" id="mobile-dropdown">
+    <div class="mobile-dropdown show-mobile" id="mobile-dropdown">
       <button id="dropdown-close" onClick="closedropdown()"><i class="fa fa-times"></i></button>
       <div class="dropdown-head"><h4>Menu</h4></div>
       <div class="dropdown-content">
@@ -52,8 +52,8 @@
         <a>
           <div class="nav-search-container">
           <form method="post" action="/search">
-            <input type="text" id="nav-text-input" placeholder="Search here..." name="search">
-            <button class="nav-search-button" type="submit"><i class="fa fa-search"></i></button>
+            <input type="text" id="nav-text-input" class="search-input" placeholder="Search here..." name="search">
+            <button class="search-button nav-search-button" type="submit"><i class="fa fa-search"></i></button>
           </form>
           </div>
         </a>
@@ -63,7 +63,7 @@
     {{/if}}
       {{{body}}}
     {{#if navbar}}
-      <div class="footer">
+      <div class="footer hide-mobile">
         <div class="footer-content">
           <a href="https://www.harvardartmuseums.org"><img class="footer-logo" src="/images/artmuseumsfulllogo.png" alt="Harvard Art Museums logo"></img></a>
           <div class="footer-icons">
@@ -77,7 +77,7 @@
           </div>
         </div>
       </div>
-      <div class="mobile-footer">
+      <div class="mobile-footer show-mobile">
         <div class="mobile-footer-content">
           <a href="https://www.harvardartmuseums.org"><img class="mobile-footer-logo" src="/images/artmuseumsfulllogo.png" alt="Harvard Art Museums logo"></img></a>
           <div class="disclaimer">© {{year}} President and Fellows of Harvard College</div>

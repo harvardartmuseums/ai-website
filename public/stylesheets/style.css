@@ -7,7 +7,15 @@
   --c-yellow: #FFEF5A;
   --c-hovergray: #DFDFDF;
   --c-hoverred: #E32020;
-  --c-linkblue: #4e75a6
+  --c-linkblue: #4e75a6;
+  /* Additional color variables for consistency */
+  --c-white: #ffffff;
+  --c-table-border: #c8c8c8;
+  --c-table-border-light: #bebebe;
+  --c-table-header: #ebebeb;
+  --c-table-row-even: #fafafa;
+  --c-table-row-odd: #f5f5f5;
+  --c-small-caps: #595959;
 }
 
 @font-face {
@@ -24,6 +32,163 @@
 	font-family: "Neutral Bold 3";
 	src: url("/fonts/NeutralL-Bold.woff2") format("woff2");
 	font-display: auto;
+}
+
+/* Utility Classes */
+/* Responsive visibility utilities */
+.hide-mobile { display: block; }
+.show-mobile { display: none; }
+.hide-desktop { display: none; }
+.show-desktop { display: block; }
+
+/* Mobile/Tablet breakpoint (0-700px) - matches original mobile nav design */
+@media only screen and (max-width: 700px) {
+  .hide-mobile,
+  .nav-links.hide-mobile { display: none !important; }
+  .show-mobile { display: block; }
+  .hide-desktop { display: block; }
+  .show-desktop { display: none; }
+}
+
+/* Flex utilities */
+.flex-row {
+  display: flex;
+  flex-direction: row;
+}
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+.flex-center {
+  display: flex;
+  align-items: center;
+}
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Border utility */
+.divider-bottom {
+  border-bottom: 1px solid var(--c-lightgray);
+}
+
+/* Content Box Component System */
+.content-box {
+  border: 1px solid var(--c-lightgray);
+  border-radius: 5px;
+  margin-top: 30px;
+}
+
+.content-box--spaced-large {
+  margin-top: 40px;
+}
+
+.content-box--centered {
+  text-align: center;
+}
+
+.content-box--filled {
+  background-color: #f9f9f9;
+  padding: 20px 5px;
+}
+
+.content-box--interactive {
+  transition: 0.5s ease;
+}
+
+.content-box--interactive:hover {
+  background-color: var(--c-white);
+}
+
+.content-box__content {
+  padding: 10px 25px;
+}
+
+.content-box__header {
+  border-bottom: 1px solid var(--c-lightgray);
+  padding-bottom: 20px;
+}
+
+/* Button System */
+.btn {
+  font: 14px "Neutral Regular 3", sans-serif;
+  border-radius: 5px;
+  padding: 5px 40px;
+  height: 40px;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.5s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+  line-height: 30px;
+}
+
+.btn--gray {
+  color: var(--c-grayblack);
+  background-color: var(--c-lightgray);
+}
+
+.btn--gray:hover {
+  background-color: var(--c-hovergray);
+}
+
+.btn--red {
+  color: white;
+  background-color: var(--c-orangered);
+}
+
+.btn--red:hover {
+  background-color: var(--c-hoverred);
+}
+
+.btn--dark-gray {
+  color: var(--c-grayblack);
+  background-color: var(--c-hovergray);
+}
+
+.btn--dark-gray:hover {
+  background-color: white;
+}
+
+.btn--spaced {
+  margin-left: 20px;
+}
+
+/* Search Input Component System */
+.search-input {
+  border-radius: 5px 0px 0px 5px;
+  padding-left: 7%;
+  border: none;
+  height: 40px;
+  transition: border 0.5s ease;
+  box-sizing: border-box;
+  background-color: var(--c-lightgray);
+  flex: 1;
+  min-width: 0; /* Allows flex item to shrink below its content size */
+}
+
+.search-input:focus {
+  border: solid 2px var(--c-orangered);
+  padding-left: 6.6%;
+}
+
+.search-button {
+  background-color: var(--c-orangered);
+  border: none;
+  cursor: pointer;
+  text-align: center;
+  border-radius: 0px 5px 5px 0px;
+  color: white;
+  transition: background-color 0.5s ease;
+  flex-shrink: 0;
+  height: 40px;
+  width: 50px;
+}
+
+.search-button:hover {
+  background-color: var(--c-hoverred);
 }
 
 body {
@@ -43,7 +208,7 @@ p {
 
 .small-caps {
   font-size: 14px;
-  color: #595959;
+  color: var(--c-small-caps);
   line-height: 1.2em;
   text-transform: uppercase;
 }
@@ -110,18 +275,18 @@ summary {
 
 .stats > table  {
   border-collapse: collapse;
-  border: 2px solid rgb(200,200,200);
+  border: 2px solid var(--c-table-border);
   letter-spacing: 1px;
   font-size: 0.8rem;
 }
 
 .stats table td, th {
-  border: 1px solid rgb(190,190,190);
+  border: 1px solid var(--c-table-border-light);
   padding: 10px 20px;
 }
 
 .stats th {
-  background-color: rgb(235,235,235);
+  background-color: var(--c-table-header);
 }
 
 .stats td, tfoot th {
@@ -129,11 +294,11 @@ summary {
 }
 
 .stats tr:nth-child(even) td {
-  background-color: rgb(250,250,250);
+  background-color: var(--c-table-row-even);
 }
 
 .stats tr:nth-child(odd) td {
-  background-color: rgb(245,245,245);
+  background-color: var(--c-table-row-odd);
 }
 
 caption {
@@ -164,47 +329,25 @@ caption {
   background-color: yellow;
 }
 
+/* Legacy button classes - use .btn with modifiers instead */
 .link-button {
-  font: 14px "Neutral Regular 3", sans-serif;
-  border-radius: 5px;
-  padding: 5px 40px;
-  height: 40px;
-  border: none;
-  cursor: pointer;
+  /* Styles moved to .btn base class */
 }
 
 .gray-button {
-  color: var(--c-grayblack);
-  background-color: var(--c-lightgray);
-}
-
-.gray-button:hover {
-  background-color: var(--c-hovergray);
-  transition: .5s ease;
+  /* Use .btn .btn--gray instead */
 }
 
 .red-button {
-  color: white;
-  background-color: var(--c-orangered);
-}
-
-.red-button:hover {
-  background-color: var(--c-hoverred);
-  transition: .5s ease;
+  /* Use .btn .btn--red instead */
 }
 
 .dark-gray-button {
-  color: var(--c-darkgray);
-  background-color: var(--c-hovergray);
-}
-
-.light-gray-button:hover {
-  background-color: white;
-  transition: .5s ease;
+  /* Use .btn .btn--dark-gray instead */
 }
 
 .button-space {
-  margin-left: 20px;
+  /* Use .btn--spaced instead */
 }
 
 .homepage-header {
@@ -221,16 +364,18 @@ caption {
 }
 
 .banner-image-container {
-  width: 50%
+  width: 50%;
+  display: flex;
+  justify-content: flex-end;
 }
 
+/* Legacy - use .show-mobile utility class instead */
 .head-text-mobile {
-  display: none;
+  /* display: none; - moved to utility class */
 }
 
 .banner-image {
   width: 90%;
-  float: right;
 }
 
 .learn-block {
@@ -280,25 +425,14 @@ caption {
   margin-top: 20px;
 }
 
+/* Legacy .terms-box - now use .content-box with modifiers */
 .terms-box {
-  margin-top: 40px;
   width: 100%;
-  text-align: center;
-  background-color: #f9f9f9	;
-  border: 1px solid var(--c-lightgray);
-  border-radius: 5px;
-  padding:  20px 5px 20px 5px;
-  transition: .5s ease;
-  /* border-top: 2px solid var(--c-orangered) */
 }
 
 .about-button {
   text-align: center;
   margin-top: 40px;
-}
-
-.terms-box:hover {
-  background-color: white;
 }
 
 .terms-box + .terms-box {
@@ -315,9 +449,10 @@ caption {
 }
 
 .terms-box > a {
-  float: right;
+  text-align: right;
+  display: block;
   padding-right: 20px;
-  color: var(--c-gray)
+  color: var(--c-gray);
 }
 
 .applications-flex {
@@ -453,40 +588,12 @@ form {
   margin-top: 20px;
 }
 
-.search-container input[type=text] {
-  border-radius: 5px 0px 0px 5px;
-  padding-left: 7%;
-  border: none;
-  width: 90%;
-  height: 40px;
-  transition: border 0.5s ease;
-  vertical-align: top;
-  float: left;
-  box-sizing: border-box;
-    -moz-box-sizing: border-box;
-    -webkit-box-sizing: border-box;
-  background-color: var(--c-lightgray)
+.search-container form {
+  display: flex;
+  width: 100%;
 }
 
-.search-container input[type=text]:focus {
-  border: solid 2px var(--c-orangered);
-  padding-left: 6.6%;
-}
-
-.search-container button {
-  height: 40px;
-  width: 10%;
-  float: left;
-  background-color: var(--c-orangered);
-  border: none;
-  cursor: pointer;
-  text-align: center;
-  vertical-align: top;
-  padding: 0px;
-  border-radius: 0px 5px 5px 0px;
-  color: white;
-  font-size: 15px;
-}
+/* Container-specific overrides removed - using component classes instead */
 
 button:focus {
   outline:0;
@@ -509,33 +616,13 @@ input:focus {
 
 .nav-search-container form {
   display: flex;
+  width: 100%;
 }
 
-.nav-search-container form input[type=text] {
-  border-radius: 5px 0px 0px 5px;
-  padding-left: 7%;
-  border: none;
-  width: 73%;
-  height: 40px;
-  vertical-align: top;
-  float: left;
-  background-color: var(--c-lightgray)
-}
-
-
+/* Navigation-specific search button styling */
 .nav-search-container form button {
-  height: 42px;
-  width: 20%;
-  float: left;
   background-color: var(--c-hovergray);
-  transition: background-color 0.5s ease;
-  border: none;
-  cursor: pointer;
-  text-align: center;
-  vertical-align: top;
   padding: 0px;
-  border-radius: 0px 5px 5px 0px;
-  color: white;
   font-size: 15px;
 }
 
@@ -543,11 +630,11 @@ input:focus {
   height: 80px;
   width: 100%;
   top: 0;
-  background-color: rgba(255,255,255, 0.9);
+  background-color: rgba(255, 255, 255, 0.9);
   z-index: 9997;
   display: flex;
   flex-direction: row;
-  justify-content: space-between
+  justify-content: space-between;
 }
 
 .mobile-dropdown {
@@ -564,11 +651,12 @@ input:focus {
 
 .nav-link-container {
   width: 65%;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .nav-links {
   height: 80px;
-  float: right;
   padding: 5px;
   width: 100%;
   max-width: 600px;
@@ -582,8 +670,9 @@ input:focus {
   width: 35%
 }
 
+/* Legacy - use .show-mobile utility class instead */
 .mobile-nav-menu {
-  display: none;
+  /* display: none; - moved to utility class */
 }
 
 .footer {
@@ -591,8 +680,9 @@ input:focus {
   width: 100%;
 }
 
+/* Legacy - use .show-mobile utility class instead */
 .mobile-footer {
-  display: none;
+  /* display: none; - moved to utility class */
 }
 
 .footer-content {
@@ -1019,10 +1109,9 @@ button {
   width: 100%
 }
 
+/* Legacy .features-box - now use .content-box */
 .features-box {
-  border: 1px solid var(--c-lightgray);
-  border-radius: 5px;
-  margin-top: 30px;
+  /* Styles moved to .content-box base class */
 }
 
 .features-content {
@@ -1142,10 +1231,9 @@ button {
   width: 100%;
 }
 
+/* Legacy .captions-colors-box - now use .content-box */
 .captions-colors-box {
-  border: 1px solid var(--c-lightgray);
-  border-radius: 5px;
-  margin-top: 30px;
+  /* Styles moved to .content-box base class */
 }
 
 .captions-colors-box-content {
@@ -1358,7 +1446,6 @@ button {
   height: auto;
   padding-right: 10px;
   position: sticky;
-  position: -webkit-sticky;
   align-self: flex-start;
   top: 190px;
 }
@@ -1386,9 +1473,6 @@ button {
   font: 17px "Consolas", monospace;
   color: var(--c-gray);
   text-align: center;
-  -webkit-transform: rotate(90deg);
-  -moz-transform: rotate(90deg);
-  -ms-transform: rotate(90deg);
   transform: rotate(90deg);
   width: 39px;
   right: 11px;
@@ -1501,10 +1585,9 @@ select::-ms-expand {
   border-radius: 0px 0px 5px 5px;
 }
 
+/* Legacy .text-box - now use .content-box */
 .text-box {
-  border: 1px solid var(--c-lightgray);
-  border-radius: 5px;
-  margin-top: 30px;
+  /* Styles moved to .content-box base class */
 }
 
 .text-box-content {
@@ -1624,7 +1707,7 @@ select::-ms-expand {
   margin-top: 60px;
 }
 
-@media only screen and (min-width: 501px) and (max-width: 800px) {
+@media only screen and (min-width: 500px) and (max-width: 800px) {
   .object-view-panel {
     z-index: 9999;
     width: 100%;
@@ -1694,13 +1777,7 @@ select::-ms-expand {
     justify-content: space-between;
   }
 
-  .head-text-desktop {
-    display: none;
-  }
-
-  .head-text-mobile {
-    display: block
-  }
+  /* Responsive visibility now handled by utility classes */
 
   .search-result-box {
     width: 200px;
@@ -1761,6 +1838,19 @@ select::-ms-expand {
     margin-bottom: 50px;
   }
 
+  /* Footer styles merged from duplicate media query */
+  .footer-logo {
+    width: 300px;
+  }
+
+  .footer-icon {
+    width: 25px;
+    margin: 5px;
+  }
+
+  .footer-icons {
+    flex-wrap: wrap;
+  }
 }
 
 @media only screen and (min-width: 500px) and (max-width: 700px) {
@@ -1770,14 +1860,14 @@ select::-ms-expand {
   }
 
   .nav-links {
-    display: none;
+    /* display: none - handled by utility classes */
   }
 
   .mobile-nav-menu {
-    display: block;
+    /* display: block - handled by utility classes */
     float: right;
     padding: 20px;
-    padding-right: 7vw
+    padding-right: 7vw;
   }
 
   .nav-button > button {
@@ -1875,20 +1965,7 @@ select::-ms-expand {
   }
 }
 
-@media only screen and (min-width: 500px) and (max-width: 800px) {
-  .footer-logo {
-    width: 300px;
-  }
-
-  .footer-icon {
-    width: 25px;
-    margin: 5px;
-  }
-
-  .footer-icons {
-    flex-wrap: wrap;
-  }
-}
+/* Duplicate media query removed - merged with main 500-800px query above */
 
 @media only screen and (min-width: 0px) and (max-width: 500px) {
   .object-view-panel {
@@ -1995,12 +2072,9 @@ select::-ms-expand {
     line-height: 1.2em
   }
 
-  .head-text-desktop {
-    display: none;
-  }
+  /* Responsive visibility now handled by utility classes */
 
   .head-text-mobile {
-    display: block;
     margin-top: 30px;
   }
 
@@ -2040,14 +2114,14 @@ select::-ms-expand {
 
 
   .nav-links {
-    display: none;
+    /* display: none - handled by utility classes */
   }
 
   .mobile-nav-menu {
-    display: block;
+    /* display: block - handled by utility classes */
     float: right;
     padding: 20px;
-    padding-right: 7vw
+    padding-right: 7vw;
   }
 
   .nav-button > button {
@@ -2082,12 +2156,10 @@ select::-ms-expand {
     width: 100%;
   }
 
-  .search-container button {
-    width: 15%
-  }
+  /* Search button sizing handled by .search-button class */
 
   .search-container input[type=text] {
-    width: 85%
+    /* Input width handled by flex: 1 */
   }
 
   .example-terms {
