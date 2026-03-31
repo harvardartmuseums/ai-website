@@ -333,7 +333,11 @@
                     {{else}}
                       {{#each descriptions}}
                         <h5>Created {{#if model}}by {{model}} {{/if}}on {{createdate}}</h5>
+                        {{#if body}}
                         <p>{{{markdown body}}}</p>
+                        {{else}}
+                        <p>No description written</p>
+                        {{/if}}
                       {{/each}}
                     {{/isEmpty}}
                   </div>
