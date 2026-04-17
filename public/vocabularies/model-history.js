@@ -201,5 +201,33 @@ If you have any questions or concerns, please contact AWS Support [5].
 [4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
 [5] https://aws.amazon.com/support
 `
-      }
+      },
+      {
+        date_of_change: "2026-10-14",
+        service: "AWS",
+        summary: "Bedrock Model Deprecation Notice – Claude Sonnet 4 'anthropic.claude-sonnet-4-20250514-v1:0'",
+        details: `Hello,
+
+[AWS Health may periodically trigger reminder notifications about this communication if resources remain unresolved.]
+
+We are contacting you because you have used the model ID anthropic.claude-sonnet-4-20250514-v1:0 [1] on Amazon Bedrock in the past 30 days.
+
+Effective immediately, by moving Claude Sonnet 4 into the Legacy state [2], Anthropic is initiating the deprecation process for this model. Once the model enters the Legacy state, no additional Service Quota increases will be granted for the model. Claude Sonnet 4 will stay in the Legacy state until July 14, 2026, when the model will enter the Extended Access state. On October 14, 2026, the model will go end-of-life and will no longer be accessible in Amazon Bedrock.
+
+The following are important dates:
+
+- April 14, 2026: Legacy state begins
+- July 14, 2026: Extended access begins
+- October 14, 2026: This model will no longer be available for use and requests made to this model ID will fail
+
+We recommend migrating your usage to the latest Anthropic model [1] by updating your application code [3]. You can request an increase to your quotas through Service Quotas [4].
+
+If you have any questions or concerns, please reach out to AWS Support [5].
+
+[1] https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html
+[3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
+[4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[5] https://aws.amazon.com/support`
+      }      
 ];
