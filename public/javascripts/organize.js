@@ -15,6 +15,7 @@ module.exports = {
 					face.sorted_raw = _.concat(face.sorted_raw, emotionobject)
 			})
 			face.sorted_raw.shift()
+			face.imageFragmentURL = face.target.replace("/full/full", `/${face.selectors[0].value.replace('xywh=','')}/full`);
 		})
 	},
 	microsoftfacesort: function (facedata) {
@@ -25,6 +26,7 @@ module.exports = {
 			let genderobject = {type: 'Gender', body: gender}
 			face.sorted_raw = _.concat(face.sorted_raw, ageobject, genderobject)
 			face.sorted_raw.shift()
+			face.imageFragmentURL = face.target.replace("/full/full", `/${face.selectors[0].value.replace('xywh=','')}/full`);
 		})
 	},
 	googlefacesort: function (facedata){
@@ -51,11 +53,13 @@ module.exports = {
 																 headwearobject,
 																 blurredobject)
 			face.sorted_raw.shift()
+			face.imageFragmentURL = face.target.replace("/full/full", `/${face.selectors[0].value.replace('xywh=','')}/full`);
 		})
 	},
 	imaggafacesort: function (facedata) {
 		_.map(facedata, function(face) {
 			let faceinfo = {type: 'Traits', body: face.body}
+			face.imageFragmentURL = face.target.replace("/full/full", `/${face.selectors[0].value.replace('xywh=','')}/full`);
 			face.sorted_raw = _.concat(face.sorted_raw, faceinfo)
 			face.sorted_raw.shift()
 		})
@@ -123,14 +127,14 @@ module.exports = {
 			amazonfeatures = _.filter(ai_data, {type: 'tag', feature: 'region', source: 'AWS Rekognition'});
 			amazonfeatures.forEach(e => {
 				selector = e.selectors[0].value.replace('xywh=','');
-				e.iiifFeatureImageURL = e.target.replace("/full/full", `/${selector}/full`);
+				e.imageFragmentURL = e.target.replace("/full/full", `/${selector}/full`);
 			});
 			ai_sorted.featuresect.Amazon.features = _.groupBy(amazonfeatures, 'body');
 			
 			clarifaifeatures = _.filter(ai_data, {type: 'tag', feature: 'region', source: 'Clarifai'});
 			clarifaifeatures.forEach(e => {
 				selector = e.selectors[0].value.replace('xywh=','');
-				e.iiifFeatureImageURL = e.target.replace("/full/full", `/${selector}/full`);
+				e.imageFragmentURL = e.target.replace("/full/full", `/${selector}/full`);
 			});
 			ai_sorted.featuresect.Clarifai.features = _.groupBy(clarifaifeatures, 'body');		
 		}
@@ -193,7 +197,13 @@ module.exports = {
 			Google:{source:'Google'}
 		};
 		ai_sorted.textsect.Google.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "Google Vision"}), 'body')
+		ai_sorted.textsect.Google.text.forEach(t => {
+			t.imageFragmentURL = t.target.replace("/full/full", `/${t.selectors[0].value.replace('xywh=','')}/full`);
+		});
 		ai_sorted.textsect.Amazon.text = _.uniqBy(_.filter(ai_data, {type: 'text', source: "AWS Rekognition"}), 'body')
+		ai_sorted.textsect.Amazon.text.forEach(t => {
+			t.imageFragmentURL = t.target.replace("/full/full", `/${t.selectors[0].value.replace('xywh=','')}/full`);
+		});
 		ai_sorted.textsect = _.filter(ai_sorted.textsect, function(service){
 			if(service.text.length > 0) {
 				service.createdate = service.text[0].createdate.substr(0,10);

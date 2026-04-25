@@ -240,7 +240,7 @@ router.get('/face/:page?', function(req, res, next) {
     'page': page,
     'sort': 'confidence',
     'sortorder': 'desc',
-    'fields': 'imageid,idsid,confidence,source,body,type,feature,selectors,target',
+    'fields': 'imageid,confidence,source,body,type,feature,selectors,target',
     'apikey': API_KEY,
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
@@ -251,8 +251,7 @@ router.get('/face/:page?', function(req, res, next) {
     feature_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1};
     tag_results.records.forEach(tag => {
       coords = tag.selectors[0].value.replace('xywh=','');
-      tag.imagefragmenturl = `https://ids.lib.harvard.edu/ids/iiif/${tag.idsid}/${coords}/full/0/default.jpg`;
-      // tag.imagefragmenturl = tag.target.replace('/full/full', `/${coords}/full`);
+      tag.imagefragmenturl = tag.target.replace('/full/full', `/${coords}/full`);
       if (tag.confidence <= 1) {
         tag.confidence = _.round((tag.confidence * 100), 1)
       }
