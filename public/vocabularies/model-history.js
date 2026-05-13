@@ -229,5 +229,17 @@ If you have any questions or concerns, please reach out to AWS Support [5].
 [3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
 [4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
 [5] https://aws.amazon.com/support`
-      }      
+      },
+      {
+        date_of_change: "2026-05-09",
+        service: "AWS",
+        summary: "Added Moonshot AI Kimi, Writer Palmyra, and Qwen 3",
+        details: `Started using writer.palmyra-vision-7b, moonshotai.kimi-k2.5, and qwen.qwen3-vl-235b-a22b models on Amazon Bedrock to generate descriptions.`
+      },
+      {
+        date_of_change: "2026-05-13",
+        service: "Imagga",
+        summary: "Added Imagga structured tags and captions model",
+        details: `Started using Imagga's structured tags model to tag and caption images.`
+      }
 ];
