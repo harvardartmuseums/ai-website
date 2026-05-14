@@ -35,6 +35,20 @@ async function fetchStats() {
         stats.sources[i].vocabulary_size = await fetchVocabBySource(stats.sources[i].source);
     }
 
+    let sourceAggs = { "all_sources": { "terms": { "field": "source", "size": 50, "exclude": "Manual" } } };
+    let sourceQs = { 'size': 0, 'apikey': API_KEY, 'aggregation': JSON.stringify(sourceAggs) };
+    let sourceUrl = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(sourceQs)}`;
+    let sourceRes = await fetch(sourceUrl);
+    let sourceOut = await sourceRes.json();
+    stats.all_sources = sourceOut.aggregations.all_sources.buckets.map(b => b.key);
+
+    let modelAggs = { "all_models": { "terms": { "field": "model.keyword", "size": 500, "size": 200 } } };
+    let modelQs = { 'size': 0, 'apikey': API_KEY, 'aggregation': JSON.stringify(modelAggs) };
+    let modelUrl = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(modelQs)}`;
+    let modelRes = await fetch(modelUrl);
+    let modelOut = await modelRes.json();
+    stats.models = modelOut.aggregations.all_models.buckets.map(b => b.key);
+
     fs.writeFileSync(`./public/vocabularies/stats.js`, 'module.exports = ' + JSON.stringify(stats), {flag:'w+'});
 }
 
