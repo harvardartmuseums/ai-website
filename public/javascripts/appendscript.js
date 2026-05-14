@@ -57,6 +57,26 @@ module.exports = {
     object_results = _.remove(object_results, o => typeof o.category !== 'undefined')
     return object_results
   },
+  bucketappend: function (buckets, object_results) {
+    return buckets.map(bucket => {
+      let object = _.find(object_results, o => _.some(o.images, {imageid: bucket.key})) || {objectid: -1};
+      let image = _.find(object.images, {imageid: bucket.key}) || {imageid: -1};
+      let hits = bucket.top_annotations.hits.hits.map(h => {
+        let tag = Object.assign({}, h._source);
+
+        if (tag.source === 'AWS Rekognition') tag.source = 'Amazon';
+        else if (tag.source === 'Google Vision') tag.source = 'Google';
+        else if (tag.source === 'Microsoft Cognitive Services') tag.source = 'Microsoft';
+
+        if (tag.confidence <= 1) tag.confidence = _.round(tag.confidence * 100, 1);
+        return tag;
+      });
+      return Object.assign({}, object, {
+        imagehit: image,
+        hits: hits,
+      });
+    }).filter(r => r.hits !== undefined);
+  },
   objectappend: function (image_results, object_results) {
     _.map(image_results, function(image) {
       let object = _.find(object_results, o =>         

@@ -81,101 +81,127 @@ router.get('/explore', function(req, res, next) {
 
 /* GET search results. */
 router.get('/search/:tag/:page?', function(req, res, next) {
+  const PAGE_SIZE = 24;
+  const PAGE_CAP = 100;
   let page = 1;
-  if (req.params.page > 1) {
-    page = req.params.page;
-  }  
+  if (req.params.page > 1 && req.params.page <= PAGE_CAP) {
+    page = parseFloat(req.params.page);
+  }
+
+  const VALID_SOURCES = new Set(statistics.all_sources || statistics.sources.map(s => s.source));
+  const VALID_MODELS  = new Set(statistics.models || []);
+  const source = VALID_SOURCES.has(req.query.source) ? req.query.source : null;
+  const model  = VALID_MODELS.has(req.query.model)   ? req.query.model  : null;
 
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let image_list = _.sampleSize(example_images.image_list, 6);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
 
+  let q = `(type:tag OR type:description) AND accesslevel:1 AND body:("${_.lowerCase(req.params.tag)}")`;
+  if (source) q += ` AND source:"${source}"`;
+  if (model)  q += ` AND model.keyword:"${model}"`;
+
   let aggs = {
-      "by_source": {
-          "terms": {
-              "field": "source",
-              "size": 20,
-              "min_doc_count": 0,
-              "exclude": "Manual"
-          }
+    "top_images": {
+      "terms": {
+        "field": "imageid",
+        "size": page * PAGE_SIZE,
+        "order": {"max_confidence": "desc"},
       },
-      "image_count": {
-          "cardinality": {
-              "field": "imageid",
-              "precision_threshold": 1000
+      "aggs": {
+        "max_confidence": {"max": {"field": "confidence"}},
+        "top_annotations": {
+          "top_hits": {
+            "size": 25,
+            "sort": [{"confidence": "desc"}],
+            "_source": ["body", "confidence", "source", "type", "feature"]
           }
-      },
-      "confidences": {
-          "histogram": {
-              "field": "confidence",
-              "interval": 0.05,
-              "order": {"_key": "desc"},
-              "extended_bounds": {
-                "min": 0.0,
-                "max": 1.0
-              }
-          }
+        }
       }
+    },
+    "image_count": {
+      "cardinality": {"field": "imageid", "precision_threshold": 1000}
+    },
+    "source_count": {
+      "cardinality": {"field": "source", "precision_threshold": 1000}
+    },
+    "by_source": {
+      "terms": {"field": "source", "size": 50, "min_doc_count": 0, "exclude": "Manual", "order": {"_key": "asc"}},
+      "aggs": {
+        "by_model": {
+          "terms": {"field": "model.keyword", "size": 50, "min_doc_count": 1, "order": {"_key": "asc"}}
+        }
+      }
+    },
+    "confidences": {
+      "histogram": {
+        "field": "confidence",
+        "interval": 0.05,
+        "order": {"_key": "desc"},
+        "extended_bounds": {"min": 0.0, "max": 1.0}
+      }
+    }
   };
 
   let qs = {
-    'q': `confidence:>=0.0 AND (type:tag OR type:description) AND accesslevel:1 AND body.exact:("${_.lowerCase(req.params.tag)}" OR "${_.capitalize(req.params.tag)}" OR "${_.startCase(req.params.tag)}")`,
-    'size': 300,
-    'page': page,
+    'q': q,
+    'size': 0,
     'sort': 'confidence',
     'sortorder': 'desc',
-    'fields': 'imageid,confidence,source,body,type,feature',
-    'apikey': API_KEY, 
+    'apikey': API_KEY,
     'aggregation': JSON.stringify(aggs)
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
-    let tag_results_info = tag_results.info;    
+    let all_buckets = tag_results.aggregations.top_images.buckets;
+    let page_buckets = all_buckets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+    let total_images = tag_results.aggregations.image_count.value;
+    let total_sources = tag_results.aggregations.source_count.value;
+    let total_pages = Math.ceil(total_images / PAGE_SIZE);
     let tag_stats = tag_results.aggregations;
-    tag_results_info.totalrecords_localized = tag_results.info.totalrecords.toLocaleString();
-    tag_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1}
 
-    // Sort tag results by confidence percent
-    // tag_results = _.filter(tag_results.records, {type: 'tag'})
-    tag_results = tag_results.records;
-    tag_results = _.orderBy(tag_results, ['confidence'], ['desc'])
-    // Create a new array of the image IDs that will show up
-    let imageid_results = _.map(tag_results, 'imageid')
-    // Function to create a new query to retrieve objects from image ids
-    let object_url = appendscript.idappend(imageid_results)
+    let tag_results_info = {
+      totalrecords: tag_results.info.totalrecords,
+      totalrecords_localized: tag_results.info.totalrecords.toLocaleString(),
+      page: page,
+      pages: total_pages,
+      pagenumber: {nextpage: page + 1, previouspage: page - 1}
+    };
+
+    let imageid_list = page_buckets.map(b => b.key);
+    let object_url = appendscript.idappend(imageid_list);
     fetch(object_url).then(response => response.json())
     .then(object_results => {
-      object_results = object_results.records
-      // Match the object list with their corresponding tag results
-      object_results = appendscript.tagappend(object_results, tag_results)
-      let tag = req.params.tag
-      res.render('search', { title: "Search results for '" + req.params.tag + "'",
-                             subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${tag_stats.image_count.value.toLocaleString()} images`,
-                             navbar: true,
-                             year: new Date().getFullYear(),
-                             object_results: object_results,
-                             tag_results: tag_results,
-                             tag_stats: tag_stats,
-                             error: false,
-                             tag: req.params.tag,
-                             tag_results_info: tag_results_info
-                           });
+      let results = appendscript.bucketappend(page_buckets, object_results.records || []);
+      let filterParts = [];
+      if (source) filterParts.push(`source=${encodeURIComponent(source)}`);
+      if (model)  filterParts.push(`model=${encodeURIComponent(model)}`);
+      let filterParams = filterParts.length ? '?' + filterParts.join('&') : '';
+
+      res.render('search', {
+        title: `Search results for '${req.params.tag}'`,
+        subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${total_images.toLocaleString()} images`,
+        navbar: true,
+        year: new Date().getFullYear(),
+        object_results: results,
+        tag_stats: tag_stats,
+        error: false,
+        tag: req.params.tag,
+        tag_results_info: tag_results_info,
+        active_source: source,
+        active_model: model,
+        filterParams: filterParams
+      });
     })
-    .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
-                                            navbar: true,
-                                            error: true,
-                                            tag_list: tag_list,
-                                            mobile_tag_list: mobile_tag_list,
-                                            image_list: image_list})})
+    .catch(() => {res.render('search', {title: `No search results for '${req.params.tag}'`,
+                                        navbar: true, error: true,
+                                        tag_list: tag_list, mobile_tag_list: mobile_tag_list, image_list: image_list})})
   })
-  .catch(() => {res.render('search', {title: "No search results for '" + req.params.tag + "'",
-                                          navbar: true,
-                                          error: true,
-                                          tag_list: tag_list,
-                                          mobile_tag_list: mobile_tag_list,
-                                          image_list: image_list})})
+  .catch(() => {res.render('search', {title: `No search results for '${req.params.tag}'`,
+                                      navbar: true, error: true,
+                                      tag_list: tag_list, mobile_tag_list: mobile_tag_list, image_list: image_list})})
 });
 
 router.get('/feature/:tag/:page?', function(req, res, next) {

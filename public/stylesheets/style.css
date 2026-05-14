@@ -1306,7 +1306,7 @@ button {
 
 .content-search-results {
   width: 86%;
-  padding: 90px 0px;
+  padding: 45px 0px;
   margin: 0px auto;
 }
 
@@ -1447,7 +1447,7 @@ button {
   padding-right: 10px;
   position: sticky;
   align-self: flex-start;
-  top: 190px;
+  top: 234px;
 }
 
 .category-toggle-mobile-select {

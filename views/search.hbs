@@ -9,23 +9,53 @@
       <div class="content-search-results">
         <div>
           <h2>{{title}}</h2>
-          <h3>{{subtitle}}  <button id="toggle-stats" onclick="toggleStats()" style="margin-left:10px;padding:7px;border-radius:4px;cursor:pointer;border: 1px solid;background-color:#8a8a8a;color:#ffffff">Show Statistics</button></h3>
-          <div class="content-search-stats">
-            <div id="confidence-plot">
-              <p>Distribution of Confidence</p>
-            </div>
-            <div id="source-plot">
-              <p>Distribution of Sources</p>
-            </div>
-          </div>
+          <h3>{{subtitle}}</h3>
+          <details>
+            <summary>Show Statistics</summary>
+              <div id="confidence-plot">
+                <p>Distribution of Confidence</p>
+              </div>
+              <div id="source-plot">
+                <p>Distribution of Sources</p>
+              </div>
+          </details>
+          <h3>The term is used by {{tag_stats.source_count.value}} sources</h3>
+          <details>
+            <summary>Filter by Source and Model</summary>
+                <div class="search-filters">
+                  {{#each tag_stats.by_source.buckets}}
+                    <div class="filter-source{{#if (eq key ../active_source)}} filter-source--active{{/if}}">
+                      {{#if (eq key ../active_source)}}
+                        <a href="/search/{{../tag}}/1" class="filter-source-label active">&#x2715; {{key}} <span class="filter-count">({{doc_count}})</span></a>
+                        {{#if by_model.buckets}}
+                          <div class="filter-models">
+                            <ul>
+                            {{#if ../active_model}}
+                              <li><a href="/search/{{../tag}}/1?source={{../active_source}}" class="filter-chip active">&#x2715; {{../active_model}}</a></li>
+                            {{/if}}
+                            {{#each by_model.buckets}}
+                              {{#unless (eq key ../../active_model)}}
+                                <li><a href="/search/{{../../tag}}/1?source={{../key}}&model={{key}}" class="filter-chip">{{key}} <span class="filter-count">({{doc_count}})</span></a></li>
+                              {{/unless}}
+                            {{/each}}
+                            </ul>
+                          </div>
+                        {{/if}}
+                      {{else}}
+                        <a href="/search/{{../tag}}/1?source={{key}}" class="filter-source-label">{{key}} <span class="filter-count">({{doc_count}})</span></a>
+                      {{/if}}
+                    </div>
+                  {{/each}}
+                </div>
+          </details>
           <p>Results displayed in order of confidence determined by AI</p>
         </div>
         <div id="search-results">
           {{#each object_results}}
             <div class="object-search-result">
-              <a href="/object/{{objectid}}">
+              <a href="/object/{{objectid}}/image/{{imagehit.imageid}}">
                 <div class="search-result-box">
-                  <div class="search-result-image-box" style="background-image:url({{primaryimageurl}})">
+                  <div class="search-result-image-box" style="background-image:url({{imagehit.baseimageurl}}:THUMBNAIL)">
                   </div>
                   <div class="search-result-confidence">
                     <div class="search-confidence-bar">
@@ -34,7 +64,7 @@
                     <div class="confidence-content">
                       <h5>
                         <table class="confidence-table">
-                          {{#each secondarytags}}
+                          {{#each hits}}
                             <tr>
                               <td >{{source}}</td>
                               <td class="table-confidence">{{confidence}}<sup>%</sup></td>
@@ -42,7 +72,7 @@
                           {{/each}}
                         </table>
                         <div class="highest-confidence">
-                          {{firsttag.source}} <span class="big-confidence">{{firsttag.confidence}}<sup>%</sup></span>
+                          {{!-- {{firsttag.source}} <span class="big-confidence">{{firsttag.confidence}}<sup>%</sup></span> --}}
                         </div>
                       </h5>
                     </div>
@@ -64,11 +94,11 @@
         </div>
       </div>
       <div class="pagination">
-        <a id="firstpage" href="/search/{{tag}}/1"><i class="fa fa-angle-double-left"></i></a>
-        <a id="previouspage" href="/search/{{tag}}/{{tag_results_info.pagenumber.previouspage}}"><i class="fa fa-angle-left"></i></a>
+        <a id="firstpage" href="/search/{{tag}}/1{{filterParams}}"><i class="fa fa-angle-double-left"></i></a>
+        <a id="previouspage" href="/search/{{tag}}/{{tag_results_info.pagenumber.previouspage}}{{filterParams}}"><i class="fa fa-angle-left"></i></a>
         <div id="pagenumbers"></div>
-        <a id="nextpage" href="/search/{{tag}}/{{tag_results_info.pagenumber.nextpage}}"><i class="fa fa-angle-right"></i></a>
-        <a id="lastpage" href="/search/{{tag}}/{{tag_results_info.pages}}"><i class="fa fa-angle-double-right"></i></a>
+        <a id="nextpage" href="/search/{{tag}}/{{tag_results_info.pagenumber.nextpage}}{{filterParams}}"><i class="fa fa-angle-right"></i></a>
+        <a id="lastpage" href="/search/{{tag}}/{{tag_results_info.pages}}{{filterParams}}"><i class="fa fa-angle-double-right"></i></a>
       </div>
     {{/if}}
 
@@ -77,9 +107,6 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    let stats = document.getElementsByClassName("content-search-stats")[0];
-    stats.style.display = 'none';
-
     if ({{tag_results_info.page}} == 1) {
       document.getElementById('previouspage').style.visibility = "hidden"
       document.getElementById('firstpage').style.visibility = "hidden"
@@ -96,10 +123,10 @@
       pagenumberarray.forEach(function(pagenumber) {
         if (pagenumber == {{tag_results_info.page}}) {
           document.getElementById("pagenumbers").innerHTML+=
-            '<a href="/search/{{tag}}/' + pagenumber + '" class="active">' + pagenumber + '</a>'
+            '<a href="/search/{{tag}}/' + pagenumber + '{{filterParams}}" class="active">' + pagenumber + '</a>'
         } else {
           document.getElementById("pagenumbers").innerHTML+=
-            '<a href="/search/{{tag}}/' + pagenumber + '">' + pagenumber + '</a>'
+            '<a href="/search/{{tag}}/' + pagenumber + '{{filterParams}}">' + pagenumber + '</a>'
         }
       })
     }
@@ -184,7 +211,7 @@
           Plot.axisX({labelAnchor: "center", labelArrow: "none", lineWidth: 6}),
         ],
         height: 250,
-        width: 500,
+        width: 800,
         marginTop: 20, // 🌶 if you don't set the margins, the defaults flip the scales bottom-up
         marginBottom: 40,
         marginLeft: 50,
@@ -193,17 +220,5 @@
 
     const div = document.getElementById("source-plot");
     div.append(plot);    
-  }
-
-  function toggleStats() {
-    let button = document.getElementById("toggle-stats");
-    let stats = document.getElementsByClassName("content-search-stats")[0];
-    if (stats.style.display == 'flex') {
-      stats.style.display = 'none';
-      button.innerText = 'Show Statistics';
-    } else {
-      stats.style.display = 'flex';
-      button.innerText = 'Hide Statistics';
-    }
   }
 </script>
