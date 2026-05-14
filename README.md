@@ -1,18 +1,43 @@
 # AI Explorer
 
-[AI explorer](https://ai.harvardartmuseums.org) is a front-end for the Harvard Museums' data set of AI generated captions, descriptions, and tag. This is part of the museum's research in to using 5 different AI computer vision services to interpret its art collections.
+[AI explorer](https://ai.harvardartmuseums.org) is a front-end for the Harvard Museums' data set of AI generated captions, descriptions, and tags. This is part of the museum's research in to using multiple AI computer vision services and large language models to interpret its art collections.
 
 While the Harvard Art Museums began collecting AI generated data in 2016, the data was only publicly available through the [museum's API](https://hvrd.art/api). The AI website began development in June 2019 and launched in August 2019. This project was built in-house and is maintained by the department of Digital Infrastructure and Emerging Technology.
 
 ## Features
 
-* Individual object data - see all annotations from 5 different AI services for a particular artwork
+* Individual object data - see all annotations from 5 different AI computer vision services and more than 20 large language models for a particular artwork
 * Search by keyword - a user-inputted keyword returns all artworks that were tagged with that word by AI services
 * Search by category - returns all artworks sorted into 12 different broad categories by AI service Imagga
+* Search by feature - returns all images sorted into groups by AWS Rekognition's feature detection
+* Search by face - returns all faces found in all images
 
 ## Overview
 
 The AI Explorer is an exploratory and educational website accessing the Harvard Art Museum's research data on how artificial intelligence views art. The website allows users to see how computer vision services Amazon Rekognition, Clarifai, Imagga, Google Vision, and Microsoft Cognitive Services interpret artworks in the Harvard Art Museums collection. Additionally, the site allows users to search by keyword in order to return artworks that were tagged by the AI services with that word.
+
+## Term and Description Search
+
+The search route (`/search/:term`) queries across both tag-type and description-type annotations. Each result card represents a single image and surfaces the following data:
+
+### Confidence
+Where available, a visual bar and label show the range of confidence scores across all sources that annotated the image with the search term. The bar spans from the minimum to maximum confidence value reported, giving a quick read of how consistently AI services agreed. Sources that don't report confidence (e.g. Clarifai tags) are excluded from the bar.
+
+### Frequency
+Two frequency values are shown per result:
+- **Annotations** — how many individual annotations matched the search term for that image (e.g. `12 annotations`)
+- **Uses** — how many times the term appears in the body text across those annotations (e.g. `~18 uses`). This is an approximation based on up to 75 returned annotation hits per image.
+
+### Per-source breakdown
+A compact table below each image lists each source and its confidence range (min–max). Sources that don't supply confidence show their annotation count instead.
+
+### Filtering
+Results can be filtered by source and, where available, by specific model within a source. Active filters are displayed inline with a dismiss link.
+
+### Sorting
+Results can be sorted by:
+- **Confidence** (default) — images where the AI had the highest confidence in the search term appear first
+- **Frequency** — images with the most matching annotations appear first
 
 # Requirements
 
@@ -38,9 +63,30 @@ touch .env
 # Add your personal API key to the .env file
 echo "API_KEY = 000000-00000-00000-000000-000000" >> .env
 
+# Build the vocabulary files (required before first run)
+npm run build-vocab
+
 # Start the program
 npm start
 ```
+
+### Vocabulary build
+
+`npm run build-vocab` runs `vocab.js`, which queries the Harvard Art Museums annotation API and writes a set of static vocabulary files to `public/vocabularies/`:
+
+| File | Contents |
+|------|----------|
+| `stats.js` | Total vocabulary sizes per source, list of all sources and models |
+| `terms.js` | All tag terms with per-source breakdowns |
+| `features.js` | Tags associated with region features |
+| `descriptions.js` | All description-type annotation bodies |
+| `people.js` | People names extracted from descriptions via NLP |
+| `places.js` | Place names extracted from descriptions via NLP |
+| `organizations.js` | Organization names extracted from descriptions via NLP |
+| `text.js` | Text-type region annotation bodies |
+| `terms-<source>.js` | Per-source tag vocabularies (one file per source) |
+
+These files are loaded at server startup and used for autocomplete, the statistics page, and allowlist validation on search filters. Re-run `build-vocab` periodically to pick up new annotations added to the dataset.
 
 ## Acknowledgements
 
