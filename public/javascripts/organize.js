@@ -166,6 +166,8 @@ module.exports = {
 				Google: {source: 'Google Gemini', internalname: 'Google Gemini', descriptions: []},
 				Mistral: {source: 'Mistral Pixtral', internalname: 'Mistral', descriptions: []},
 				Qwen: {source: 'Qwen', internalname: 'Qwen', descriptions: []},
+				Moonshot: {source: 'Moonshot AI', internalname: 'Moonshot AI', descriptions: []},
+				Writer: {source: 'Writer', internalname: 'Writer', descriptions: []},
 			};
 
 			for (let service in ai_sorted.descriptions) {
