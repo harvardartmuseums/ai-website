@@ -1321,14 +1321,22 @@ button {
 }
 
 .search-result-box {
-  width: 220px;
-  height: 270px;
+  width: 275px;
+  display: flex;
+  flex-direction: column;
   margin-bottom: 30px;
   border: 1px solid var(--c-lightgray);
   border-radius: 5px;
-  position: relative;
   margin-right: 15px;
   margin-top: 10px;
+}
+
+.search-result-image-wrap {
+  position: relative;
+  height: 200px;
+  flex-shrink: 0;
+  border-radius: 5px 5px 0 0;
+  overflow: hidden;
 }
 
 .search-result-image-box {
@@ -1337,7 +1345,6 @@ button {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border-radius: 5px;
 }
 
 .search-result-image {
@@ -1347,19 +1354,28 @@ button {
 }
 
 .search-result-confidence {
-  position: absolute;
-  bottom: 0;
   background-color: white;
-  left: 0;
-  right: 0;
-  border-radius: 0px 0px 5px 5px;
-  transition: .5s ease;
-  overflow: hidden;
-
+  border-radius: 0 0 5px 5px;
+  max-height: 180px;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .confidence-content {
-  padding: 12px 20px;
+  padding: 4px 10px;
+}
+
+.frequency-label {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  padding: 0 0 15px 5px;
+}
+
+.confidence-label-text {
+  opacity: 0.5;
+  text-transform: uppercase;
+  font-size: 0.6rem;
+  letter-spacing: 0.04em;
 }
 
 .search-result-overlay {
@@ -1373,7 +1389,6 @@ button {
   background-color: rgba(0, 0, 0, 0.6);
   opacity: 0;
   transition: .5s ease;
-  border-radius: 5px;
   overflow: hidden;
 }
 
@@ -1386,10 +1401,6 @@ button {
 
 .overlay-content > h4, .overlay-content > h5 {
   color: white;
-}
-
-.search-result-box:hover .search-result-confidence {
-  opacity: 0;
 }
 
 .search-result-box:hover .search-result-overlay {
@@ -1428,8 +1439,27 @@ button {
   background-color: var(--c-orangered)
 }
 
+.search-range-bar {
+  position: absolute;
+  top: 0;
+  height: 4px;
+  background-color: var(--c-orangered);
+  border-radius: 2px;
+}
+
+.search-range-bar--point {
+  width: 3px;
+}
+
+.confidence-label {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  padding: 5px 0 0 5px;
+}
+
 .confidence-table {
   opacity: .8;
+  width: 100%;
 }
 
 .category-content {
@@ -1780,7 +1810,7 @@ select::-ms-expand {
   /* Responsive visibility now handled by utility classes */
 
   .search-result-box {
-    width: 200px;
+    width: 275px;
   }
 
   .explore-panel {

@@ -57,25 +57,61 @@ module.exports = {
     object_results = _.remove(object_results, o => typeof o.category !== 'undefined')
     return object_results
   },
-  bucketappend: function (buckets, object_results) {
+  bucketappend: function (buckets, object_results, tag) {
+    let termRe = tag ? new RegExp(_.escapeRegExp(tag), 'gi') : null;
     return buckets.map(bucket => {
       let object = _.find(object_results, o => _.some(o.images, {imageid: bucket.key})) || {objectid: -1};
       let image = _.find(object.images, {imageid: bucket.key}) || {imageid: -1};
       let hits = bucket.top_annotations.hits.hits.map(h => {
         let tag = Object.assign({}, h._source);
-
         if (tag.source === 'AWS Rekognition') tag.source = 'Amazon';
         else if (tag.source === 'Google Vision') tag.source = 'Google';
         else if (tag.source === 'Microsoft Cognitive Services') tag.source = 'Microsoft';
-
-        if (tag.confidence <= 1) tag.confidence = _.round(tag.confidence * 100, 1);
+        else if (tag.source === 'Azure OpenAI Service') tag.source = 'OpenAI GPT';
+        if (tag.confidence >= 0 && tag.confidence <= 1) tag.confidence = _.round(tag.confidence * 100, 1);
         return tag;
       });
+
+      let validHits = hits.filter(h => h.confidence >= 0);
+
+      let term_frequency = termRe ? hits.reduce((sum, h) => {
+        let body = typeof h.body === 'string' ? h.body : '';
+        return sum + (body.match(termRe) || []).length;
+      }, 0) : 0;
+
+      let bySource = _.groupBy(hits, 'source');
+      let sources_summary = _.orderBy(
+        Object.entries(bySource).map(([source, srcHits]) => {
+          let valid = srcHits.filter(h => h.confidence >= 0);
+          if (valid.length > 0) {
+            let confs = valid.map(h => h.confidence);
+            return { source, count: srcHits.length, min: Math.min(...confs), max: Math.max(...confs), has_confidence: true };
+          }
+          return { source, count: srcHits.length, has_confidence: false };
+        }),
+        [s => s.has_confidence ? 1 : 0, 'max', 'count'],
+        ['desc', 'desc', 'desc']
+      );
+
+      let rawMin = bucket.min_confidence ? bucket.min_confidence.value : null;
+      let rawMax = bucket.max_confidence ? bucket.max_confidence.value : null;
+      let minConf = null;
+      if (rawMin !== null && rawMin >= 0) {
+        minConf = _.round(rawMin * 100, 1);
+      } else if (validHits.length > 0) {
+        minConf = validHits[validHits.length - 1].confidence;
+      }
+      let maxConf = (rawMax !== null && rawMax >= 0) ? _.round(rawMax * 100, 1) : null;
+
       return Object.assign({}, object, {
         imagehit: image,
-        hits: hits,
+        sources_summary,
+        frequency: bucket.doc_count,
+        term_frequency,
+        min_confidence: minConf,
+        max_confidence: maxConf
       });
-    }).filter(r => r.hits !== undefined);
+    }).filter(r => r.sources_summary !== undefined);
   },
   objectappend: function (image_results, object_results) {
     _.map(image_results, function(image) {

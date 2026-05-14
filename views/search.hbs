@@ -48,43 +48,74 @@
                   {{/each}}
                 </div>
           </details>
-          <p>Results displayed in order of confidence determined by AI</p>
+          <p>Sort by:
+            {{#if (eq active_sort 'frequency')}}
+              <a href="/search/{{tag}}/1{{filterParamsNoSort}}">Confidence</a> &middot; <strong>Frequency</strong>
+            {{else}}
+              <strong>Confidence</strong> &middot; <a href="/search/{{tag}}/1{{filterParamsNoSort}}{{#if filterParamsNoSort}}&sort=frequency{{else}}?sort=frequency{{/if}}">Frequency</a>
+            {{/if}}
+          </p>
         </div>
         <div id="search-results">
           {{#each object_results}}
             <div class="object-search-result">
               <a href="/object/{{objectid}}/image/{{imagehit.imageid}}">
                 <div class="search-result-box">
-                  <div class="search-result-image-box" style="background-image:url({{imagehit.baseimageurl}}:THUMBNAIL)">
-                  </div>
-                  <div class="search-result-confidence">
-                    <div class="search-confidence-bar">
-                      <div class="search-red-bar" style="width:{{firsttag.confidence}}%"></div>
-                    </div>
-                    <div class="confidence-content">
-                      <h5>
-                        <table class="confidence-table">
-                          {{#each hits}}
-                            <tr>
-                              <td >{{source}}</td>
-                              <td class="table-confidence">{{confidence}}<sup>%</sup></td>
-                            </tr>
+                  <div class="search-result-image-wrap">
+                    <div class="search-result-image-box" style="background-image:url({{imagehit.baseimageurl}}:THUMBNAIL)"></div>
+                    <div class="search-result-overlay">
+                      <div class="overlay-content">
+                        <h4>{{title}}</h4>
+                        <h5>
+                          {{#each people}}
+                            {{name}}
                           {{/each}}
-                        </table>
-                        <div class="highest-confidence">
-                          {{!-- {{firsttag.source}} <span class="big-confidence">{{firsttag.confidence}}<sup>%</sup></span> --}}
-                        </div>
-                      </h5>
+                        </h5>
+                      </div>
                     </div>
                   </div>
-                  <div class="search-result-overlay">
-                    <div class="overlay-content">
-                      <h4>{{title}}</h4>
-                      <h5>
-                        {{#each people}}
-                          {{name}}
+
+                    {{#if min_confidence}}
+                      <div class="search-confidence-bar">
+                        {{#if (eq min_confidence max_confidence)}}
+                          <div class="search-range-bar search-range-bar--point" style="{{#if (eq max_confidence 100)}}right:0{{else}}left:{{max_confidence}}%{{/if}}" title="{{max_confidence}}%"></div>
+                        {{else}}
+                          <div class="search-range-bar" style="left:{{min_confidence}}%; width:{{subtract max_confidence min_confidence}}%" title="{{min_confidence}}% – {{max_confidence}}%"></div>
+                        {{/if}}
+                      </div>
+                      <div class="confidence-label"><span class="confidence-label-text">confidence</span> {{#if (eq min_confidence max_confidence)}}{{max_confidence}}%{{else}}{{min_confidence}}% – {{max_confidence}}%{{/if}}</div>
+                    {{else}}
+                      {{#if max_confidence}}
+                        <div class="search-confidence-bar">
+                          <div class="search-red-bar" style="width:{{max_confidence}}%"></div>
+                        </div>
+                        <div class="confidence-label"><span class="confidence-label-text">confidence</span> {{max_confidence}}%</div>
+                      {{else}}
+                        <div class="search-confidence-bar"></div>
+                        <div class="confidence-label"><span class="confidence-label-text">confidence</span> &ndash;%</div>
+                      {{/if}}
+                    {{/if}}
+                    <div class="frequency-label"><span class="confidence-label-text">frequency</span> {{frequency}} annotations · ~{{term_frequency}} uses</div>
+
+
+                  <div class="search-result-confidence">
+
+                    <div class="confidence-content">
+                      <table class="confidence-table">
+                        {{#each sources_summary}}
+                          <tr>
+                            <td>{{source}}</td>
+                            <td class="table-confidence">
+                              {{#if has_confidence}}
+                                {{#if (eq min max)}}{{max}}<sup>%</sup>
+                                {{else}}{{min}}–{{max}}<sup>%</sup>
+                                {{/if}}
+                              {{else}}{{count}}<sup>×</sup>
+                              {{/if}}
+                            </td>
+                          </tr>
                         {{/each}}
-                      </h5>
+                      </table>
                     </div>
                   </div>
                 </div>

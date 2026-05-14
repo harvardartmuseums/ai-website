@@ -92,6 +92,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
   const VALID_MODELS  = new Set(statistics.models || []);
   const source = VALID_SOURCES.has(req.query.source) ? req.query.source : null;
   const model  = VALID_MODELS.has(req.query.model)   ? req.query.model  : null;
+  const sort   = req.query.sort === 'frequency' ? 'frequency' : 'confidence';
 
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let image_list = _.sampleSize(example_images.image_list, 6);
@@ -106,13 +107,14 @@ router.get('/search/:tag/:page?', function(req, res, next) {
       "terms": {
         "field": "imageid",
         "size": page * PAGE_SIZE,
-        "order": {"max_confidence": "desc"},
+        "order": sort === 'frequency' ? {"_count": "desc"} : {"max_confidence": "desc"},
       },
       "aggs": {
         "max_confidence": {"max": {"field": "confidence"}},
+        "min_confidence": {"min": {"field": "confidence"}},
         "top_annotations": {
           "top_hits": {
-            "size": 25,
+            "size": 75,
             "sort": [{"confidence": "desc"}],
             "_source": ["body", "confidence", "source", "type", "feature"]
           }
@@ -174,11 +176,17 @@ router.get('/search/:tag/:page?', function(req, res, next) {
     let object_url = appendscript.idappend(imageid_list);
     fetch(object_url).then(response => response.json())
     .then(object_results => {
-      let results = appendscript.bucketappend(page_buckets, object_results.records || []);
+      let results = appendscript.bucketappend(page_buckets, object_results.records || [], _.lowerCase(req.params.tag));
       let filterParts = [];
       if (source) filterParts.push(`source=${encodeURIComponent(source)}`);
       if (model)  filterParts.push(`model=${encodeURIComponent(model)}`);
+      if (sort === 'frequency') filterParts.push('sort=frequency');
       let filterParams = filterParts.length ? '?' + filterParts.join('&') : '';
+
+      let filterPartsNoSort = [];
+      if (source) filterPartsNoSort.push(`source=${encodeURIComponent(source)}`);
+      if (model)  filterPartsNoSort.push(`model=${encodeURIComponent(model)}`);
+      let filterParamsNoSort = filterPartsNoSort.length ? '?' + filterPartsNoSort.join('&') : '';
 
       res.render('search', {
         title: `Search results for '${req.params.tag}'`,
@@ -192,7 +200,9 @@ router.get('/search/:tag/:page?', function(req, res, next) {
         tag_results_info: tag_results_info,
         active_source: source,
         active_model: model,
-        filterParams: filterParams
+        active_sort: sort,
+        filterParams: filterParams,
+        filterParamsNoSort: filterParamsNoSort
       });
     })
     .catch(() => {res.render('search', {title: `No search results for '${req.params.tag}'`,
