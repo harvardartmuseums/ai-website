@@ -67,7 +67,7 @@
         <div id="search-results">
           {{#each object_results}}
             <div class="object-search-result">
-              <a href="/object/{{objectid}}/image/{{imagehit.imageid}}">
+              {{#if (ne objectid -1)}}<a href="/object/{{objectid}}/image/{{imagehit.imageid}}">{{/if}}
                 <div class="search-result-box">
                   <div class="search-result-image-wrap">
                     <div class="search-result-image-box" style="background-image:url({{imagehit.baseimageurl}}:THUMBNAIL)"></div>
@@ -127,7 +127,7 @@
                     </div>
                   </div>
                 </div>
-              </a>
+              {{#if (ne objectid -1)}}</a>{{/if}}
             </div>
           {{/each}}
         </div>

@@ -60,7 +60,7 @@ module.exports = {
   bucketappend: function (buckets, object_results, tag) {
     let termRe = tag ? new RegExp(_.escapeRegExp(tag), 'gi') : null;
     return buckets.map(bucket => {
-      let object = _.find(object_results, o => _.some(o.images, {imageid: bucket.key})) || {objectid: -1};
+      let object = _.find(object_results, o => _.some(o.images, {imageid: bucket.key})) || {objectid: -1, title: 'Information not available at this time', images: []};
       let image = _.find(object.images, {imageid: bucket.key}) || {imageid: -1};
       let hits = bucket.top_annotations.hits.hits.map(h => {
         let tag = Object.assign({}, h._source);
