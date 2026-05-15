@@ -10,6 +10,14 @@
         <div>
           <h2>{{title}}</h2>
           <h3>{{subtitle}}</h3>
+          <h3>{{#if (eq tag_stats.source_count.value total_sources)}}
+            The term is used by all {{total_sources}} sources.
+            {{else}}
+            The term is used by {{tag_stats.source_count.value}} of {{total_sources}} sources.
+            {{/if}}
+             {{source_summary}}
+          </h3>
+          <p>
           <details>
             <summary>Show Statistics</summary>
               <div id="confidence-plot">
@@ -19,8 +27,8 @@
                 <p>Distribution of Sources</p>
               </div>
           </details>
-          <h3>The term is used by {{tag_stats.source_count.value}} sources</h3>
-          <details>
+          </p>
+          {{!-- <details>
             <summary>Filter by Source and Model</summary>
                 <div class="search-filters">
                   {{#each tag_stats.by_source.buckets}}
@@ -47,7 +55,7 @@
                     </div>
                   {{/each}}
                 </div>
-          </details>
+          </details> --}}
           <p>Sort by:
             {{#if (eq active_sort 'frequency')}}
               <a href="/search/{{tag}}/1{{filterParamsNoSort}}">Confidence</a> &middot; <strong>Frequency</strong>

@@ -20,6 +20,19 @@ var model_history = require('../public/vocabularies/model-history')
 
 const API_KEY = process.env['API_KEY']
 
+function sourceDistributionSummary(buckets) {
+  if (!buckets || buckets.length === 0) return null;
+  let total = buckets.reduce((s, b) => s + b.doc_count, 0);
+  if (total === 0) return null;
+  let top = buckets[0];
+  let share = top.doc_count / total;
+  if (buckets.length === 1) return `All annotations come from ${top.key}.`;
+  if (share >= 0.7) return `The vast majority of annotations come from ${top.key}.`;
+  if (share >= 0.5) return `Most annotations come from ${top.key}.`;
+  if (share >= 0.35) return `${top.key} contributes the most annotations, but results span multiple sources.`;
+  return `Annotations are distributed broadly across sources.`;
+}
+
 /* GET home page. */
 router.get('/', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
@@ -163,6 +176,9 @@ router.get('/search/:tag/:page?', function(req, res, next) {
     let total_sources = tag_results.aggregations.source_count.value;
     let total_pages = Math.ceil(total_images / PAGE_SIZE);
     let tag_stats = tag_results.aggregations;
+    let sourceBucketsByCount = _.orderBy(tag_stats.by_source.buckets, 'doc_count', 'desc');
+    let source_summary = sourceDistributionSummary(sourceBucketsByCount);
+    let total_dataset_sources = (statistics.all_sources || statistics.sources.map(s => s.source)).length;
 
     let tag_results_info = {
       totalrecords: tag_results.info.totalrecords,
@@ -198,6 +214,8 @@ router.get('/search/:tag/:page?', function(req, res, next) {
         error: false,
         tag: req.params.tag,
         tag_results_info: tag_results_info,
+        source_summary: source_summary,
+        total_sources: total_dataset_sources,
         active_source: source,
         active_model: model,
         active_sort: sort,
