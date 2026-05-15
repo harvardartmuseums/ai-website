@@ -153,6 +153,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
         "field": "confidence",
         "interval": 0.05,
         "order": {"_key": "desc"},
+        "hard_bounds": {"min": 0.0, "max": 1.0},
         "extended_bounds": {"min": 0.0, "max": 1.0}
       }
     }
