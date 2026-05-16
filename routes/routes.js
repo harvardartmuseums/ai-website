@@ -20,6 +20,65 @@ var model_history = require('../public/vocabularies/model-history')
 
 const API_KEY = process.env['API_KEY']
 
+let statsCache = null;
+
+async function refreshStatsCache() {
+  const aggs = {
+    "image_count": {
+      "cardinality": { "field": "imageid", "precision_threshold": 100 }
+    },
+    "date_stats": {
+      "extended_stats": { "field": "createdate" }
+    },
+    "by_source": {
+      "terms": {
+        "field": "source", "min_doc_count": 0, "size": 20,
+        "exclude": "Manual", "order": { "_key": "asc" }
+      },
+      "aggs": {
+        "image_coverage": {
+          "cardinality": { "field": "imageid", "precision_threshold": 1000 }
+        },
+        "by_type": {
+          "terms": { "field": "type", "min_doc_count": 0, "order": { "_key": "asc" } }
+        },
+        "by_model": {
+          "terms": { "field": "model.keyword", "size": 50 }
+        }
+      }
+    },
+    "by_type": {
+      "terms": { "field": "type", "order": { "_key": "asc" } },
+      "aggs": {
+        "by_source": {
+          "terms": {
+            "field": "source", "min_doc_count": 0, "size": 20,
+            "exclude": "Manual", "order": { "_key": "asc" }
+          }
+        }
+      }
+    }
+  };
+  const qs = { size: 0, apikey: API_KEY, aggregation: JSON.stringify(aggs) };
+  const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    data.aggregations.by_source.buckets.forEach(a => {
+      a.image_coverage.percentage =
+        (a.image_coverage.value / data.aggregations.image_count.value) * 100;
+    });
+    data.refreshed_at = new Date().toISOString();
+    statsCache = data;
+    console.log(`Stats cache refreshed at ${statsCache.refreshed_at}`);
+  } catch (e) {
+    console.error('Stats cache refresh failed:', e.message);
+  }
+}
+
+refreshStatsCache();
+setInterval(refreshStatsCache, 24 * 60 * 60 * 1000);
+
 function sourceDistributionSummary(buckets) {
   if (!buckets || buckets.length === 0) return null;
   let total = buckets.reduce((s, b) => s + b.doc_count, 0);
@@ -37,43 +96,34 @@ function sourceDistributionSummary(buckets) {
 router.get('/', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
-  let image_list = _.sampleSize(example_images.image_list, 6)
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&size=0&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
-  
-  fetch(tag_url).then(response => response.json())
-  .then(tag_results => {
-    let annotation_count = tag_results.info.totalrecords.toLocaleString();
-    let image_count = tag_results.aggregations.image_count.value.toLocaleString();
-    res.render('index', {title: 'Home',
-                          navbar: true,
-                          year: new Date().getFullYear(),
-                          tag_list: tag_list,
-                          mobile_tag_list: mobile_tag_list,
-                          image_list: image_list,
-                          annotation_count: annotation_count,
-                          image_count: image_count})
-  })
+  let image_list = _.sampleSize(example_images.image_list, 6);
+  let annotation_count = statsCache ? statsCache.info.totalrecords.toLocaleString() : '—';
+  let image_count = statsCache ? statsCache.aggregations.image_count.value.toLocaleString() : '—';
+  res.render('index', {title: 'Home',
+                        navbar: true,
+                        year: new Date().getFullYear(),
+                        tag_list: tag_list,
+                        mobile_tag_list: mobile_tag_list,
+                        image_list: image_list,
+                        annotation_count: annotation_count,
+                        image_count: image_count});
 });
 
 /* GET about page. */
-router.get('/about', function(req, res, nect) {
+router.get('/about', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6);
-  const tag_url = `https://api.harvardartmuseums.org/annotation/?apikey=${API_KEY}&size=0&aggregation={"image_count":{"cardinality":{"field":"imageid","precision_threshold":100}}}`;
-  fetch(tag_url).then(response => response.json())
-  .then(tag_results => {
-    let annotation_count = tag_results.info.totalrecords.toLocaleString();
-    let image_count = tag_results.aggregations.image_count.value.toLocaleString();
-    res.render('about', {title: 'About',
-                          navbar: true,
-                          year: new Date().getFullYear(),
-                          tag_list: tag_list,
-                          mobile_tag_list: mobile_tag_list,
-                          image_list: image_list,
-                          annotation_count: annotation_count,
-                          image_count: image_count})
-  })
+  let annotation_count = statsCache ? statsCache.info.totalrecords.toLocaleString() : '—';
+  let image_count = statsCache ? statsCache.aggregations.image_count.value.toLocaleString() : '—';
+  res.render('about', {title: 'About',
+                        navbar: true,
+                        year: new Date().getFullYear(),
+                        tag_list: tag_list,
+                        mobile_tag_list: mobile_tag_list,
+                        image_list: image_list,
+                        annotation_count: annotation_count,
+                        image_count: image_count});
 })
 
 
@@ -433,7 +483,10 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
 });
 
 router.get('/statistics', function(req, res, next) {
-  // cluster terms by the first character of each term
+  if (!statsCache) {
+    return res.status(503).send('Statistics are loading, please try again in a moment.');
+  }
+
   let termClusters = _.groupBy(terms, (i) => _.lowerCase(i.term[0]));
   let samples = {
     "people": _.sortBy(_.sampleSize(people, 20), "term"),
@@ -451,99 +504,27 @@ router.get('/statistics', function(req, res, next) {
     description_count: descriptions.length.toLocaleString(),
     sources: statistics.sources,
     build_date: statistics.build_date,
-    model_history: model_history
-  }
-
-  let aggs = {
-    "image_count": {
-      "cardinality": { 
-        "field": "imageid",
-        "precision_threshold":100
-      }
-    },
-    "date_stats": {
-      "extended_stats": {
-          "field": "createdate"
-      }
-    },    
-    "by_source": {
-      "terms": {
-        "field": "source",
-        "min_doc_count": 0,
-        "size": 20,
-        "exclude": "Manual",
-        "order": { "_key": "asc" }     
-      },
-      "aggs": {
-        "image_coverage": {
-            "cardinality": {
-                "field": "imageid",
-                "precision_threshold": 1000
-            }
-        },
-        "by_type": {
-          "terms": {
-            "field": "type",
-            "min_doc_count": 0,
-            "order": { "_key": "asc" }            
-          }
-        },
-        "by_model": { 
-          "terms": { 
-            "field": "model.keyword", 
-            "size": 50
-          }
-        }
-      }
-    },
-    "by_type": {
-        "terms": {
-            "field": "type",
-            "order": { "_key": "asc" }   
-        },
-        "aggs": {
-            "by_source": {
-                "terms": {
-                    "field": "source",
-                    "min_doc_count": 0,
-                    "size": 20,
-                    "exclude": "Manual",
-                    "order": { "_key": "asc" }
-                } 
-            }
-        }
-    }
+    model_history: model_history,
+    aggregations: statsCache.aggregations,
+    date_of_oldest: statsCache.aggregations.date_stats.min_as_string.substr(0, 10),
+    date_of_newest: statsCache.aggregations.date_stats.max_as_string.substr(0, 10),
+    image_count: statsCache.aggregations.image_count.value.toLocaleString(),
+    annotation_count: statsCache.info.totalrecords.toLocaleString(),
+    refreshed_at: statsCache.refreshed_at
   };
 
-  let qs = {
-    'size': 0,
-    'apikey': API_KEY, 
-    'aggregation': JSON.stringify(aggs)
-  };
-  const stats_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
-  fetch(stats_url).then(response => response.json())
-  .then(stats_results => {
-            stats.aggregations = stats_results.aggregations;
-            stats.aggregations.by_source.buckets.forEach(a => {
-              a.image_coverage.percentage = (a.image_coverage.value/stats.aggregations.image_count.value)*100;
-            });
-            stats.date_of_oldest = stats.aggregations.date_stats.min_as_string.substr(0, 10);
-            stats.date_of_newest = stats.aggregations.date_stats.max_as_string.substr(0, 10);
-            stats.image_count = stats.aggregations.image_count.value.toLocaleString();
-            stats.annotation_count = stats_results.info.totalrecords.toLocaleString();
-            res.render('statistics', { title: 'Statistics',
-                                    navbar: true,
-                                    year: new Date().getFullYear(),
-                                    samples: samples,
-                                    terms: terms,
-                                    groups: termClusters,
-                                    descriptions: descriptions,
-                                    people: people,
-                                    places: places,
-                                    organizations: organizations,
-                                    stats: stats
-                                  });
-        });
+  res.render('statistics', { title: 'Statistics',
+                              navbar: true,
+                              year: new Date().getFullYear(),
+                              samples: samples,
+                              terms: terms,
+                              groups: termClusters,
+                              descriptions: descriptions,
+                              people: people,
+                              places: places,
+                              organizations: organizations,
+                              stats: stats
+                            });
 });
 
 /* REDIRECT to search page through post request from search bar */
