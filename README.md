@@ -88,6 +88,41 @@ npm start
 
 These files are loaded at server startup and used for autocomplete, the statistics page, and allowlist validation on search filters. Re-run `build-vocab` periodically to pick up new annotations added to the dataset.
 
+### Statistics cache
+
+On startup, the server fires a background query to the annotation API to fetch aggregated statistics (annotation counts, image coverage by source, annotation type breakdowns, date range). The result is stored in memory and reused by the `/statistics`, `/`, and `/about` routes — eliminating per-request API calls that were causing timeouts. The cache refreshes automatically every 24 hours. If the refresh fails, the server continues serving the last successful result. A timestamp of the last successful refresh is displayed at the bottom of the statistics page.
+
+```json
+{
+  "info": { "totalrecords": "..." },
+  "refreshed_at": "ISO timestamp",
+  "aggregations": {
+    "image_count": { "value": "..." },
+    "date_stats": { "min_as_string": "...", "max_as_string": "..." },
+    "by_source": {
+      "buckets": [
+        {
+          "key": "source name",
+          "doc_count": "...",
+          "image_coverage": { "value": "...", "percentage": "..." },
+          "by_type": { "buckets": [{ "key": "...", "doc_count": "..." }] },
+          "by_model": { "buckets": [{ "key": "...", "doc_count": "..." }] }
+        }
+      ]
+    },
+    "by_type": {
+      "buckets": [
+        {
+          "key": "type name",
+          "doc_count": "...",
+          "by_source": { "buckets": [{ "key": "...", "doc_count": "..." }] }
+        }
+      ]
+    }
+  }
+}
+```
+
 ## Acknowledgements
 
 Supported by Harvard Art Museums' office of Digital Infrastructure and Emerging Technology
