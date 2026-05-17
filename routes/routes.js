@@ -79,6 +79,38 @@ async function refreshStatsCache() {
 refreshStatsCache();
 setInterval(refreshStatsCache, 24 * 60 * 60 * 1000);
 
+function termDistributionSummary(tagAnnotations, totalAnnotations, tagImages, totalImages) {
+  if (!totalAnnotations || !totalImages || !tagImages) return null;
+
+  const imageShare = tagImages / totalImages;
+  const datasetDensity = totalAnnotations / totalImages;
+  const termDensity = tagAnnotations / tagImages;
+  const densityRatio = termDensity / datasetDensity;
+
+  const imageSharePct = (imageShare * 100).toFixed(1) + '%';
+  let sentence1;
+  if (imageShare >= 0.20) {
+    sentence1 = `This term appears across a large share of the collection’s images (${imageSharePct}).`;
+  } else if (imageShare >= 0.05) {
+    sentence1 = `This term is found across a wide portion of the collection’s images (${imageSharePct}).`;
+  } else if (imageShare >= 0.01) {
+    sentence1 = `This term appears on a meaningful portion of the collection’s images (${imageSharePct}).`;
+  } else {
+    sentence1 = `This is a niche term within the collection — it appears in only a small portion of images (${imageSharePct}).`;
+  }
+
+  let sentence2;
+  if (densityRatio >= 2.0) {
+    sentence2 = "When it appears, it tends to generate many annotations per image.";
+  } else if (densityRatio >= 0.75) {
+    sentence2 = "Annotations per image are roughly typical for the collection.";
+  } else {
+    sentence2 = "Annotations per image are sparser than average for this term.";
+  }
+
+  return `${sentence1} ${sentence2}`;
+}
+
 function sourceDistributionSummary(buckets) {
   if (!buckets || buckets.length === 0) return null;
   let total = buckets.reduce((s, b) => s + b.doc_count, 0);
@@ -235,6 +267,14 @@ router.get('/search/:tag/:page?', function(req, res, next) {
     let tag_stats = tag_results.aggregations;
     let sourceBucketsByCount = _.orderBy(tag_stats.by_source.buckets, 'doc_count', 'desc');
     let source_summary = sourceDistributionSummary(sourceBucketsByCount);
+    let term_distribution_summary = statsCache
+      ? termDistributionSummary(
+          tag_results.info.totalrecords,
+          statsCache.info.totalrecords,
+          total_images,
+          statsCache.aggregations.image_count.value
+        )
+      : null;
     let total_dataset_sources = (statistics.all_sources || statistics.sources.map(s => s.source)).length;
 
     let tag_results_info = {
@@ -271,6 +311,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
         error: false,
         tag: req.params.tag,
         tag_results_info: tag_results_info,
+        term_distribution_summary: term_distribution_summary,
         source_summary: source_summary,
         total_sources: total_dataset_sources,
         active_source: source,
