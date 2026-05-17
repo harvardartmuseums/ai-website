@@ -221,6 +221,12 @@ router.get('/search/:tag/:page?', function(req, res, next) {
 
   fetch(tag_url).then(response => response.json())
   .then(tag_results => {
+    if (tag_results.info.totalrecords === 0) {
+      return res.render('search', {title: `No search results for '${req.params.tag}'`,
+                                  navbar: true, error: true,
+                                  tag_list: tag_list, mobile_tag_list: mobile_tag_list, image_list: image_list});
+    }
+    
     let all_buckets = tag_results.aggregations.top_images.buckets;
     let page_buckets = all_buckets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     let total_images = tag_results.aggregations.image_count.value;
@@ -257,7 +263,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
 
       res.render('search', {
         title: `Search results for '${req.params.tag}'`,
-        subtitle: `${tag_results_info.totalrecords_localized} occurrences of '${req.params.tag}' found on ${total_images.toLocaleString()} images`,
+        subtitle: `${tag_results_info.totalrecords_localized} annotations containing '${req.params.tag}' found on ${total_images.toLocaleString()} images`,
         navbar: true,
         year: new Date().getFullYear(),
         object_results: results,
