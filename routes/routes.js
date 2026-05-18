@@ -64,6 +64,10 @@ async function refreshStatsCache() {
   const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
   try {
     const res = await fetch(url);
+    if (!res.ok) {
+      console.error(`Stats cache refresh failed: HTTP ${res.status} ${res.statusText}`);
+      return;
+    }
     const data = await res.json();
     data.aggregations.by_source.buckets.forEach(a => {
       a.image_coverage.percentage =
