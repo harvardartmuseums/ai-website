@@ -555,10 +555,10 @@ router.get('/compare/:object_id/:image_id?', function(req, res, next) {
       let descriptions_list = [];
 
       if (object_info.labeltext) {
-        descriptions_list.push({ key: 'labeltext', source: 'Human', model: 'Wall Label', createdate: '', body: object_info.labeltext, isHuman: true });
+        descriptions_list.push({ key: 'labeltext', source: 'Human', model: 'Wall Label Text', createdate: '?', body: object_info.labeltext, isHuman: true });
       }
       if (display_image && display_image.description) {
-        descriptions_list.push({ key: 'imagedesc', source: 'Human', model: 'Image Description', createdate: '', body: display_image.description, isHuman: true });
+        descriptions_list.push({ key: 'imagedesc', source: 'Human', model: 'Image Description', createdate: '?', body: display_image.description, isHuman: true });
       }
 
       for (let [key, val] of Object.entries(ai_sorted.descriptions)) {
