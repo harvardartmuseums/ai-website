@@ -535,7 +535,7 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
 });
 
 /* GET compare descriptions view. */
-router.get('/compare/:object_id/:image_id?', function(req, res, next) {
+router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, next) {
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6);
@@ -586,6 +586,11 @@ router.get('/compare/:object_id/:image_id?', function(req, res, next) {
             let input  = u.promptTokenCount   != null ? u.promptTokenCount   : null;
             let output = u.candidatesTokenCount != null ? u.candidatesTokenCount : null;
             if (input !== null || output !== null) usage = { input, output };
+          }
+          if (!usage) {
+            let input = "-";
+            let output = "-";
+            usage = {input, output};
           }
           let m = models[raw_model];
           let display_model = (m && m.name) ? m.name : (m || raw_model);

@@ -240,7 +240,10 @@
         + '</div>'
         + '</div>';
     } else if (usageInput || usageOutput) {
-      var totalTokens = (usageInput && usageOutput) ? (parseInt(usageInput, 10) + parseInt(usageOutput, 10)) : null;
+      var totalTokens = "-";
+      if  (parseInt(usageInput) && parseInt(usageOutput)) {
+        totalTokens = parseInt(usageInput, 10) + parseInt(usageOutput, 10);
+      }
       html += '<div class="panel-stats-section panel-stats-section--cost">'
         + '<span class="sidebar-group-label panel-stats-label">Cost</span>'
         + '<div class="panel-stats panel-stats--tokens">'
