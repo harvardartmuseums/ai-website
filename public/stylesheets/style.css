@@ -2557,27 +2557,28 @@ select::-ms-expand {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 28px 0 28px 0;
+  padding: 0 0 16px 0;
 }
 
 .similarity-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 4px 8px;
 }
 
 .similarity-row-label {
   font-size: 12px;
   color: var(--c-gray);
-  width: 120px;
+  width: 80px;
   flex-shrink: 0;
   text-align: right;
 }
 
 .similarity-bar-wrap {
-  width: 180px;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
   height: 8px;
   background: var(--c-lightgray);
   border-radius: 4px;
@@ -2599,17 +2600,26 @@ select::-ms-expand {
 }
 
 .similarity-counts {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--c-gray);
+  flex-basis: 100%;
+  padding-left: 88px;
 }
 
 .compare-keyphrases {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   align-items: flex-start;
-  gap: 10px;
-  padding: 0 0 20px 0;
+  gap: 6px;
+  padding: 0 0 16px 0;
+  border-bottom: 1px solid var(--c-lightgray);
+  margin-bottom: 12px;
+}
+
+.compare-keyphrases #keyphrases-output {
+  display: flex;
   flex-wrap: wrap;
+  gap: 0;
 }
 
 .phrase-chip {
@@ -2655,9 +2665,53 @@ select::-ms-expand {
     padding: 10px 0;
   }
 
-  .compare-similarity {
-    flex-wrap: wrap;
-  }
+}
+
+/* ── Compare quick bar ───────────────────────────────────────── */
+
+.compare-quickbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 0 12px 0;
+  flex-wrap: wrap;
+}
+
+.compare-quickbar-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-gray);
+  margin-right: 4px;
+  white-space: nowrap;
+}
+
+.quickbar-btn {
+  font-family: "Neutral Regular 3", sans-serif;
+  font-size: 12px;
+  background-color: var(--c-lightgray);
+  color: var(--c-grayblack);
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.15s ease;
+}
+
+.quickbar-btn:hover {
+  background-color: var(--c-hovergray);
+}
+
+.quickbar-btn--disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.compare-quickbar-divider {
+  flex: 1;
 }
 
 /* ── Compare sidebar ──────────────────────────────────────────── */
@@ -2675,10 +2729,10 @@ select::-ms-expand {
 }
 
 .compare-sidebar {
-  width: 110px;
+  width: 280px;
   flex-shrink: 0;
-  padding-left: 50px;
-  padding-top: 4px;
+  padding-left: 24px;
+  padding-top: 16px;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -2746,13 +2800,15 @@ select::-ms-expand {
 
   .compare-sidebar {
     width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 6px;
+    flex-direction: column;
     padding-left: 0;
     padding-bottom: 12px;
     position: static;
+  }
+
+  .compare-sidebar .compare-similarity,
+  .compare-sidebar .compare-keyphrases {
+    width: 100%;
   }
 
   .compare-sidebar .sidebar-header {

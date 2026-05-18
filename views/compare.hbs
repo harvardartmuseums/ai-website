@@ -33,6 +33,15 @@
       {{/each}}
     </div>
 
+    <div class="compare-quickbar">
+      <span class="compare-quickbar-label">Quick compare</span>
+      <button class="quickbar-btn" id="preset-length" title="Compare the shortest and longest descriptions by word count">Shortest vs. Longest</button>
+      <button class="quickbar-btn" id="preset-cost" title="Compare descriptions by total token usage">Cheapest vs. Most Expensive</button>
+      <button class="quickbar-btn" id="preset-age" title="Compare the oldest and newest AI descriptions by creation date">Oldest vs. Newest</button>
+      <span class="compare-quickbar-divider"></span>
+      <button id="diff-toggle" class="quickbar-btn">Show Diff</button>
+    </div>
+
     <div class="compare-outer">
       <div class="compare-layout">
         {{! Row 1: controls }}
@@ -54,10 +63,24 @@
           </select>
         </div>
 
-        {{! Row 2: similarity bars span full width }}
-        <div class="compare-col-full compare-similarity">
+        {{! Row 2: panels }}
+        <div class="compare-col-a compare-panel">
+          <div class="compare-panel-header" id="header-a"></div>
+          <div class="compare-text" id="panel-a"></div>
+        </div>
+        <div class="compare-col-mid"></div>
+        <div class="compare-col-b compare-panel">
+          <div class="compare-panel-header" id="header-b"></div>
+          <div class="compare-text" id="panel-b"></div>
+        </div>
+      </div>
+
+      <div class="compare-sidebar" id="compare-sidebar">
+        <span class="sidebar-header">Similarity</span>
+
+        <div class="compare-similarity">
           <div class="similarity-row">
-            <span class="similarity-row-label">TF-IDF similarity</span>
+            <span class="similarity-row-label">TF-IDF</span>
             <div class="similarity-bar-wrap">
               <div class="similarity-bar-fill" id="tfidf-fill" style="width:0%"></div>
             </div>
@@ -72,7 +95,7 @@
             <span class="similarity-counts" id="similarity-counts"></span>
           </div>
           <div class="similarity-row">
-            <span class="similarity-row-label">Sentence overlap</span>
+            <span class="similarity-row-label">Sentence</span>
             <div class="similarity-bar-wrap">
               <div class="similarity-bar-fill" id="sentence-fill" style="width:0%"></div>
             </div>
@@ -80,7 +103,7 @@
             <span class="similarity-counts" id="sentence-counts"></span>
           </div>
           <div class="similarity-row">
-            <span class="similarity-row-label">Semantic (MiniLM)</span>
+            <span class="similarity-row-label">Semantic</span>
             <div class="similarity-bar-wrap">
               <div class="similarity-bar-fill" id="semantic-fill" style="width:0%"></div>
             </div>
@@ -88,46 +111,11 @@
           </div>
         </div>
 
-        {{! Key phrases row spans full width }}
-        <div class="compare-col-full compare-keyphrases">
-          <span class="similarity-row-label">Key phrases</span>
+        <div class="compare-keyphrases">
+          <span class="sidebar-group-label">Key phrases</span>
           <div id="keyphrases-output"></div>
         </div>
 
-        {{! Row 3: panels }}
-        <div class="compare-col-a compare-panel">
-          <div class="compare-panel-header" id="header-a"></div>
-          <div class="compare-text" id="panel-a"></div>
-        </div>
-        <div class="compare-col-mid"></div>
-        <div class="compare-col-b compare-panel">
-          <div class="compare-panel-header" id="header-b"></div>
-          <div class="compare-text" id="panel-b"></div>
-        </div>
-      </div>
-
-      <div class="compare-sidebar" id="compare-sidebar">
-        <span class="sidebar-header">Quick Compare</span>
-
-        <div class="sidebar-section">
-          <span class="sidebar-group-label">Length</span>
-          <button class="sidebar-btn" id="preset-length" title="Compare the shortest and longest descriptions by word count">Shortest<br>vs. Longest</button>
-        </div>
-
-        <div class="sidebar-section">
-          <span class="sidebar-group-label">Cost</span>
-          <button class="sidebar-btn" id="preset-cost" title="Compare descriptions by total token usage">Cheapest<br>vs. Most Expensive</button>
-        </div>
-
-        <div class="sidebar-section">
-          <span class="sidebar-group-label">Age</span>
-          <button class="sidebar-btn" id="preset-age" title="Compare the oldest and newest AI descriptions by creation date">Oldest<br>vs. Newest</button>
-        </div>
-
-        <div class="sidebar-section">
-          <span class="sidebar-group-label">Diff</span>
-          <button id="diff-toggle" class="sidebar-btn">Show Diff</button>
-        </div>
       </div>
     </div>{{! /.compare-outer }}
 
@@ -304,7 +292,7 @@
     document.getElementById('overlap-fill').style.width = overlap.pct + '%';
     document.getElementById('overlap-label').textContent = overlap.pct + '%';
     document.getElementById('similarity-counts').textContent =
-      '(' + overlap.shared + ' shared / ' + overlap.uniqueA + ' unique to A / ' + overlap.uniqueB + ' unique to B)';
+      '(' + overlap.shared + ' shared / ' + overlap.uniqueA + ' only A / ' + overlap.uniqueB + ' only B)';
     document.getElementById('sentence-fill').style.width = sentence.pct + '%';
     document.getElementById('sentence-label').textContent = sentence.pct + '%';
     document.getElementById('sentence-counts').textContent =
@@ -520,15 +508,15 @@
     (function auditPresets() {
       var withCost = getAllDescs().filter(function(x) { return x.tokens !== null; });
       if (withCost.length < 2) {
-        document.getElementById('preset-cost').classList.add('sidebar-btn--disabled');
+        document.getElementById('preset-cost').classList.add('quickbar-btn--disabled');
       }
       var withRelease = getAllDescs().filter(function(x) { return x.modelReleased; });
       if (withRelease.length < 2) {
-        document.getElementById('preset-age').classList.add('sidebar-btn--disabled');
+        document.getElementById('preset-age').classList.add('quickbar-btn--disabled');
       }
       if (getAllDescs().length < 2) {
-        document.querySelectorAll('.sidebar-btn').forEach(function(b) {
-          b.classList.add('sidebar-btn--disabled');
+        document.querySelectorAll('.quickbar-btn').forEach(function(b) {
+          b.classList.add('quickbar-btn--disabled');
         });
       }
     })();
