@@ -164,7 +164,7 @@ module.exports = {
 				Meta: {source: 'Meta Llama', internalname: 'Meta', descriptions: []},
 				Amazon: {source: 'Amazon Nova', internalname: 'Amazon', descriptions: []},
 				Google: {source: 'Google Gemini', internalname: 'Google Gemini', descriptions: []},
-				Mistral: {source: 'Mistral Pixtral', internalname: 'Mistral', descriptions: []},
+				Mistral: {source: 'Mistral', internalname: 'Mistral', descriptions: []},
 				Qwen: {source: 'Qwen', internalname: 'Qwen', descriptions: []},
 				Moonshot: {source: 'Moonshot AI', internalname: 'Moonshot AI', descriptions: []},
 				Writer: {source: 'Writer', internalname: 'Writer', descriptions: []},

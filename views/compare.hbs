@@ -1,0 +1,471 @@
+<section class="object-view-panel">
+  <a class="object-nav-header" href="/object/{{object_info.id}}">
+    <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
+  </a>
+  <div class="object-image-container">
+    <div id="openseadragon1">
+    </div>
+    <div id="image-toolbar">
+      <a id="zoom-in" href="#zoom-in" title="Zoom in"><i class="fa fa-search-plus toolbar-button"></i></a>
+      <a id="zoom-out" href="#zoom-out" title="Zoom out"><i class="fa fa-search-minus toolbar-button"></i></a>
+    </div>
+  </div>
+</section>
+
+<section class="object-info-panel">
+  <div class="content">
+    <div>
+      <h2>Compare Descriptions</h2>
+    </div>
+
+    {{#if descriptions_list}}
+
+    {{! Pre-render all description bodies into hidden elements for JS to read }}
+    <div style="display:none" aria-hidden="true">
+      {{#each descriptions_list}}
+        <div class="desc-data" data-key="{{key}}" data-source="{{source}}" data-model="{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}" data-date="{{createdate}}">
+          {{#if isHuman}}
+            <p>{{body}}</p>
+          {{else}}
+            {{{markdown body}}}
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+
+    <div class="compare-layout">
+      {{! Row 1: controls }}
+      <div class="compare-col-a">
+        <span class="compare-select-label">Model A</span>
+        <select id="select-a" class="compare-select">
+          {{#each descriptions_list}}
+            <option value="{{key}}">{{source}}{{#if display_model}} — {{display_model}}{{else}}{{#if model}} — {{model}}{{/if}}{{/if}}{{#if createdate}} ({{createdate}}){{/if}}</option>
+          {{/each}}
+        </select>
+      </div>
+      <div class="compare-col-mid compare-controls-middle">
+        <button id="diff-toggle" class="btn btn--gray">Show Diff</button>
+      </div>
+      <div class="compare-col-b">
+        <span class="compare-select-label">Model B</span>
+        <select id="select-b" class="compare-select">
+          {{#each descriptions_list}}
+            <option value="{{key}}">{{source}}{{#if display_model}} — {{display_model}}{{else}}{{#if model}} — {{model}}{{/if}}{{/if}}{{#if createdate}} ({{createdate}}){{/if}}</option>
+          {{/each}}
+        </select>
+      </div>
+
+      {{! Row 2: similarity bars span full width }}
+      <div class="compare-col-full compare-similarity">
+        <div class="similarity-row">
+          <span class="similarity-row-label">TF-IDF similarity</span>
+          <div class="similarity-bar-wrap">
+            <div class="similarity-bar-fill" id="tfidf-fill" style="width:0%"></div>
+          </div>
+          <span class="similarity-label" id="tfidf-label"></span>
+        </div>
+        <div class="similarity-row">
+          <span class="similarity-row-label">Word overlap</span>
+          <div class="similarity-bar-wrap">
+            <div class="similarity-bar-fill" id="overlap-fill" style="width:0%"></div>
+          </div>
+          <span class="similarity-label" id="overlap-label"></span>
+          <span class="similarity-counts" id="similarity-counts"></span>
+        </div>
+        <div class="similarity-row">
+          <span class="similarity-row-label">Sentence overlap</span>
+          <div class="similarity-bar-wrap">
+            <div class="similarity-bar-fill" id="sentence-fill" style="width:0%"></div>
+          </div>
+          <span class="similarity-label" id="sentence-label"></span>
+          <span class="similarity-counts" id="sentence-counts"></span>
+        </div>
+        <div class="similarity-row">
+          <span class="similarity-row-label">Semantic (MiniLM)</span>
+          <div class="similarity-bar-wrap">
+            <div class="similarity-bar-fill" id="semantic-fill" style="width:0%"></div>
+          </div>
+          <span class="similarity-label" id="semantic-label">—</span>
+        </div>
+      </div>
+
+      {{! Key phrases row spans full width }}
+      <div class="compare-col-full compare-keyphrases">
+        <span class="similarity-row-label">Key phrases</span>
+        <div id="keyphrases-output"></div>
+      </div>
+
+      {{! Row 3: panels }}
+      <div class="compare-col-a compare-panel">
+        <div class="compare-panel-header" id="header-a"></div>
+        <div class="compare-text" id="panel-a"></div>
+      </div>
+      <div class="compare-col-mid"></div>
+      <div class="compare-col-b compare-panel">
+        <div class="compare-panel-header" id="header-b"></div>
+        <div class="compare-text" id="panel-b"></div>
+      </div>
+    </div>
+
+    {{else}}
+      <p class="compare-empty">No descriptions available for this object.</p>
+    {{/if}}
+
+  </div>
+</section>
+
+<script src="/javascripts/openseadragon/openseadragon.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
+
+<script type="text/javascript">
+  var viewer = OpenSeadragon({
+      id: "openseadragon1",
+      prefixUrl: "../javascripts/openseadragon/images/",
+      toolbar: "image-toolbar",
+      zoomInButton: "zoom-in",
+      zoomOutButton: "zoom-out",
+      {{#if object_info.imagepermissionlevel}}
+      maxZoomLevel: 1,
+      {{/if}}
+      tileSources: [
+        "{{display_image.baseimageurl}}/info.json"
+      ]
+  });
+
+  var diffActive = false;
+
+  function getDescData(key) {
+    return document.querySelector('.desc-data[data-key="' + key + '"]');
+  }
+
+  function descAge(dateStr) {
+    if (!dateStr) return '';
+    var then = new Date(dateStr);
+    if (isNaN(then)) return '';
+    var now = new Date();
+    var days = Math.floor((now - then) / 86400000);
+    if (days < 1) return 'today';
+    if (days === 1) return '1 day ago';
+    if (days < 30) return days + ' days ago';
+    var months = Math.floor(days / 30.4);
+    if (months < 12) return months === 1 ? '1 month ago' : months + ' months ago';
+    var years = Math.floor(days / 365.25);
+    return years === 1 ? '1 year ago' : years + ' years ago';
+  }
+
+  var stopwords = { the:1,a:1,an:1,and:1,or:1,but:1,in:1,on:1,at:1,to:1,for:1,of:1,with:1,by:1,from:1,is:1,are:1,was:1,were:1,it:1,its:1,this:1,that:1,these:1,those:1,as:1,be:1,been:1,being:1,have:1,has:1,had:1,do:1,does:1,did:1,will:1,would:1,could:1,should:1,may:1,might:1,which:1,who:1,what:1,where:1,when:1,how:1,also:1,both:1,each:1,into:1,through:1,between:1,while:1,their:1,there:1,they:1,them:1,his:1,her:1,he:1,she:1,we:1,our:1,us:1,you:1,your:1,i:1,my:1,me:1,not:1,no:1,more:1,most:1,very:1,one:1,two:1,three:1 };
+
+  function computeStats(text) {
+    var raw = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+    if (!raw.length) return null;
+    var total = raw.length;
+    var contentWords = raw.filter(function(w) { return !stopwords[w] && w.length > 1; });
+    var lexicalDensity = Math.round((contentWords.length / total) * 100);
+    var freq = {};
+    raw.forEach(function(w) { freq[w] = (freq[w] || 0) + 1; });
+    var unique = Object.keys(freq).length;
+    var ttr = Math.round((unique / total) * 100);
+    var hapax = Object.keys(freq).filter(function(w) { return freq[w] === 1; }).length;
+    var hapaxRatio = Math.round((hapax / total) * 100);
+    var sentences = text.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(function(s) { return s.trim(); }).filter(Boolean);
+    var avgSentLen = sentences.length ? Math.round(total / sentences.length) : 0;
+    return { total: total, lexicalDensity: lexicalDensity, ttr: ttr, hapaxRatio: hapaxRatio, avgSentLen: avgSentLen };
+  }
+
+  function renderPanel(panelEl, headerEl, key) {
+    var el = getDescData(key);
+    if (!el) return;
+    panelEl.innerHTML = el.innerHTML;
+    var source = el.dataset.source;
+    var model = el.dataset.model;
+    var date = el.dataset.date;
+    var html = '<strong>' + escapeHtml(source) + '</strong>';
+    if (model) html += '<br><span class="header-model">' + escapeHtml(model) + '</span>';
+    if (date) {
+      var age = descAge(date);
+      html += '<br><span class="header-date">Description generated on ' + escapeHtml(date);
+      if (age) html += ' <span class="header-age">(' + age + ')</span>';
+      html += '</span>';
+    }
+    var stats = computeStats(panelEl.innerText);
+    if (stats) {
+      html += '<div class="panel-stats">'
+        + '<span class="panel-stat" title="Content words / total words">Lexical density <strong>' + stats.lexicalDensity + '%</strong></span>'
+        + '<span class="panel-stat" title="Unique words / total words">Vocab diversity <strong>' + stats.ttr + '%</strong></span>'
+        + '<span class="panel-stat" title="Words appearing once / total words">Specificity <strong>' + stats.hapaxRatio + '%</strong></span>'
+        + '<span class="panel-stat" title="Average words per sentence">Avg sentence <strong>' + stats.avgSentLen + ' words</strong></span>'
+        + '<span class="panel-stat" title="Total word count">Length <strong>' + stats.total + ' words</strong></span>'
+        + '</div>';
+    }
+    headerEl.innerHTML = html;
+  }
+
+  function tfidfCosine(textA, textB) {
+    function tokenise(text) {
+      return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+    }
+    function tf(tokens) {
+      var freq = {};
+      tokens.forEach(function(t) { freq[t] = (freq[t] || 0) + 1; });
+      var len = tokens.length || 1;
+      Object.keys(freq).forEach(function(t) { freq[t] /= len; });
+      return freq;
+    }
+    function idf(tfA, tfB) {
+      var scores = {};
+      var vocab = Object.keys(tfA).concat(Object.keys(tfB));
+      vocab.forEach(function(t) {
+        if (!(t in scores)) {
+          var df = (tfA[t] ? 1 : 0) + (tfB[t] ? 1 : 0);
+          scores[t] = Math.log(3 / (df + 1)) + 1;
+        }
+      });
+      return scores;
+    }
+    function tfidfVec(tfMap, idfMap) {
+      var vec = {};
+      Object.keys(tfMap).forEach(function(t) { vec[t] = tfMap[t] * idfMap[t]; });
+      return vec;
+    }
+    function cosine(vecA, vecB) {
+      var dot = 0, magA = 0, magB = 0;
+      var keys = Object.keys(vecA).concat(Object.keys(vecB));
+      var seen = {};
+      keys.forEach(function(t) {
+        if (seen[t]) return;
+        seen[t] = true;
+        var a = vecA[t] || 0, b = vecB[t] || 0;
+        dot += a * b; magA += a * a; magB += b * b;
+      });
+      return (magA && magB) ? dot / (Math.sqrt(magA) * Math.sqrt(magB)) : 0;
+    }
+    var tokA = tokenise(textA), tokB = tokenise(textB);
+    var tfA = tf(tokA), tfB = tf(tokB);
+    var idfScores = idf(tfA, tfB);
+    return Math.round(cosine(tfidfVec(tfA, idfScores), tfidfVec(tfB, idfScores)) * 100);
+  }
+
+  function wordOverlap(textA, textB) {
+    var diffResult = Diff.diffWords(textA, textB);
+    var shared = 0, uniqueA = 0, uniqueB = 0;
+    diffResult.forEach(function(part) {
+      var count = part.value.trim() === '' ? 0 : part.value.trim().split(/\s+/).length;
+      if (part.removed) uniqueA += count;
+      else if (part.added) uniqueB += count;
+      else shared += count;
+    });
+    var total = shared + uniqueA + uniqueB;
+    return { pct: total === 0 ? 0 : Math.round((shared / total) * 100), shared: shared, uniqueA: uniqueA, uniqueB: uniqueB };
+  }
+
+  function updateSimilarity() {
+    var textA = document.getElementById('panel-a').innerText;
+    var textB = document.getElementById('panel-b').innerText;
+    var tfidf = tfidfCosine(textA, textB);
+    var overlap = wordOverlap(textA, textB);
+    var sentence = sentenceOverlap(textA, textB);
+    var phrases = keyPhrases(textA, textB);
+    document.getElementById('tfidf-fill').style.width = tfidf + '%';
+    document.getElementById('tfidf-label').textContent = tfidf + '%';
+    document.getElementById('overlap-fill').style.width = overlap.pct + '%';
+    document.getElementById('overlap-label').textContent = overlap.pct + '%';
+    document.getElementById('similarity-counts').textContent =
+      '(' + overlap.shared + ' shared / ' + overlap.uniqueA + ' unique to A / ' + overlap.uniqueB + ' unique to B)';
+    document.getElementById('sentence-fill').style.width = sentence.pct + '%';
+    document.getElementById('sentence-label').textContent = sentence.pct + '%';
+    document.getElementById('sentence-counts').textContent =
+      '(' + sentence.matchedA + ' of ' + sentence.totalA + ' in A / ' + sentence.matchedB + ' of ' + sentence.totalB + ' in B)';
+    renderKeyPhrases(phrases);
+    document.getElementById('semantic-label').textContent = 'Computing…';
+    document.getElementById('semantic-fill').style.width = '0%';
+    if (window.__updateSemantic) window.__updateSemantic(textA, textB);
+  }
+
+  function sentenceOverlap(textA, textB) {
+    function splitSentences(text) {
+      return text.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(function(s) { return s.trim(); }).filter(Boolean);
+    }
+    function sentenceWords(s) {
+      return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+    }
+    function overlapScore(wordsA, wordsB) {
+      var setA = {}, setB = {};
+      wordsA.forEach(function(w) { setA[w] = true; });
+      wordsB.forEach(function(w) { setB[w] = true; });
+      var shared = Object.keys(setA).filter(function(w) { return setB[w]; }).length;
+      var denom = Math.max(Object.keys(setA).length, Object.keys(setB).length);
+      return denom === 0 ? 0 : shared / denom;
+    }
+    var sentA = splitSentences(textA);
+    var sentB = splitSentences(textB);
+    if (!sentA.length || !sentB.length) return { pct: 0, matchedA: 0, totalA: sentA.length, matchedB: 0, totalB: sentB.length };
+    var wordsA = sentA.map(sentenceWords);
+    var wordsB = sentB.map(sentenceWords);
+    var threshold = 0.4;
+    var matchedA = wordsA.filter(function(wa) {
+      return wordsB.some(function(wb) { return overlapScore(wa, wb) >= threshold; });
+    }).length;
+    var matchedB = wordsB.filter(function(wb) {
+      return wordsA.some(function(wa) { return overlapScore(wa, wb) >= threshold; });
+    }).length;
+    var pct = Math.round(((matchedA / sentA.length) + (matchedB / sentB.length)) / 2 * 100);
+    return { pct: pct, matchedA: matchedA, totalA: sentA.length, matchedB: matchedB, totalB: sentB.length };
+  }
+
+  function keyPhrases(textA, textB) {
+    function tokenise(text) {
+      return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(function(t) { return t.length > 2 && !stopwords[t]; });
+    }
+    function tf(tokens) {
+      var freq = {};
+      tokens.forEach(function(t) { freq[t] = (freq[t] || 0) + 1; });
+      var len = tokens.length || 1;
+      Object.keys(freq).forEach(function(t) { freq[t] /= len; });
+      return freq;
+    }
+    function topTerms(tfMap, idfMap, n) {
+      return Object.keys(tfMap).map(function(t) {
+        return { term: t, score: tfMap[t] * (idfMap[t] || 1) };
+      }).sort(function(a, b) { return b.score - a.score; }).slice(0, n).map(function(x) { return x.term; });
+    }
+    var tokA = tokenise(textA), tokB = tokenise(textB);
+    var tfA = tf(tokA), tfB = tf(tokB);
+    var vocab = Object.keys(tfA).concat(Object.keys(tfB));
+    var idfMap = {};
+    vocab.forEach(function(t) {
+      if (!(t in idfMap)) {
+        var df = (tfA[t] ? 1 : 0) + (tfB[t] ? 1 : 0);
+        idfMap[t] = Math.log(3 / (df + 1)) + 1;
+      }
+    });
+    var topA = topTerms(tfA, idfMap, 8);
+    var topB = topTerms(tfB, idfMap, 8);
+    var setB = {};
+    topB.forEach(function(t) { setB[t] = true; });
+    var setA = {};
+    topA.forEach(function(t) { setA[t] = true; });
+    var shared = topA.filter(function(t) { return setB[t]; });
+    var onlyA = topA.filter(function(t) { return !setB[t]; });
+    var onlyB = topB.filter(function(t) { return !setA[t]; });
+    return { shared: shared, onlyA: onlyA, onlyB: onlyB };
+  }
+
+  function renderKeyPhrases(result) {
+    var out = document.getElementById('keyphrases-output');
+    if (!out) return;
+    var html = '';
+    result.shared.forEach(function(t) {
+      html += '<span class="phrase-chip phrase-chip--shared">' + escapeHtml(t) + '</span>';
+    });
+    result.onlyA.forEach(function(t) {
+      html += '<span class="phrase-chip phrase-chip--a">' + escapeHtml(t) + '</span>';
+    });
+    result.onlyB.forEach(function(t) {
+      html += '<span class="phrase-chip phrase-chip--b">' + escapeHtml(t) + '</span>';
+    });
+    out.innerHTML = html || '<span class="similarity-counts">No significant terms found</span>';
+  }
+
+  function applyDiff() {
+    var panelA = document.getElementById('panel-a');
+    var panelB = document.getElementById('panel-b');
+    var textA = panelA.innerText;
+    var textB = panelB.innerText;
+
+    var diffResult = Diff.diffWords(textA, textB);
+
+    var htmlA = '';
+    var htmlB = '';
+    diffResult.forEach(function(part) {
+      if (part.removed) {
+        htmlA += '<span class="diff-remove">' + escapeHtml(part.value) + '</span>';
+      } else if (part.added) {
+        htmlB += '<span class="diff-add">' + escapeHtml(part.value) + '</span>';
+      } else {
+        var escaped = escapeHtml(part.value);
+        htmlA += escaped;
+        htmlB += escaped;
+      }
+    });
+
+    panelA.innerHTML = htmlA;
+    panelB.innerHTML = htmlB;
+  }
+
+  function escapeHtml(str) {
+    return str
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function clearDiff() {
+    var keyA = document.getElementById('select-a').value;
+    var keyB = document.getElementById('select-b').value;
+    renderPanel(document.getElementById('panel-a'), document.getElementById('header-a'), keyA);
+    renderPanel(document.getElementById('panel-b'), document.getElementById('header-b'), keyB);
+  }
+
+  function update() {
+    clearDiff();
+    updateSimilarity();
+    if (diffActive) applyDiff();
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    var selectA = document.getElementById('select-a');
+    var selectB = document.getElementById('select-b');
+    if (!selectA) return;
+
+    // Pre-select second option for B if available
+    if (selectB.options.length > 1) {
+      selectB.selectedIndex = 1;
+    }
+
+    update();
+
+    selectA.addEventListener('change', update);
+    selectB.addEventListener('change', update);
+
+    document.getElementById('diff-toggle').addEventListener('click', function() {
+      diffActive = !diffActive;
+      this.textContent = diffActive ? 'Hide Diff' : 'Show Diff';
+      if (diffActive) {
+        applyDiff();
+      } else {
+        clearDiff();
+      }
+    });
+  });
+</script>
+
+<script type="module">
+  import { pipeline, cos_sim } from 'https://cdn.jsdelivr.net/npm/@xenova/transformers@2/dist/transformers.min.js';
+
+  var embedder = null;
+
+  async function getEmbedder() {
+    if (!embedder) {
+      embedder = await pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { quantized: true });
+    }
+    return embedder;
+  }
+
+  async function updateSemanticSimilarity(textA, textB) {
+    try {
+      var emb = await getEmbedder();
+      var outA = await emb(textA, { pooling: 'mean', normalize: true });
+      var outB = await emb(textB, { pooling: 'mean', normalize: true });
+      var sim = cos_sim(Array.from(outA.data), Array.from(outB.data));
+      var pct = Math.round(Math.max(0, sim) * 100);
+      document.getElementById('semantic-fill').style.width = pct + '%';
+      document.getElementById('semantic-label').textContent = pct + '%';
+    } catch(e) {
+      document.getElementById('semantic-label').textContent = 'Error';
+    }
+  }
+
+  window.__updateSemantic = function(textA, textB) {
+    updateSemanticSimilarity(textA, textB);
+  };
+</script>

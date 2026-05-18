@@ -2411,3 +2411,245 @@ select::-ms-expand {
 
 
 }
+
+/* ── Compare view ─────────────────────────────────────────────── */
+
+/* compare-layout: CSS grid with 3 columns — A panel, centre button, B panel */
+.compare-layout {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  row-gap: 0;
+  column-gap: 0;
+  padding: 16px 0 0 0;
+}
+
+.compare-col-a  { grid-column: 1; }
+.compare-col-mid { grid-column: 2; }
+.compare-col-b  { grid-column: 3; }
+.compare-col-full {
+  grid-column: 1 / -1;
+}
+
+.compare-controls-middle {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 16px 2px 16px;
+}
+
+.compare-select-label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--c-gray);
+  margin-bottom: 4px;
+}
+
+.compare-select {
+  appearance: none;
+  background: var(--c-lightgray);
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--c-nearblack);
+  cursor: pointer;
+  width: 100%;
+  display: block;
+}
+
+.compare-select:focus {
+  outline: 2px solid var(--c-orangered);
+}
+
+.compare-panel {
+  min-width: 0;
+  overflow-y: auto;
+  padding-top: 14px;
+}
+
+.compare-panel-header {
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--c-lightgray);
+  line-height: 1.6;
+}
+
+.compare-panel-header strong {
+  color: var(--c-nearblack);
+  font-size: 15px;
+  display: block;
+}
+
+.compare-panel-header .header-model {
+  font-size: 13px;
+  color: var(--c-grayblack);
+}
+
+.compare-panel-header .header-date {
+  font-size: 12px;
+  color: var(--c-gray);
+}
+
+.compare-panel-header .header-age {
+  color: var(--c-gray);
+  font-style: italic;
+}
+
+.panel-stats {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--c-lightgray);
+}
+
+.panel-stat {
+  font-size: 11px;
+  color: var(--c-gray);
+  white-space: nowrap;
+}
+
+.panel-stat strong {
+  color: var(--c-nearblack);
+  font-size: 12px;
+}
+
+.compare-text {
+  font-size: 15px;
+  line-height: 1.65;
+  color: var(--c-nearblack);
+}
+
+.compare-text p {
+  margin-bottom: 1em;
+}
+
+.diff-add {
+  background: rgba(0, 160, 0, 0.15);
+  border-radius: 2px;
+}
+
+.diff-remove {
+  background: rgba(200, 50, 0, 0.12);
+  text-decoration: line-through;
+  border-radius: 2px;
+}
+
+.compare-link {
+  font-size: 14px;
+  font-weight: normal;
+  margin-left: 10px;
+  color: var(--c-linkblue);
+}
+
+.compare-similarity {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px 0 28px 0;
+}
+
+.similarity-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.similarity-row-label {
+  font-size: 12px;
+  color: var(--c-gray);
+  width: 120px;
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.similarity-bar-wrap {
+  width: 180px;
+  flex-shrink: 0;
+  height: 8px;
+  background: var(--c-lightgray);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.similarity-bar-fill {
+  height: 100%;
+  background: var(--c-orangered);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.similarity-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-nearblack);
+  white-space: nowrap;
+}
+
+.similarity-counts {
+  font-size: 12px;
+  color: var(--c-gray);
+}
+
+.compare-keyphrases {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 0 0 20px 0;
+  flex-wrap: wrap;
+}
+
+.phrase-chip {
+  display: inline-block;
+  border-radius: 3px;
+  padding: 2px 8px;
+  font-size: 12px;
+  margin: 2px;
+  color: var(--c-nearblack);
+}
+
+.phrase-chip--shared {
+  background: var(--c-lightgray);
+}
+
+.phrase-chip--a {
+  background: rgba(78, 117, 166, 0.15);
+}
+
+.phrase-chip--b {
+  background: rgba(255, 49, 49, 0.12);
+}
+
+.compare-empty {
+  color: var(--c-gray);
+  font-style: italic;
+  padding: 20px 0;
+}
+
+@media (max-width: 700px) {
+  .compare-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .compare-col-a,
+  .compare-col-mid,
+  .compare-col-b,
+  .compare-col-full {
+    grid-column: 1;
+  }
+
+  .compare-controls-middle {
+    padding: 10px 0;
+  }
+
+  .compare-similarity {
+    flex-wrap: wrap;
+  }
+}

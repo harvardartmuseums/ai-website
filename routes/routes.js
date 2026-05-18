@@ -6,6 +6,7 @@ var querystring = require('querystring');
 var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
 var organize = require('../public/javascripts/organize')
+var models = require('../models')
 var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
 var example_images = require('../public/examples/exampleimages')
@@ -511,6 +512,69 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
                              object_info: object_info,
                              display_image: display_image,  
                            });
+    })
+    .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
+                                            navbar: true,
+                                            year: new Date().getFullYear(),
+                                            error: true,
+                                            tag_list: tag_list,
+                                            mobile_tag_list: mobile_tag_list,
+                                            image_list: image_list})})
+  })
+  .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
+                                          navbar: true,
+                                          year: new Date().getFullYear(),
+                                          error: true,
+                                          tag_list: tag_list,
+                                          mobile_tag_list: mobile_tag_list,
+                                          image_list: image_list})})
+});
+
+/* GET compare descriptions view. */
+router.get('/compare/:object_id/:image_id?', function(req, res, next) {
+  let tag_list = _.sampleSize(example_tags.tags_list, 5);
+  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
+  let image_list = _.sampleSize(example_images.image_list, 6);
+
+  const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
+
+  fetch(object_url).then(response => response.json())
+  .then(object_info => {
+    let imageid = object_info.images[0].imageid;
+    if (req.params.image_id > 0) {
+      imageid = req.params.image_id;
+    }
+
+    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
+    fetch(ai_url).then(response => response.json())
+    .then(ai_info => {
+      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
+      let ai_sorted = organize.divide(ai_data);
+      let display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+
+      let descriptions_list = [];
+
+      if (object_info.labeltext) {
+        descriptions_list.push({ key: 'labeltext', source: 'Human', model: 'Wall Label', createdate: '', body: object_info.labeltext, isHuman: true });
+      }
+      if (display_image && display_image.description) {
+        descriptions_list.push({ key: 'imagedesc', source: 'Human', model: 'Image Description', createdate: '', body: display_image.description, isHuman: true });
+      }
+
+      for (let [key, val] of Object.entries(ai_sorted.descriptions)) {
+        for (let desc of val.descriptions) {
+          let raw_model = desc.model || '';
+          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model: models[raw_model] || raw_model, createdate: desc.createdate, body: desc.body, isHuman: false });
+        }
+      }
+
+      res.render('compare', { title: 'Compare — ' + object_info.title,
+                               navbar: false,
+                               year: new Date().getFullYear(),
+                               object_info: object_info,
+                               display_image: display_image,
+                               descriptions_list: descriptions_list,
+                             });
     })
     .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
                                             navbar: true,

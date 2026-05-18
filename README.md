@@ -39,6 +39,56 @@ Results can be sorted by:
 - **Confidence** (default) — images where the AI had the highest confidence in the search term appear first
 - **Frequency** — images with the most matching annotations appear first
 
+## Description Comparison Tool
+
+The comparison tool (`/compare/:object_id`) lets you place two descriptions side-by-side and analyze how they differ. It is accessible from the "Compare" link in the Captions section of any object page.
+
+### Selecting descriptions
+
+Each dropdown is populated with every available description for the object, including:
+
+- **Human-authored** entries — wall label text (`labeltext`) and image-level descriptions (`description`) from the Harvard Art Museums object record, when present
+- **AI-generated** entries — long-form descriptions from all LLM sources (Anthropic Claude, OpenAI GPT, Google Gemini, Meta Llama, Amazon Nova, Mistral, Qwen, Moonshot AI, Writer, Clarifai, Salesforce), one entry per model per date
+
+Model names are resolved through a lookup table (`models.js`) that maps raw API model identifiers (e.g. `us.anthropic.claude-3-5-sonnet-20241022-v2:0`) to human-readable labels (e.g. `Claude 3.5 Sonnet`).
+
+### Word diff
+
+Toggling "Show Diff" highlights word-level changes inline in each panel. Words present in A but not B are shown in red with strikethrough; words present in B but not A are shown in green. Computed using the [`diff`](https://github.com/kpdecker/jsdiff) library.
+
+### Similarity metrics
+
+Four similarity scores are computed and displayed as progress bars whenever the selection changes:
+
+| Metric | Method |
+|--------|--------|
+| **TF-IDF similarity** | Cosine similarity of TF-IDF weighted term vectors. Rare shared words count more than common words like "the" or "a". |
+| **Word overlap** | Jaccard-style metric: shared word tokens / total word tokens. Also reports shared, unique-to-A, and unique-to-B word counts. |
+| **Sentence overlap** | Each sentence in A is matched to the closest sentence in B by word overlap. Reports how many sentences on each side have a sufficiently close match (threshold: 40% overlap). |
+| **Semantic (MiniLM)** | Cosine similarity of sentence embeddings computed by `all-MiniLM-L6-v2` via [transformers.js](https://huggingface.co/docs/transformers.js). The model (~22 MB) is downloaded once and cached by the browser. This metric loads asynchronously after the others. |
+
+### Key phrases
+
+Below the similarity bars, the top-8 TF-IDF terms from each description are extracted and partitioned into three groups:
+
+- **Shared** (gray) — significant terms appearing in both descriptions
+- **Only in A** (blue) — terms distinctive to the first description
+- **Only in B** (red) — terms distinctive to the second description
+
+Common stopwords are excluded from phrase extraction.
+
+### Information density
+
+Each panel header includes per-description statistics:
+
+| Stat | Definition |
+|------|------------|
+| **Lexical density** | Content words (non-stopwords) as a percentage of total words. Higher values indicate more substantive text. |
+| **Vocab diversity** | Unique words / total words (type-token ratio). Low values suggest repetition. |
+| **Specificity** | Words appearing exactly once / total words (hapax ratio). High values indicate highly specific detail. |
+| **Avg sentence** | Mean words per sentence. |
+| **Length** | Total word count. |
+
 # Requirements
 
 * NodeJS
