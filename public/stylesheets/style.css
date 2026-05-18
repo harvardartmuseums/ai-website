@@ -2454,6 +2454,7 @@ select::-ms-expand {
   padding: 8px 12px;
   font-family: inherit;
   font-size: 14px;
+  font-weight: bold;
   color: var(--c-nearblack);
   cursor: pointer;
   width: 100%;
@@ -2498,12 +2499,20 @@ select::-ms-expand {
   font-style: italic;
 }
 
+.panel-stats-section {
+  margin-top: 10px;
+}
+
+.panel-stats-label {
+  display: block;
+  margin-bottom: 4px;
+}
+
 .panel-stats {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 6px 16px;
-  margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--c-lightgray);
 }
@@ -2560,12 +2569,12 @@ select::-ms-expand {
   padding: 0 0 16px 0;
 }
 
-/* .compare-actions {
+.compare-actions {
   display: flex;
   flex-direction: column;
   gap: 8px;
   padding: 0 0 16px 0;
-} */
+}
 
 .similarity-row {
   display: flex;
