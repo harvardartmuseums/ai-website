@@ -571,6 +571,18 @@ router.get('/compare/:object_id/:image_id?', function(req, res, next) {
             let output = u.outputTokens != null ? u.outputTokens : (u.completion_tokens != null ? u.completion_tokens : null);
             if (input !== null || output !== null) usage = { input, output };
           }
+          if (!usage && desc.raw && desc.raw.description && desc.raw.description.usage) {
+            let u = desc.raw.description.usage;
+            let input  = u.prompt_tokens     != null ? u.prompt_tokens     : null;
+            let output = u.completion_tokens != null ? u.completion_tokens : null;
+            if (input !== null || output !== null) usage = { input, output };
+          }
+          if (!usage && desc.raw && desc.raw.usageMetadata) {
+            let u = desc.raw.usageMetadata;
+            let input  = u.promptTokenCount   != null ? u.promptTokenCount   : null;
+            let output = u.candidatesTokenCount != null ? u.candidatesTokenCount : null;
+            if (input !== null || output !== null) usage = { input, output };
+          }
           let m = models[raw_model];
           let display_model = (m && m.name) ? m.name : (m || raw_model);
           let model_released = (m && m.released) ? m.released : null;
