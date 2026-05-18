@@ -2560,6 +2560,13 @@ select::-ms-expand {
   padding: 0 0 16px 0;
 }
 
+/* .compare-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 0 0 16px 0;
+} */
+
 .similarity-row {
   display: flex;
   flex-direction: row;
@@ -2729,7 +2736,7 @@ select::-ms-expand {
 }
 
 .compare-sidebar {
-  width: 280px;
+  width: 300px;
   flex-shrink: 0;
   padding-left: 24px;
   padding-top: 16px;
@@ -2807,7 +2814,8 @@ select::-ms-expand {
   }
 
   .compare-sidebar .compare-similarity,
-  .compare-sidebar .compare-keyphrases {
+  .compare-sidebar .compare-keyphrases,
+  .compare-sidebar .compare-actions {
     width: 100%;
   }
 
