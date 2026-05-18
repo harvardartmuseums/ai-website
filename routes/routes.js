@@ -599,12 +599,40 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, n
         }
       }
 
+      const ai_descs = descriptions_list.filter(d => !d.isHuman);
+      let image_summary = null;
+      if (ai_descs.length > 0) {
+        const providerCount = new Set(ai_descs.map(d => d.source)).size;
+        const withDates = ai_descs.filter(d => d.model_released).sort((a, b) => a.model_released.localeCompare(b.model_released));
+        const oldest = withDates[0];
+        const newest = withDates[withDates.length - 1];
+        const runDates = ai_descs.map(d => d.createdate).filter(Boolean).sort();
+        const firstRun = runDates[0];
+        const lastRun = runDates[runDates.length - 1];
+        const modelLabel = ai_descs.length === 1 ? '1 model' : `${ai_descs.length} models`;
+        const providerLabel = providerCount === 1 ? '1 provider' : `${providerCount} providers`;
+        let parts = [`This image was run through ${modelLabel} from ${providerLabel}.`];
+        if (oldest && newest && oldest.key !== newest.key) {
+          parts.push(`The oldest model is ${oldest.display_model} (${oldest.model_released.slice(0,4)}) and the newest is ${newest.display_model} (${newest.model_released.slice(0,4)}).`);
+        } else if (oldest) {
+          parts.push(`The model is ${oldest.display_model} (${oldest.model_released.slice(0,4)}).`);
+        }
+        if (firstRun && lastRun) {
+          const fmt = d => new Date(d).toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+          parts.push(firstRun === lastRun
+            ? `Descriptions were collected in ${fmt(firstRun)}.`
+            : `Descriptions were collected between ${fmt(firstRun)} and ${fmt(lastRun)}.`);
+        }
+        image_summary = parts.join('<br>');
+      }
+
       res.render('compare', { title: 'Compare — ' + object_info.title,
                                navbar: false,
                                year: new Date().getFullYear(),
                                object_info: object_info,
                                display_image: display_image,
                                descriptions_list: descriptions_list,
+                               image_summary: image_summary,
                              });
     })
     .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
