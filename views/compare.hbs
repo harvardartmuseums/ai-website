@@ -23,7 +23,7 @@
     {{! Pre-render all description bodies into hidden elements for JS to read }}
     <div style="display:none" aria-hidden="true">
       {{#each descriptions_list}}
-        <div class="desc-data" data-key="{{key}}" data-source="{{source}}" data-model="{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}" data-date="{{createdate}}" data-usage-input="{{#if usage}}{{usage.input}}{{/if}}" data-usage-output="{{#if usage}}{{usage.output}}{{/if}}">
+        <div class="desc-data" data-key="{{key}}" data-source="{{source}}" data-model="{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}" data-date="{{createdate}}" data-model-released="{{model_released}}" data-usage-input="{{#if usage}}{{usage.input}}{{/if}}" data-usage-output="{{#if usage}}{{usage.output}}{{/if}}">
           {{#if isHuman}}
             <p>{{body}}</p>
           {{else}}
@@ -33,79 +33,103 @@
       {{/each}}
     </div>
 
-    <div class="compare-layout">
-      {{! Row 1: controls }}
-      <div class="compare-col-a">
-        <span class="compare-select-label">Model A</span>
-        <select id="select-a" class="compare-select">
-          {{#each descriptions_list}}
-            <option value="{{key}}">{{source}}{{#if display_model}} — {{display_model}}{{else}}{{#if model}} — {{model}}{{/if}}{{/if}}{{#if createdate}} ({{createdate}}){{/if}}</option>
-          {{/each}}
-        </select>
-      </div>
-      <div class="compare-col-mid compare-controls-middle">
-        <button id="diff-toggle" class="btn btn--gray">Show Diff</button>
-      </div>
-      <div class="compare-col-b">
-        <span class="compare-select-label">Model B</span>
-        <select id="select-b" class="compare-select">
-          {{#each descriptions_list}}
-            <option value="{{key}}">{{source}}{{#if display_model}} — {{display_model}}{{else}}{{#if model}} — {{model}}{{/if}}{{/if}}{{#if createdate}} ({{createdate}}){{/if}}</option>
-          {{/each}}
-        </select>
+    <div class="compare-outer">
+      <div class="compare-layout">
+        {{! Row 1: controls }}
+        <div class="compare-col-a">
+          <span class="compare-select-label">Model A</span>
+          <select id="select-a" class="compare-select">
+            {{#each descriptions_list}}
+              <option value="{{key}}">{{source}}{{#if display_model}} — {{display_model}}{{else}}{{#if model}} — {{model}}{{/if}}{{/if}}{{#if createdate}} ({{createdate}}){{/if}}</option>
+            {{/each}}
+          </select>
+        </div>
+        <div class="compare-col-mid"></div>
+        <div class="compare-col-b">
+          <span class="compare-select-label">Model B</span>
+          <select id="select-b" class="compare-select">
+            {{#each descriptions_list}}
+              <option value="{{key}}">{{source}}{{#if display_model}} — {{display_model}}{{else}}{{#if model}} — {{model}}{{/if}}{{/if}}{{#if createdate}} ({{createdate}}){{/if}}</option>
+            {{/each}}
+          </select>
+        </div>
+
+        {{! Row 2: similarity bars span full width }}
+        <div class="compare-col-full compare-similarity">
+          <div class="similarity-row">
+            <span class="similarity-row-label">TF-IDF similarity</span>
+            <div class="similarity-bar-wrap">
+              <div class="similarity-bar-fill" id="tfidf-fill" style="width:0%"></div>
+            </div>
+            <span class="similarity-label" id="tfidf-label"></span>
+          </div>
+          <div class="similarity-row">
+            <span class="similarity-row-label">Word overlap</span>
+            <div class="similarity-bar-wrap">
+              <div class="similarity-bar-fill" id="overlap-fill" style="width:0%"></div>
+            </div>
+            <span class="similarity-label" id="overlap-label"></span>
+            <span class="similarity-counts" id="similarity-counts"></span>
+          </div>
+          <div class="similarity-row">
+            <span class="similarity-row-label">Sentence overlap</span>
+            <div class="similarity-bar-wrap">
+              <div class="similarity-bar-fill" id="sentence-fill" style="width:0%"></div>
+            </div>
+            <span class="similarity-label" id="sentence-label"></span>
+            <span class="similarity-counts" id="sentence-counts"></span>
+          </div>
+          <div class="similarity-row">
+            <span class="similarity-row-label">Semantic (MiniLM)</span>
+            <div class="similarity-bar-wrap">
+              <div class="similarity-bar-fill" id="semantic-fill" style="width:0%"></div>
+            </div>
+            <span class="similarity-label" id="semantic-label">—</span>
+          </div>
+        </div>
+
+        {{! Key phrases row spans full width }}
+        <div class="compare-col-full compare-keyphrases">
+          <span class="similarity-row-label">Key phrases</span>
+          <div id="keyphrases-output"></div>
+        </div>
+
+        {{! Row 3: panels }}
+        <div class="compare-col-a compare-panel">
+          <div class="compare-panel-header" id="header-a"></div>
+          <div class="compare-text" id="panel-a"></div>
+        </div>
+        <div class="compare-col-mid"></div>
+        <div class="compare-col-b compare-panel">
+          <div class="compare-panel-header" id="header-b"></div>
+          <div class="compare-text" id="panel-b"></div>
+        </div>
       </div>
 
-      {{! Row 2: similarity bars span full width }}
-      <div class="compare-col-full compare-similarity">
-        <div class="similarity-row">
-          <span class="similarity-row-label">TF-IDF similarity</span>
-          <div class="similarity-bar-wrap">
-            <div class="similarity-bar-fill" id="tfidf-fill" style="width:0%"></div>
-          </div>
-          <span class="similarity-label" id="tfidf-label"></span>
-        </div>
-        <div class="similarity-row">
-          <span class="similarity-row-label">Word overlap</span>
-          <div class="similarity-bar-wrap">
-            <div class="similarity-bar-fill" id="overlap-fill" style="width:0%"></div>
-          </div>
-          <span class="similarity-label" id="overlap-label"></span>
-          <span class="similarity-counts" id="similarity-counts"></span>
-        </div>
-        <div class="similarity-row">
-          <span class="similarity-row-label">Sentence overlap</span>
-          <div class="similarity-bar-wrap">
-            <div class="similarity-bar-fill" id="sentence-fill" style="width:0%"></div>
-          </div>
-          <span class="similarity-label" id="sentence-label"></span>
-          <span class="similarity-counts" id="sentence-counts"></span>
-        </div>
-        <div class="similarity-row">
-          <span class="similarity-row-label">Semantic (MiniLM)</span>
-          <div class="similarity-bar-wrap">
-            <div class="similarity-bar-fill" id="semantic-fill" style="width:0%"></div>
-          </div>
-          <span class="similarity-label" id="semantic-label">—</span>
-        </div>
-      </div>
+      <div class="compare-sidebar" id="compare-sidebar">
+        <span class="sidebar-header">Quick Compare</span>
 
-      {{! Key phrases row spans full width }}
-      <div class="compare-col-full compare-keyphrases">
-        <span class="similarity-row-label">Key phrases</span>
-        <div id="keyphrases-output"></div>
-      </div>
+        <div class="sidebar-section">
+          <span class="sidebar-group-label">Length</span>
+          <button class="sidebar-btn" id="preset-length" title="Compare the shortest and longest descriptions by word count">Shortest<br>vs. Longest</button>
+        </div>
 
-      {{! Row 3: panels }}
-      <div class="compare-col-a compare-panel">
-        <div class="compare-panel-header" id="header-a"></div>
-        <div class="compare-text" id="panel-a"></div>
+        <div class="sidebar-section">
+          <span class="sidebar-group-label">Cost</span>
+          <button class="sidebar-btn" id="preset-cost" title="Compare descriptions by total token usage">Cheapest<br>vs. Most Expensive</button>
+        </div>
+
+        <div class="sidebar-section">
+          <span class="sidebar-group-label">Age</span>
+          <button class="sidebar-btn" id="preset-age" title="Compare the oldest and newest AI descriptions by creation date">Oldest<br>vs. Newest</button>
+        </div>
+
+        <div class="sidebar-section">
+          <span class="sidebar-group-label">Diff</span>
+          <button id="diff-toggle" class="sidebar-btn">Show Diff</button>
+        </div>
       </div>
-      <div class="compare-col-mid"></div>
-      <div class="compare-col-b compare-panel">
-        <div class="compare-panel-header" id="header-b"></div>
-        <div class="compare-text" id="panel-b"></div>
-      </div>
-    </div>
+    </div>{{! /.compare-outer }}
 
     {{else}}
       <p class="compare-empty">No descriptions available for this object.</p>
@@ -446,6 +470,69 @@
         clearDiff();
       }
     });
+
+    // ── Side panel presets ──────────────────────────────────────
+
+    var CAPTION_MODELS = ['BLIP Caption', 'BLIP-2 Caption', 'CLIP Caption'];
+
+    function getAllDescs() {
+      return Array.from(document.querySelectorAll('.desc-data'))
+        .filter(function(el) { return CAPTION_MODELS.indexOf(el.dataset.model) === -1; })
+        .map(function(el) {
+          var text = el.textContent || '';
+          var words = text.trim().split(/\s+/).filter(Boolean).length;
+          var inp = el.dataset.usageInput  ? parseInt(el.dataset.usageInput,  10) : null;
+          var out = el.dataset.usageOutput ? parseInt(el.dataset.usageOutput, 10) : null;
+          return {
+            key:          el.dataset.key,
+            source:       el.dataset.source,
+            date:         el.dataset.date,
+            modelReleased: el.dataset.modelReleased || null,
+            words:        words,
+            tokens:       (inp !== null && out !== null) ? inp + out : null
+          };
+        });
+    }
+
+    function applyPreset(keyA, keyB) {
+      selectA.value = keyA;
+      selectB.value = keyB;
+      update();
+    }
+
+    document.getElementById('preset-length').addEventListener('click', function() {
+      var d = getAllDescs().slice().sort(function(a, b) { return a.words - b.words; });
+      if (d.length >= 2) applyPreset(d[0].key, d[d.length - 1].key);
+    });
+
+    document.getElementById('preset-cost').addEventListener('click', function() {
+      var d = getAllDescs().filter(function(x) { return x.tokens !== null; })
+                           .sort(function(a, b) { return a.tokens - b.tokens; });
+      if (d.length >= 2) applyPreset(d[0].key, d[d.length - 1].key);
+    });
+
+    document.getElementById('preset-age').addEventListener('click', function() {
+      var d = getAllDescs().filter(function(x) { return x.modelReleased; })
+                           .sort(function(a, b) { return a.modelReleased < b.modelReleased ? -1 : 1; });
+      if (d.length >= 2) applyPreset(d[0].key, d[d.length - 1].key);
+    });
+
+    (function auditPresets() {
+      var withCost = getAllDescs().filter(function(x) { return x.tokens !== null; });
+      if (withCost.length < 2) {
+        document.getElementById('preset-cost').classList.add('sidebar-btn--disabled');
+      }
+      var withRelease = getAllDescs().filter(function(x) { return x.modelReleased; });
+      if (withRelease.length < 2) {
+        document.getElementById('preset-age').classList.add('sidebar-btn--disabled');
+      }
+      if (getAllDescs().length < 2) {
+        document.querySelectorAll('.sidebar-btn').forEach(function(b) {
+          b.classList.add('sidebar-btn--disabled');
+        });
+      }
+    })();
+
   });
 </script>
 

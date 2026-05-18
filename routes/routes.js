@@ -571,7 +571,10 @@ router.get('/compare/:object_id/:image_id?', function(req, res, next) {
             let output = u.outputTokens != null ? u.outputTokens : (u.completion_tokens != null ? u.completion_tokens : null);
             if (input !== null || output !== null) usage = { input, output };
           }
-          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model: models[raw_model] || raw_model, createdate: desc.createdate, body: desc.body, isHuman: false, usage });
+          let m = models[raw_model];
+          let display_model = (m && m.name) ? m.name : (m || raw_model);
+          let model_released = (m && m.released) ? m.released : null;
+          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model, model_released, createdate: desc.createdate, body: desc.body, isHuman: false, usage });
         }
       }
 
