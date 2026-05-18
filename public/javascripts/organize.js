@@ -177,6 +177,8 @@ module.exports = {
 					return item;
 				});
 			}
+
+			ai_sorted.descriptions = _.sortBy(ai_sorted.descriptions, 'source');
 		}
 
 		// Process categories
