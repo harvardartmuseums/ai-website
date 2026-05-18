@@ -564,7 +564,14 @@ router.get('/compare/:object_id/:image_id?', function(req, res, next) {
       for (let [key, val] of Object.entries(ai_sorted.descriptions)) {
         for (let desc of val.descriptions) {
           let raw_model = desc.model || '';
-          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model: models[raw_model] || raw_model, createdate: desc.createdate, body: desc.body, isHuman: false });
+          let usage = null;
+          if (desc.raw && desc.raw.usage) {
+            let u = desc.raw.usage;
+            let input  = u.inputTokens  != null ? u.inputTokens  : (u.prompt_tokens     != null ? u.prompt_tokens     : null);
+            let output = u.outputTokens != null ? u.outputTokens : (u.completion_tokens != null ? u.completion_tokens : null);
+            if (input !== null || output !== null) usage = { input, output };
+          }
+          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model: models[raw_model] || raw_model, createdate: desc.createdate, body: desc.body, isHuman: false, usage });
         }
       }
 

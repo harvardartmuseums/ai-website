@@ -396,7 +396,7 @@ caption {
 
 .content {
   width: 86%;
-  max-width: 1000px;
+  max-width: 1200px;
   padding: 90px 0px;
   margin: 0px auto;
 }
@@ -2506,6 +2506,12 @@ select::-ms-expand {
   margin-top: 8px;
   padding-top: 8px;
   border-top: 1px solid var(--c-lightgray);
+}
+
+.panel-stats--tokens {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px dashed var(--c-lightgray);
 }
 
 .panel-stat {
