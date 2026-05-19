@@ -610,7 +610,7 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, n
         const firstRun = runDates[0];
         const lastRun = runDates[runDates.length - 1];
         const modelLabel = ai_descs.length === 1 ? '1 model' : `${ai_descs.length} models`;
-        const providerLabel = providerCount === 1 ? '1 provider' : `${providerCount} providers`;
+        const providerLabel = providerCount === 1 ? '1 provider' : `${providerCount} sources`;
         let parts = [`This image was run through ${modelLabel} from ${providerLabel}.`];
         if (oldest && newest && oldest.key !== newest.key) {
           parts.push(`The oldest model is ${oldest.display_model} (${oldest.model_released.slice(0,4)}) and the newest is ${newest.display_model} (${newest.model_released.slice(0,4)}).`);
