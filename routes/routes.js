@@ -595,7 +595,7 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, n
           let m = models[raw_model];
           let display_model = (m && m.name) ? m.name : (m || raw_model);
           let model_released = (m && m.released) ? m.released : null;
-          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model, model_released, createdate: desc.createdate, body: desc.body, isHuman: false, usage });
+          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model, model_released, createdate: desc.createdate, body: desc.body || '', isHuman: false, usage });
         }
       }
 
