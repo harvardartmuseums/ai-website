@@ -24,7 +24,7 @@
     {{! Pre-render all description bodies into hidden elements for JS to read }}
     <div style="display:none" aria-hidden="true">
       {{#each descriptions_list}}
-        <div class="desc-data" data-key="{{key}}" data-source="{{source}}" data-model="{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}" data-date="{{createdate}}" data-model-released="{{model_released}}" data-usage-input="{{#if usage}}{{usage.input}}{{/if}}" data-usage-output="{{#if usage}}{{usage.output}}{{/if}}">
+        <div class="desc-data" data-key="{{key}}" data-source="{{source}}" data-model="{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}" data-date="{{createdate}}" data-age="{{age}}" data-model-released="{{model_released}}" data-usage-input="{{#if cost}}{{cost.input}}{{/if}}" data-usage-output="{{#if cost}}{{cost.output}}{{/if}}" data-stats-total="{{#if stats}}{{stats.total}}{{/if}}" data-stats-density="{{#if stats}}{{stats.lexicalDensity}}{{/if}}" data-stats-ttr="{{#if stats}}{{stats.ttr}}{{/if}}" data-stats-hapax="{{#if stats}}{{stats.hapaxRatio}}{{/if}}" data-stats-sent="{{#if stats}}{{stats.avgSentLen}}{{/if}}">
           {{#if isHuman}}
             <p>{{body}}</p>
           {{else}}
@@ -38,7 +38,7 @@
       <span class="compare-quickbar-label">Quick compare</span>
       <button class="quickbar-btn" id="preset-length" title="Compare the shortest and longest descriptions by word count">Shortest vs. Longest</button>
       <button class="quickbar-btn" id="preset-cost" title="Compare descriptions by total token usage">Cheapest vs. Most Expensive</button>
-      <button class="quickbar-btn" id="preset-age" title="Compare the oldest and newest AI descriptions by creation date">Oldest vs. Newest</button>
+      <button class="quickbar-btn" id="preset-age" title="Compare the oldest and newest AI descriptions by model release date">Oldest vs. Newest</button>
     </div>
 
     <div class="compare-outer">
@@ -137,6 +137,8 @@
 
 <script src="/javascripts/openseadragon/openseadragon.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
+<script src="/vocabularies/stopwords.js"></script>
+<script src="/javascripts/textanalysis.js"></script>
 
 <script type="text/javascript">
   var viewer = OpenSeadragon({
@@ -170,40 +172,6 @@
     return document.querySelector('.desc-data[data-key="' + key + '"]');
   }
 
-  function descAge(dateStr) {
-    if (!dateStr) return '';
-    var then = new Date(dateStr);
-    if (isNaN(then)) return '';
-    var now = new Date();
-    var days = Math.floor((now - then) / 86400000);
-    if (days < 1) return 'today';
-    if (days === 1) return '1 day ago';
-    if (days < 30) return days + ' days ago';
-    var months = Math.floor(days / 30.4);
-    if (months < 12) return months === 1 ? '1 month ago' : months + ' months ago';
-    var years = Math.floor(days / 365.25);
-    return years === 1 ? '1 year ago' : years + ' years ago';
-  }
-
-  var stopwords = { the:1,a:1,an:1,and:1,or:1,but:1,in:1,on:1,at:1,to:1,for:1,of:1,with:1,by:1,from:1,is:1,are:1,was:1,were:1,it:1,its:1,this:1,that:1,these:1,those:1,as:1,be:1,been:1,being:1,have:1,has:1,had:1,do:1,does:1,did:1,will:1,would:1,could:1,should:1,may:1,might:1,which:1,who:1,what:1,where:1,when:1,how:1,also:1,both:1,each:1,into:1,through:1,between:1,while:1,their:1,there:1,they:1,them:1,his:1,her:1,he:1,she:1,we:1,our:1,us:1,you:1,your:1,i:1,my:1,me:1,not:1,no:1,more:1,most:1,very:1,one:1,two:1,three:1 };
-
-  function computeStats(text) {
-    var raw = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
-    if (!raw.length) return null;
-    var total = raw.length;
-    var contentWords = raw.filter(function(w) { return !stopwords[w] && w.length > 1; });
-    var lexicalDensity = Math.round((contentWords.length / total) * 100);
-    var freq = {};
-    raw.forEach(function(w) { freq[w] = (freq[w] || 0) + 1; });
-    var unique = Object.keys(freq).length;
-    var ttr = Math.round((unique / total) * 100);
-    var hapax = Object.keys(freq).filter(function(w) { return freq[w] === 1; }).length;
-    var hapaxRatio = Math.round((hapax / total) * 100);
-    var sentences = text.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(function(s) { return s.trim(); }).filter(Boolean);
-    var avgSentLen = sentences.length ? Math.round(total / sentences.length) : 0;
-    return { total: total, lexicalDensity: lexicalDensity, ttr: ttr, hapaxRatio: hapaxRatio, avgSentLen: avgSentLen };
-  }
-
   function renderPanel(panelEl, headerEl, key) {
     var el = getDescData(key);
     if (!el) return;
@@ -213,14 +181,23 @@
     var date = el.dataset.date;
     var html = '';
     if (date) {
-      var age = descAge(date);
+      var age = el.dataset.age || '';
       html += '<span class="header-date">Description generated on ' + escapeHtml(date);
       if (age) html += ' <span class="header-age">(' + age + ')</span>';
       html += '</span>';
     }
     var usageInput  = el.dataset.usageInput;
     var usageOutput = el.dataset.usageOutput;
-    var stats = computeStats(panelEl.innerText);
+    var stats = null;
+    if (el.dataset.statsTotal) {
+      stats = {
+        total:          parseInt(el.dataset.statsTotal,   10),
+        lexicalDensity: parseInt(el.dataset.statsDensity, 10),
+        ttr:            parseInt(el.dataset.statsTtr,     10),
+        hapaxRatio:     parseInt(el.dataset.statsHapax,   10),
+        avgSentLen:     parseInt(el.dataset.statsSent,    10)
+      };
+    }
     if (stats) {
       html += '<div class="panel-stats-section panel-stats-section--density">'
         + '<span class="sidebar-group-label panel-stats-label">Information Density</span>'
@@ -257,64 +234,6 @@
     headerEl.innerHTML = html;
   }
 
-  function tfidfCosine(textA, textB) {
-    function tokenise(text) {
-      return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
-    }
-    function tf(tokens) {
-      var freq = {};
-      tokens.forEach(function(t) { freq[t] = (freq[t] || 0) + 1; });
-      var len = tokens.length || 1;
-      Object.keys(freq).forEach(function(t) { freq[t] /= len; });
-      return freq;
-    }
-    function idf(tfA, tfB) {
-      var scores = {};
-      var vocab = Object.keys(tfA).concat(Object.keys(tfB));
-      vocab.forEach(function(t) {
-        if (!(t in scores)) {
-          var df = (tfA[t] ? 1 : 0) + (tfB[t] ? 1 : 0);
-          scores[t] = Math.log(3 / (df + 1)) + 1;
-        }
-      });
-      return scores;
-    }
-    function tfidfVec(tfMap, idfMap) {
-      var vec = {};
-      Object.keys(tfMap).forEach(function(t) { vec[t] = tfMap[t] * idfMap[t]; });
-      return vec;
-    }
-    function cosine(vecA, vecB) {
-      var dot = 0, magA = 0, magB = 0;
-      var keys = Object.keys(vecA).concat(Object.keys(vecB));
-      var seen = {};
-      keys.forEach(function(t) {
-        if (seen[t]) return;
-        seen[t] = true;
-        var a = vecA[t] || 0, b = vecB[t] || 0;
-        dot += a * b; magA += a * a; magB += b * b;
-      });
-      return (magA && magB) ? dot / (Math.sqrt(magA) * Math.sqrt(magB)) : 0;
-    }
-    var tokA = tokenise(textA), tokB = tokenise(textB);
-    var tfA = tf(tokA), tfB = tf(tokB);
-    var idfScores = idf(tfA, tfB);
-    return Math.round(cosine(tfidfVec(tfA, idfScores), tfidfVec(tfB, idfScores)) * 100);
-  }
-
-  function wordOverlap(textA, textB) {
-    var diffResult = Diff.diffWords(textA, textB);
-    var shared = 0, uniqueA = 0, uniqueB = 0;
-    diffResult.forEach(function(part) {
-      var count = part.value.trim() === '' ? 0 : part.value.trim().split(/\s+/).length;
-      if (part.removed) uniqueA += count;
-      else if (part.added) uniqueB += count;
-      else shared += count;
-    });
-    var total = shared + uniqueA + uniqueB;
-    return { pct: total === 0 ? 0 : Math.round((shared / total) * 100), shared: shared, uniqueA: uniqueA, uniqueB: uniqueB };
-  }
-
   function updateSimilarity() {
     var textA = document.getElementById('panel-a').innerText;
     var textB = document.getElementById('panel-b').innerText;
@@ -336,75 +255,6 @@
     document.getElementById('semantic-label').textContent = 'Computing…';
     document.getElementById('semantic-fill').style.width = '0%';
     if (window.__updateSemantic) window.__updateSemantic(textA, textB);
-  }
-
-  function sentenceOverlap(textA, textB) {
-    function splitSentences(text) {
-      return text.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(function(s) { return s.trim(); }).filter(Boolean);
-    }
-    function sentenceWords(s) {
-      return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
-    }
-    function overlapScore(wordsA, wordsB) {
-      var setA = {}, setB = {};
-      wordsA.forEach(function(w) { setA[w] = true; });
-      wordsB.forEach(function(w) { setB[w] = true; });
-      var shared = Object.keys(setA).filter(function(w) { return setB[w]; }).length;
-      var denom = Math.max(Object.keys(setA).length, Object.keys(setB).length);
-      return denom === 0 ? 0 : shared / denom;
-    }
-    var sentA = splitSentences(textA);
-    var sentB = splitSentences(textB);
-    if (!sentA.length || !sentB.length) return { pct: 0, matchedA: 0, totalA: sentA.length, matchedB: 0, totalB: sentB.length };
-    var wordsA = sentA.map(sentenceWords);
-    var wordsB = sentB.map(sentenceWords);
-    var threshold = 0.4;
-    var matchedA = wordsA.filter(function(wa) {
-      return wordsB.some(function(wb) { return overlapScore(wa, wb) >= threshold; });
-    }).length;
-    var matchedB = wordsB.filter(function(wb) {
-      return wordsA.some(function(wa) { return overlapScore(wa, wb) >= threshold; });
-    }).length;
-    var pct = Math.round(((matchedA / sentA.length) + (matchedB / sentB.length)) / 2 * 100);
-    return { pct: pct, matchedA: matchedA, totalA: sentA.length, matchedB: matchedB, totalB: sentB.length };
-  }
-
-  function keyPhrases(textA, textB) {
-    function tokenise(text) {
-      return text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(function(t) { return t.length > 2 && !stopwords[t]; });
-    }
-    function tf(tokens) {
-      var freq = {};
-      tokens.forEach(function(t) { freq[t] = (freq[t] || 0) + 1; });
-      var len = tokens.length || 1;
-      Object.keys(freq).forEach(function(t) { freq[t] /= len; });
-      return freq;
-    }
-    function topTerms(tfMap, idfMap, n) {
-      return Object.keys(tfMap).map(function(t) {
-        return { term: t, score: tfMap[t] * (idfMap[t] || 1) };
-      }).sort(function(a, b) { return b.score - a.score; }).slice(0, n).map(function(x) { return x.term; });
-    }
-    var tokA = tokenise(textA), tokB = tokenise(textB);
-    var tfA = tf(tokA), tfB = tf(tokB);
-    var vocab = Object.keys(tfA).concat(Object.keys(tfB));
-    var idfMap = {};
-    vocab.forEach(function(t) {
-      if (!(t in idfMap)) {
-        var df = (tfA[t] ? 1 : 0) + (tfB[t] ? 1 : 0);
-        idfMap[t] = Math.log(3 / (df + 1)) + 1;
-      }
-    });
-    var topA = topTerms(tfA, idfMap, 8);
-    var topB = topTerms(tfB, idfMap, 8);
-    var setB = {};
-    topB.forEach(function(t) { setB[t] = true; });
-    var setA = {};
-    topA.forEach(function(t) { setA[t] = true; });
-    var shared = topA.filter(function(t) { return setB[t]; });
-    var onlyA = topA.filter(function(t) { return !setB[t]; });
-    var onlyB = topB.filter(function(t) { return !setA[t]; });
-    return { shared: shared, onlyA: onlyA, onlyB: onlyB };
   }
 
   function renderKeyPhrases(result) {

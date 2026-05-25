@@ -18,6 +18,7 @@ var places = require('../public/vocabularies/places')
 var organizations = require('../public/vocabularies/organizations')
 var statistics = require('../public/vocabularies/stats')
 var model_history = require('../public/vocabularies/model-history')
+var stopwords = require('../public/vocabularies/stopwords');
 
 const API_KEY = process.env['API_KEY']
 
@@ -128,6 +129,121 @@ function sourceDistributionSummary(buckets) {
   if (share >= 0.35) return `${top.key} contributes the most annotations, but results span multiple sources.`;
   return `Annotations are distributed broadly across sources.`;
 }
+
+// ── Text Analysis API ──────────────────────────────────────────────────────
+function _computeStats(text) {
+  if (!text) return null;
+  var raw = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+  if (!raw.length) return null;
+  var total = raw.length;
+  var contentWords = raw.filter(function(w) { return !stopwords[w] && w.length > 1; });
+  var lexicalDensity = Math.round((contentWords.length / total) * 100);
+  var freq = {};
+  raw.forEach(function(w) { freq[w] = (freq[w] || 0) + 1; });
+  var unique = Object.keys(freq).length;
+  var ttr = Math.round((unique / total) * 100);
+  var hapax = Object.keys(freq).filter(function(w) { return freq[w] === 1; }).length;
+  var hapaxRatio = Math.round((hapax / total) * 100);
+  var sentences = text.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(function(s) { return s.trim(); }).filter(Boolean);
+  var avgSentLen = sentences.length ? Math.round(total / sentences.length) : 0;
+  return { total, lexicalDensity, ttr, hapaxRatio, avgSentLen };
+}
+
+function _tfidfCosine(textA, textB) {
+  function tokenise(t) { return t.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean); }
+  function tf(tokens) {
+    var freq = {}; tokens.forEach(function(t) { freq[t] = (freq[t] || 0) + 1; });
+    var len = tokens.length || 1; Object.keys(freq).forEach(function(t) { freq[t] /= len; }); return freq;
+  }
+  function idf(a, b) {
+    var s = {}; Object.keys(a).concat(Object.keys(b)).forEach(function(t) {
+      if (!(t in s)) { var df = (a[t] ? 1 : 0) + (b[t] ? 1 : 0); s[t] = Math.log(3 / (df + 1)) + 1; }
+    }); return s;
+  }
+  function vec(tfMap, idfMap) { var v = {}; Object.keys(tfMap).forEach(function(t) { v[t] = tfMap[t] * idfMap[t]; }); return v; }
+  function cosine(a, b) {
+    var dot = 0, mA = 0, mB = 0, seen = {};
+    Object.keys(a).concat(Object.keys(b)).forEach(function(t) {
+      if (seen[t]) return; seen[t] = true;
+      var av = a[t] || 0, bv = b[t] || 0; dot += av * bv; mA += av * av; mB += bv * bv;
+    });
+    return (mA && mB) ? dot / (Math.sqrt(mA) * Math.sqrt(mB)) : 0;
+  }
+  var tfA = tf(tokenise(textA)), tfB = tf(tokenise(textB)), ids = idf(tfA, tfB);
+  return Math.round(cosine(vec(tfA, ids), vec(tfB, ids)) * 100);
+}
+
+function _wordOverlap(textA, textB) {
+  var wordsA = textA.toLowerCase().split(/\s+/).filter(Boolean);
+  var wordsB = textB.toLowerCase().split(/\s+/).filter(Boolean);
+  var setB = {}; wordsB.forEach(function(w) { setB[w] = true; });
+  var setA = {}; wordsA.forEach(function(w) { setA[w] = true; });
+  var shared = Object.keys(setA).filter(function(w) { return setB[w]; }).length;
+  var total = Object.keys(setA).length + Object.keys(setB).length - shared;
+  return { pct: total === 0 ? 0 : Math.round((shared / total) * 100), shared, uniqueA: Object.keys(setA).length - shared, uniqueB: Object.keys(setB).length - shared };
+}
+
+function _sentenceOverlap(textA, textB) {
+  function split(t) { return t.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(function(s) { return s.trim(); }).filter(Boolean); }
+  function words(s) { return s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean); }
+  function score(wa, wb) {
+    var sA = {}, sB = {}; wa.forEach(function(w) { sA[w] = true; }); wb.forEach(function(w) { sB[w] = true; });
+    var sh = Object.keys(sA).filter(function(w) { return sB[w]; }).length;
+    var d = Math.max(Object.keys(sA).length, Object.keys(sB).length);
+    return d === 0 ? 0 : sh / d;
+  }
+  var sentA = split(textA), sentB = split(textB);
+  if (!sentA.length || !sentB.length) return { pct: 0, matchedA: 0, totalA: sentA.length, matchedB: 0, totalB: sentB.length };
+  var wA = sentA.map(words), wB = sentB.map(words);
+  var mA = wA.filter(function(a) { return wB.some(function(b) { return score(a, b) >= 0.4; }); }).length;
+  var mB = wB.filter(function(b) { return wA.some(function(a) { return score(a, b) >= 0.4; }); }).length;
+  return { pct: Math.round(((mA / sentA.length) + (mB / sentB.length)) / 2 * 100), matchedA: mA, totalA: sentA.length, matchedB: mB, totalB: sentB.length };
+}
+
+function _keyPhrases(textA, textB) {
+  function tokenise(t) { return t.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(function(w) { return w.length > 2 && !stopwords[w]; }); }
+  function tf(tokens) {
+    var freq = {}; tokens.forEach(function(t) { freq[t] = (freq[t] || 0) + 1; });
+    var len = tokens.length || 1; Object.keys(freq).forEach(function(t) { freq[t] /= len; }); return freq;
+  }
+  var tfA = tf(tokenise(textA)), tfB = tf(tokenise(textB)), idfMap = {};
+  Object.keys(tfA).concat(Object.keys(tfB)).forEach(function(t) {
+    if (!(t in idfMap)) { var df = (tfA[t] ? 1 : 0) + (tfB[t] ? 1 : 0); idfMap[t] = Math.log(3 / (df + 1)) + 1; }
+  });
+  function top(tfMap, n) {
+    return Object.keys(tfMap).map(function(t) { return { term: t, score: tfMap[t] * (idfMap[t] || 1) }; })
+      .sort(function(a, b) { return b.score - a.score; }).slice(0, n).map(function(x) { return x.term; });
+  }
+  var tA = top(tfA, 8), tB = top(tfB, 8), sB = {}, sA = {};
+  tB.forEach(function(t) { sB[t] = true; }); tA.forEach(function(t) { sA[t] = true; });
+  return { shared: tA.filter(function(t) { return sB[t]; }), onlyA: tA.filter(function(t) { return !sB[t]; }), onlyB: tB.filter(function(t) { return !sA[t]; }) };
+}
+
+router.post('/api/analyze', express.json(), function(req, res) {
+  var text = (req.body && req.body.text) || '';
+  if (!text) return res.status(400).json({ error: 'text required' });
+  res.json(_computeStats(text) || {});
+});
+
+router.post('/api/compare', express.json(), function(req, res) {
+  var textA = (req.body && req.body.textA) || '';
+  var textB = (req.body && req.body.textB) || '';
+  if (!textA || !textB) return res.status(400).json({ error: 'textA and textB required' });
+  res.json({
+    tfidf:          _tfidfCosine(textA, textB),
+    wordOverlap:    _wordOverlap(textA, textB),
+    sentenceOverlap: _sentenceOverlap(textA, textB),
+    keyPhrases:     _keyPhrases(textA, textB)
+  });
+});
+
+router.post('/api/consensus', express.json(), function(req, res) {
+  var texts = (req.body && Array.isArray(req.body.texts)) ? req.body.texts : [];
+  if (texts.length < 2) return res.status(400).json({ error: 'at least 2 texts required' });
+  res.json({ consensus: [], bySource: {}, divergence: [] });
+});
+
+// ── End Text Analysis API ──────────────────────────────────────────────────
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -559,43 +675,27 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, n
       let descriptions_list = [];
 
       if (object_info.labeltext) {
-        descriptions_list.push({ key: 'labeltext', source: 'Human', model: 'Wall Label Text', createdate: '?', body: object_info.labeltext, isHuman: true });
+        descriptions_list.push({ key: 'labeltext', source: 'Human', model: 'Wall Label Text', createdate: '?', body: object_info.labeltext, isHuman: true, stats: _computeStats(object_info.labeltext) });
       }
       if (display_image && display_image.description) {
-        descriptions_list.push({ key: 'imagedesc', source: 'Human', model: 'Image Description', createdate: '?', body: display_image.description, isHuman: true });
+        descriptions_list.push({ key: 'imagedesc', source: 'Human', model: 'Image Description', createdate: '?', body: display_image.description, isHuman: true, stats: _computeStats(display_image.description) });
       }
 
       for (let [key, val] of Object.entries(ai_sorted.descriptions)) {
         for (let desc of val.descriptions) {
-          let raw_model = desc.model || '';
-          let usage = null;
-          if (desc.raw && desc.raw.usage) {
-            let u = desc.raw.usage;
-            let input  = u.inputTokens  != null ? u.inputTokens  : (u.prompt_tokens     != null ? u.prompt_tokens     : null);
-            let output = u.outputTokens != null ? u.outputTokens : (u.completion_tokens != null ? u.completion_tokens : null);
-            if (input !== null || output !== null) usage = { input, output };
-          }
-          if (!usage && desc.raw && desc.raw.description && desc.raw.description.usage) {
-            let u = desc.raw.description.usage;
-            let input  = u.prompt_tokens     != null ? u.prompt_tokens     : null;
-            let output = u.completion_tokens != null ? u.completion_tokens : null;
-            if (input !== null || output !== null) usage = { input, output };
-          }
-          if (!usage && desc.raw && desc.raw.usageMetadata) {
-            let u = desc.raw.usageMetadata;
-            let input  = u.promptTokenCount   != null ? u.promptTokenCount   : null;
-            let output = u.candidatesTokenCount != null ? u.candidatesTokenCount : null;
-            if (input !== null || output !== null) usage = { input, output };
-          }
-          if (!usage) {
-            let input = "-";
-            let output = "-";
-            usage = {input, output};
-          }
-          let m = models[raw_model];
-          let display_model = (m && m.name) ? m.name : (m || raw_model);
-          let model_released = (m && m.released) ? m.released : null;
-          descriptions_list.push({ key: 'desc_' + descriptions_list.length, source: val.source, model: raw_model, display_model, model_released, createdate: desc.createdate, body: desc.body || '', isHuman: false, usage });
+          descriptions_list.push({
+            key:           'desc_' + descriptions_list.length,
+            source:        val.source,
+            model:         desc.model || '',
+            display_model: desc.display_model || desc.model || '',
+            model_released: desc.model_released || null,
+            createdate:    desc.createdate,
+            age:           desc.age || '',
+            body:          desc.body || '',
+            isHuman:       false,
+            cost:         desc.cost || { input: '-', output: '-' },
+            stats:         desc.stats || null
+          });
         }
       }
 

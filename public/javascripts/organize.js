@@ -1,4 +1,68 @@
 var _ = require('lodash');
+var stopwords = require('../vocabularies/stopwords');
+var models = require('../../models');
+
+function computeStats(text) {
+	if (!text) return null;
+	var raw = text.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(Boolean);
+	if (!raw.length) return null;
+	var total = raw.length;
+	var contentWords = raw.filter(function(w) { return !stopwords[w] && w.length > 1; });
+	var lexicalDensity = Math.round((contentWords.length / total) * 100);
+	var freq = {};
+	raw.forEach(function(w) { freq[w] = (freq[w] || 0) + 1; });
+	var unique = Object.keys(freq).length;
+	var ttr = Math.round((unique / total) * 100);
+	var hapax = Object.keys(freq).filter(function(w) { return freq[w] === 1; }).length;
+	var hapaxRatio = Math.round((hapax / total) * 100);
+	var sentences = text.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(function(s) { return s.trim(); }).filter(Boolean);
+	var avgSentLen = sentences.length ? Math.round(total / sentences.length) : 0;
+
+	return { 
+		total: total, 
+		lexicalDensity: lexicalDensity, 
+		ttr: ttr, 
+		hapaxRatio: hapaxRatio, 
+		avgSentLen: avgSentLen
+	};
+}
+
+function descAge(dateStr) {
+	if (!dateStr) return '';
+	var then = new Date(dateStr);
+	if (isNaN(then)) return '';
+	var days = Math.floor((Date.now() - then) / 86400000);
+	if (days < 1) return 'today';
+	if (days === 1) return '1 day ago';
+	if (days < 30) return days + ' days ago';
+	var months = Math.floor(days / 30.4);
+	if (months < 12) return months === 1 ? '1 month ago' : months + ' months ago';
+	var years = Math.floor(days / 365.25);
+	return years === 1 ? '1 year ago' : years + ' years ago';
+}
+
+function extractUsage(raw) {
+	if (!raw) return null;
+	if (raw.usage) {
+		var u = raw.usage;
+		var input  = u.inputTokens  != null ? u.inputTokens  : (u.prompt_tokens     != null ? u.prompt_tokens     : null);
+		var output = u.outputTokens != null ? u.outputTokens : (u.completion_tokens != null ? u.completion_tokens : null);
+		if (input !== null || output !== null) return { input: input, output: output, total: (input !== null && output !== null) ? input + output : null };
+	}
+	if (raw.description && raw.description.usage) {
+		var u = raw.description.usage;
+		var input  = u.prompt_tokens     != null ? u.prompt_tokens     : null;
+		var output = u.completion_tokens != null ? u.completion_tokens : null;
+		if (input !== null || output !== null) return { input: input, output: output, total: (input !== null && output !== null) ? input + output : null };
+	}
+	if (raw.usageMetadata) {
+		var u = raw.usageMetadata;
+		var input  = u.promptTokenCount     != null ? u.promptTokenCount     : null;
+		var output = u.candidatesTokenCount != null ? u.candidatesTokenCount : null;
+		if (input !== null || output !== null) return { input: input, output: output, total: (input !== null && output !== null) ? input + output : null };
+	}
+	return null;
+}
 
 module.exports = {
 	amazonfacesort: function (facedata) {
@@ -174,6 +238,16 @@ module.exports = {
 				let descriptions = _.filter(ai_data, {type: 'description', source: ai_sorted.descriptions[service].internalname});
 				ai_sorted.descriptions[service].descriptions = _.map(descriptions, function(item){
 					item.createdate = item.createdate.substr(0,10);
+					item.age = descAge(item.createdate);
+					item.stats = computeStats(item.body);
+					item.cost = extractUsage(item.raw);
+
+					let m = models[item.model] || null;
+					item.display_model = m ? m.name : (item.model || null);
+					item.model_released = m ? m.released : null;
+					item.open_weight = m ? m.openWeight : null;
+					item.model_card_url = m ? (m.modelCardUrl || null) : null;
+					
 					return item;
 				});
 			}
