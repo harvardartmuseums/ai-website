@@ -46,8 +46,8 @@ module.exports = {
   'mistral.ministral-3-8b-instruct':                 { name: 'Ministral 8B',          released: '2025-12-02', openWeight: true, modelCardUrl: 'https://docs.mistral.ai/models/model-cards/ministral-3-8b-25-12'  },
   'mistral.mistral-large-3-675b-instruct':           { name: 'Mistral Large 3 675B',  released: '2025-12-02', openWeight: true, modelCardUrl: 'https://docs.mistral.ai/models/model-cards/mistral-large-3-25-12'  },
   // Qwen
-  'Qwen/Qwen2.5-VL-7B-Instruct':                    { name: 'Qwen 2.5 VL 7B',         released: null,         openWeight: true  },
-  'Qwen/Qwen2.5-VL-72B-Instruct':                   { name: 'Qwen 2.5 VL 72B',        released: null,         openWeight: true  },
+  'Qwen/Qwen2.5-VL-7B-Instruct':                    { name: 'Qwen 2.5 VL 7B',         released: '2025-01-26', openWeight: true  },
+  'Qwen/Qwen2.5-VL-72B-Instruct':                   { name: 'Qwen 2.5 VL 72B',        released: '2025-01-26', openWeight: true  },
   'qwen.qwen3-vl-235b-a22b':                         { name: 'Qwen3 VL 235B',         released: '2025-09-23', openWeight: true, modelCardUrl: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-qwen-qwen3-vl-235b-a22b.html'  },
   // Moonshot
   'moonshotai.kimi-k2.5':                            { name: 'Kimi K2.5',             released: '2026-01-27', openWeight: true, modelCardUrl: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-moonshot-ai-kimi-k2-5.html'  },
