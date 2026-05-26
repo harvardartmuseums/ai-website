@@ -326,6 +326,7 @@
         {{#if ai_sorted.descriptions}}
           <section class="ai-section" id="descriptions">
               <h3>Descriptions <a class="compare-link" href="/object/{{object_info.id}}/image/{{display_image.imageid}}/compare"><i class="fa fa-columns"></i> Compare</a></h3>
+              {{#if image_summary.descriptions}}<p class="image-summary">{{{image_summary.descriptions}}}</p>{{/if}}
               <div class="desc-toolbar">
                 <div class="desc-toolbar-section">
                   <div class="desc-toolbar-controls">

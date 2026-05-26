@@ -65,6 +65,7 @@ function extractUsage(raw) {
 }
 
 module.exports = {
+	computeStats,
 	amazonfacesort: function (facedata) {
 		_.map(facedata, function(face) {
 			let agerange = face.raw.AgeRange.Low + '-' + face.raw.AgeRange.High
