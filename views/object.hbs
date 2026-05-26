@@ -438,6 +438,36 @@
             </div>
           </section>
         {{/if}}
+        <section class="ai-section" id="ai-perspectives-section">
+          <h3>
+            AI Perspectives <span class="beta-badge">Beta</span>
+            <button class="quickbar-btn perspectives-toggle-btn" id="perspectives-toggle-btn" onclick="togglePerspectivesPanel()">Load</button>
+          </h3>
+          <div id="perspectives-panel" style="display:none;">
+            <div id="perspectives-loading" style="display:none;"><p class="perspectives-status">Loading…</p></div>
+            <div id="perspectives-error"   style="display:none;"><p class="perspectives-status perspectives-status--error"></p></div>
+            <div id="perspectives-content" style="display:none;">
+
+              <p class="perspectives-intro">Several AI services have described the primary image of this work. Below is where they tend to agree—and where they differ. These are surface-level observations and interpretive guesses, not catalogue facts. Use them as starting points for your own looking.</p>
+
+              <div id="perspectives-chips" class="perspectives-chips"></div>
+
+              <div id="perspectives-agreement" class="perspectives-block">
+                <h4 class="perspectives-block-heading">Where AI services tend to agree</h4>
+                <div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
+                <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
+              </div>
+
+              <div id="perspectives-divergence" class="perspectives-block" style="display:none;">
+                <h4 class="perspectives-block-heading">Where AI services differ — possible lines of inquiry</h4>
+                <p class="perspectives-divergence-intro">These are things only one service mentioned, or cases where services appear to contradict each other. They are not necessarily wrong—they may point to something ambiguous, layered, or worth a closer look.</p>
+                <div id="perspectives-divergence-list" class="perspectives-divergence-list"></div>
+              </div>
+
+              <p class="perspectives-footer-note">This tool currently processes English-language AI annotations only. Results may be sparse or incomplete for objects where AI services used other languages or specialized terminology.</p>
+            </div>
+          </div>
+        </section>
       </div>
     {{else}}
       No AI data for this image
@@ -661,6 +691,202 @@
       var icons = document.getElementById(id + "featureicon")
       div.style.display = div.style.display == "block" ? "none" : "block";
       icons.style.border = icons.style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
+  }
+
+  // ---------------------------------------------------------------------------
+  // AI Perspectives panel
+  // ---------------------------------------------------------------------------
+
+  var _perspectivesData    = null;
+  var _perspectivesLoaded  = false;
+  var _perspectivesVisible = false;
+  var _perspectivesUrl     = '/object/{{object_info.id}}/image/{{display_image.imageid}}/perspectives';
+
+  function togglePerspectivesPanel() {
+    var panel  = document.getElementById('perspectives-panel');
+    var btn    = document.getElementById('perspectives-toggle-btn');
+    if (!panel) return;
+
+    if (!_perspectivesLoaded) {
+      panel.style.display = '';
+      _perspectivesVisible = true;
+      btn.textContent = 'Hide';
+      loadPerspectives();
+      return;
+    }
+
+    _perspectivesVisible = !_perspectivesVisible;
+    panel.style.display  = _perspectivesVisible ? '' : 'none';
+    btn.textContent      = _perspectivesVisible ? 'Hide' : 'Show';
+  }
+
+  function loadPerspectives() {
+    var loading = document.getElementById('perspectives-loading');
+    var error   = document.getElementById('perspectives-error');
+    var content = document.getElementById('perspectives-content');
+    loading.style.display = '';
+    error.style.display   = 'none';
+    content.style.display = 'none';
+
+    fetch(_perspectivesUrl)
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        _perspectivesData   = data;
+        _perspectivesLoaded = true;
+        loading.style.display = 'none';
+        if (data.status === 'no_annotations') {
+          error.querySelector('p').textContent = 'No AI annotations are available for the primary image of this object. Agreement and divergence suggestions cannot be generated.';
+          error.style.display = '';
+          return;
+        }
+        if (data.status === 'error') {
+          error.querySelector('p').textContent = data.message || 'An error occurred loading AI Perspectives.';
+          error.style.display = '';
+          return;
+        }
+        renderPerspectives(data);
+        content.style.display = '';
+      })
+      .catch(function(err) {
+        loading.style.display = 'none';
+        error.querySelector('p').textContent = 'AI Perspectives could not be loaded. Please try again later.';
+        error.style.display = '';
+      });
+  }
+
+  function renderPerspectives(data) {
+    renderChips(data);
+    renderConcepts(data);
+    renderDivergence(data);
+    renderDownloadBtn(data);
+  }
+
+  function renderChips(data) {
+    var s    = data.summary || {};
+    var el   = document.getElementById('perspectives-chips');
+    var html = '';
+
+    if (s.concepts_returned != null) {
+      html += chip(s.concepts_returned + ' agreement concept' + (s.concepts_returned === 1 ? '' : 's'), '');
+    }
+    if (s.divergence_signals_returned > 0) {
+      html += chip(s.divergence_signals_returned + ' divergence signal' + (s.divergence_signals_returned === 1 ? '' : 's'), '');
+    }
+    if (s.has_text) {
+      html += chip('Text in image', '');
+    }
+    if (s.has_faces && s.face_stats) {
+      var fs = s.face_stats;
+      var faceLabel;
+      if (fs.min === fs.max) {
+        faceLabel = 'Faces detected (' + fs.min + ' — all services agree)';
+      } else {
+        faceLabel = 'Faces detected (min ' + fs.min + ', max ' + fs.max + ', avg ' + fs.avg + ')';
+      }
+      var perServiceLines = (fs.per_service || []).map(function(p) {
+        return p.source + ': ' + p.count;
+      }).join(' · ');
+      var faceTooltip = 'Services reporting: ' + perServiceLines + '. Face detection uses general-purpose computer vision models trained primarily on photographs. These models are known to perform unevenly across skin tones and may miss faces—or find faces where there are none—in paintings, prints, drawings, and sculptures.';
+      html += chip(faceLabel, faceTooltip);
+    }
+    if (s.depicts_people) {
+      var examples = (s.depicts_people_examples || []).join(', ');
+      var peopleTooltip = 'Based on how multiple AI captions and tags refer to people or figures in the scene' + (examples ? ' (e.g., &#8216;' + examples + '&#8217;)' : '') + '. May include mythological or supernatural figures if AI services describe them this way.';
+      html += chip('Depicts people — ' + (s.depicts_people_level || '') + ' agreement', peopleTooltip);
+    }
+    html += chip('English annotations only', '');
+    el.innerHTML = html;
+  }
+
+  function chip(label, tooltip) {
+    if (tooltip) {
+      return '<span class="perspectives-chip" title="' + escHtml(tooltip) + '">' + escHtml(label) + ' <span class="perspectives-chip-info">ⓘ</span></span>';
+    }
+    return '<span class="perspectives-chip">' + escHtml(label) + '</span>';
+  }
+
+  function renderConcepts(data) {
+    var list = document.getElementById('perspectives-concepts-list');
+    var concepts = data.concepts || [];
+    if (concepts.length === 0) {
+      list.innerHTML = '<p class="perspectives-empty">AI services described this image in ways that didn\’t overlap enough to generate agreement concepts. The divergence signals above (if any) may still be useful.</p>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < concepts.length; i++) {
+      var c = concepts[i];
+      var typeBadge    = '<span class="perspectives-badge perspectives-badge--' + c.concept_type + '">' + capitalize(c.concept_type) + '</span>';
+      var levelBadge   = '<span class="perspectives-badge perspectives-badge--' + c.agreement_level + '">' + capitalize(c.agreement_level) + '</span>';
+      var peopleBadge  = c.people_related ? '<span class="perspectives-badge perspectives-badge--people">People-related</span>' : '';
+      var snippets     = (c.example_annotations || []).map(function(e) {
+        return '<span class="perspectives-snippet">' + escHtml(e.source) + ': “' + escHtml(e.snippet) + '”</span>';
+      }).join('');
+      html += '<div class="perspectives-concept">'
+            +   '<span class="perspectives-concept-text">' + escHtml(c.concept) + '</span>'
+            +   typeBadge + levelBadge + peopleBadge
+            +   '<span class="perspectives-agreement">' + c.services_count + ' service' + (c.services_count === 1 ? '' : 's') + ', ' + c.annotations_count + ' annotation' + (c.annotations_count === 1 ? '' : 's') + '</span>'
+            +   (snippets ? '<div class="perspectives-snippets">' + snippets + '</div>' : '')
+            + '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function renderDivergence(data) {
+    var block  = document.getElementById('perspectives-divergence');
+    var list   = document.getElementById('perspectives-divergence-list');
+    var signals = data.divergence_signals || [];
+    if (signals.length === 0) {
+      block.style.display = 'none';
+      return;
+    }
+    block.style.display = '';
+    var html = '';
+    for (var i = 0; i < signals.length; i++) {
+      var s = signals[i];
+      var text = '';
+      if (s.type === 'single_service') {
+        text = 'Only ' + escHtml(s.service) + ' described this as &#8216;' + escHtml(s.concept) + '&#8217;'
+             + ' — ' + capitalize(s.concept_type) + '. ' + s.annotations_count + ' annotation' + (s.annotations_count === 1 ? '' : 's') + '.';
+        if (s.example_snippet) {
+          text += ' <span class="perspectives-snippet">“' + escHtml(s.example_snippet) + '”</span>';
+        }
+      } else if (s.type === 'cross_service_disagreement') {
+        var concepts = (s.concepts || []).map(function(c, idx) {
+          return (s.services && s.services[idx] ? escHtml(s.services[idx]) : 'a service') + ' suggests &#8216;' + escHtml(c) + '&#8217;';
+        });
+        text = 'Services disagree: ' + concepts.join('; ') + '.';
+      }
+      html += '<div class="perspectives-divergence-item">' + text + '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function renderDownloadBtn(data) {
+    var heading = document.querySelector('#ai-perspectives-section h3');
+    if (!heading || document.getElementById('perspectives-download-btn')) return;
+    var btn = document.createElement('a');
+    btn.id        = 'perspectives-download-btn';
+    btn.className = 'quickbar-btn perspectives-download-btn';
+    btn.textContent = 'Download JSON';
+    btn.href      = _perspectivesUrl;
+    btn.download  = 'object-' + (data.objectid || '') + '-ai-perspectives.json';
+    heading.appendChild(btn);
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function capitalize(str) {
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
   }
 
 </script>

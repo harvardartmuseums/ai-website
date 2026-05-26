@@ -2978,3 +2978,150 @@ mark.desc-highlight {
   .desc-card-density { max-width: 100%; width: 100%; border-right: none; border-bottom: 1px solid var(--c-lightgray); }
   .desc-card-cost { max-width: 100%; width: 100%; }
 }
+
+/* -------------------------------------------------------------------------
+   AI Perspectives panel
+   ------------------------------------------------------------------------- */
+.beta-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--c-yellow);
+  color: var(--c-nearblack);
+  padding: 1px 6px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.perspectives-toggle-btn {
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.perspectives-download-btn {
+  margin-left: 10px;
+  vertical-align: middle;
+  text-decoration: none;
+}
+.perspectives-intro {
+  font-size: 14px;
+  color: var(--c-grayblack);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.perspectives-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 18px;
+}
+.perspectives-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  background: var(--c-lightgray);
+  color: var(--c-nearblack);
+  border-radius: 12px;
+  padding: 3px 10px;
+  cursor: default;
+}
+.perspectives-chip-info {
+  font-size: 11px;
+  color: var(--c-gray);
+}
+.perspectives-block {
+  margin-bottom: 22px;
+}
+.perspectives-block-heading {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--c-nearblack);
+}
+.perspectives-concept {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-lightgray);
+  font-size: 13px;
+}
+.perspectives-concept:last-child { border-bottom: none; }
+.perspectives-concept-text {
+  font-weight: 600;
+  color: var(--c-nearblack);
+  min-width: 100px;
+}
+.perspectives-badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.perspectives-badge--descriptive  { background: #e8f0fb; color: #2a5298; }
+.perspectives-badge--interpretive { background: #fdf3e3; color: #a05a00; }
+.perspectives-badge--stronger     { background: #e6f4ea; color: #1e6b35; }
+.perspectives-badge--weaker       { background: var(--c-lightgray); color: var(--c-grayblack); }
+.perspectives-badge--people       { background: #fde8f0; color: #8b1a4a; }
+.perspectives-agreement {
+  font-size: 12px;
+  color: var(--c-gray);
+  margin-left: auto;
+}
+.perspectives-snippets {
+  width: 100%;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.perspectives-snippet {
+  font-size: 12px;
+  color: var(--c-gray);
+  font-style: italic;
+}
+.perspectives-type-note {
+  font-size: 12px;
+  color: var(--c-gray);
+  margin-top: 12px;
+  line-height: 1.5;
+}
+.perspectives-divergence-intro {
+  font-size: 13px;
+  color: var(--c-grayblack);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.perspectives-divergence-item {
+  font-size: 13px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--c-lightgray);
+  color: var(--c-nearblack);
+  line-height: 1.5;
+}
+.perspectives-divergence-item:last-child { border-bottom: none; }
+.perspectives-footer-note {
+  font-size: 12px;
+  color: var(--c-gray);
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-lightgray);
+  line-height: 1.5;
+}
+.perspectives-status {
+  font-size: 13px;
+  color: var(--c-gray);
+  font-style: italic;
+}
+.perspectives-status--error { color: var(--c-orangered); font-style: normal; }
+.perspectives-empty {
+  font-size: 13px;
+  color: var(--c-gray);
+  font-style: italic;
+}

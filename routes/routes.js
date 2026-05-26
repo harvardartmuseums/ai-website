@@ -6,6 +6,7 @@ var querystring = require('querystring');
 var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
 var organize = require('../public/javascripts/organize')
+var perspectives = require('../public/javascripts/perspectives')
 var models = require('../models')
 var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
@@ -23,6 +24,30 @@ var stopwords = require('../public/vocabularies/stopwords');
 const API_KEY = process.env['API_KEY']
 
 let statsCache = null;
+
+// In-memory perspectives cache: key = `${imageid}_${algorithm_version}`
+// TTL 12 hours, max 1000 entries (oldest-first eviction).
+const PERSPECTIVES_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+const PERSPECTIVES_CACHE_MAX    = 1000;
+const perspectivesCache = new Map();
+
+function perspectivesCacheGet(key) {
+  const entry = perspectivesCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > PERSPECTIVES_CACHE_TTL_MS) {
+    perspectivesCache.delete(key);
+    return null;
+  }
+  return entry.result;
+}
+
+function perspectivesCacheSet(key, result) {
+  if (perspectivesCache.size >= PERSPECTIVES_CACHE_MAX) {
+    // Evict the oldest entry
+    perspectivesCache.delete(perspectivesCache.keys().next().value);
+  }
+  perspectivesCache.set(key, { result, ts: Date.now() });
+}
 
 async function refreshStatsCache() {
   const aggs = {
@@ -789,6 +814,37 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, n
                                           tag_list: tag_list,
                                           mobile_tag_list: mobile_tag_list,
                                           image_list: image_list})})
+});
+
+/* GET AI Perspectives JSON for an object/image. */
+router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, res, next) {
+  const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
+
+  fetch(object_url).then(response => response.json())
+  .then(object_info => {
+    let imageid = object_info.images[0].imageid;
+    if (req.params.image_id > 0) {
+      imageid = req.params.image_id;
+    }
+
+    const cacheKey = `${imageid}_${perspectives.ALGORITHM_VERSION}`;
+    const cached = perspectivesCacheGet(cacheKey);
+    if (cached) {
+      return res.json(cached);
+    }
+
+    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
+    fetch(ai_url).then(response => response.json())
+    .then(ai_info => {
+      const ai_data      = ai_info.records || [];
+      const display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+      const result       = perspectives.compute(ai_data, object_info, display_image);
+      perspectivesCacheSet(cacheKey, result);
+      res.json(result);
+    })
+    .catch(err => res.status(500).json({ status: 'error', message: 'Failed to fetch annotations' }))
+  })
+  .catch(err => res.status(500).json({ status: 'error', message: 'Failed to fetch object' }))
 });
 
 router.get('/statistics', function(req, res, next) {
