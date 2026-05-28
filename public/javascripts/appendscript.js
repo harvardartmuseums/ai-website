@@ -67,7 +67,7 @@ module.exports = {
         if (tag.source === 'AWS Rekognition') tag.source = 'Amazon';
         else if (tag.source === 'Google Vision') tag.source = 'Google';
         else if (tag.source === 'Microsoft Cognitive Services') tag.source = 'Microsoft';
-        else if (tag.source === 'Azure OpenAI Service') tag.source = 'OpenAI GPT';
+        else if (tag.source === 'OpenAI') tag.source = 'OpenAI GPT';
         if (tag.confidence >= 0 && tag.confidence <= 1) tag.confidence = _.round(tag.confidence * 100, 1);
         return tag;
       });
