@@ -3217,3 +3217,14 @@ mark.desc-highlight {
   color: var(--c-gray);
   margin-left: 2px;
 }
+
+.obs-spatial-badge {
+  font-size: 10px;
+  color: #fff;
+  background: #6b7b8d;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-right: 6px;
+  white-space: nowrap;
+  cursor: help;
+}

@@ -10,7 +10,7 @@ var stopwords = require('../vocabularies/stopwords');
 // major for schema/NLP backend changes).
 // ---------------------------------------------------------------------------
 
-const ALGORITHM_VERSION = 'ace-v1.4.0';
+const ALGORITHM_VERSION = 'ace-v1.5.2';
 
 const CONFIG = {
   min_services:                2,
@@ -70,6 +70,12 @@ const PEOPLE_LEXICON = new Set([
   'portrait','self-portrait','group portrait','figure study',
   'saint','apostle','angel','angels','madonna','christ','deity','goddess',
   'buddha','bodhisattva','prophet','martyr','evangelist','god',
+  // Body-part terms from region detection (Clarifai)
+  'human face','human arm','human eye','human nose','human head',
+  'human hair','human leg','human mouth','human hand','human ear',
+  'human foot','human beard',
+  // Age/gender terms from region detection (AWS)
+  'adult','male','female','baby','teen','bride',
 ]);
 
 // Additional ignore list for thematic extraction — positional, dimensional, and
@@ -217,6 +223,28 @@ const OBSERVATION_CATEGORIES = [
     seeds: PEOPLE_LEXICON,  // reuse existing set
   },
   {
+    key:   'animals',
+    label: 'Animals & Creatures',
+    seeds: new Set([
+      'horse','horses','equine','steed','mare','stallion',
+      'dog','dogs','hound','canine','dalmatian','dachshund',
+      'cat','lion','lioness','tiger','leopard','panther','carnivore',
+      'deer','stag','doe','elk','antelope','giraffe','zebra',
+      'bird','birds','fowl','dove','eagle','hawk','swan','owl','parrot','peacock','crane','heron',
+      'sparrow','falcon','goose','duck','turkey','penguin','ostrich','chicken',
+      'fish','dolphin','whale','serpent','snake','dragon','shark','goldfish',
+      'lamb','sheep','goat','ram','ox','bull','cow','cattle','pig','mule',
+      'rabbit','hare','monkey','ape','giant panda','kangaroo','rhinoceros',
+      'elephant','camel','bear','wolf','fox','rat','mouse',
+      'griffin','phoenix','unicorn','sphinx','centaur','dinosaur',
+      'insect','bee','honey bee','spider','butterfly','beetle','caterpillar','snail',
+      'lobster','turtle','tortoise','frog','lizard','crocodile',
+      'jellyfish','seahorse','shellfish','oyster',
+      'mammal','marine mammal','marine invertebrates','invertebrate','reptile',
+      'beast','creature','animal','animals',
+    ]),
+  },
+  {
     key:   'action',
     label: 'Action & Gesture',
     seeds: new Set([
@@ -234,15 +262,25 @@ const OBSERVATION_CATEGORIES = [
       'vessel','vase','urn','jar','jug','pitcher','bowl','cup','chalice','goblet',
       'flask','amphora','basket','box','chest','casket','bag','sack',
       'sword','spear','lance','dagger','knife','axe','shield','bow','arrow','mace','weapon',
+      'gun','rifle','cannon','grenade',
       'book','manuscript','scroll','tablet','inscription','letter','document',
       'cross','crucifix','halo','nimbus','aureole','mandorla',
       'crown','sceptre','orb','throne','altar','reliquary','icon','triptych',
       'hat','cap','bonnet','helmet','headdress','turban','hood',
+      'clothing','footwear','shoe','dress','suit','coat','jacket','shirt',
+      'jeans','skirt','glove','belt','scarf',
       'candle','candlestick','torch','lamp','lantern','flame',
       'mirror','clock','hourglass','skull','globe','map','coin','ring','jewel',
+      'necklace','bracelet','earrings','locket',
       'table','chair','bench','bed','cradle','curtain','drapery','cloth','fabric',
       'column','arch','window','door','frame','niche','pedestal',
-      'ship','boat','vessel','cart','chariot','wheel',
+      'ship','boat','cart','chariot','wheel','car','vehicle','bicycle','motorcycle',
+      'airplane','train','truck','bus','helicopter',
+      'bottle','plate','spoon','fork','teapot','saucer','platter',
+      'sculpture','bust','doll','toy','balloon','flag',
+      'musical instrument','guitar','piano','violin','drum','harp',
+      'umbrella','glasses','sunglasses','camera','pen',
+      'rug','furniture','shelf','desk','couch','stool','pillow',
     ]),
   },
   {
@@ -257,6 +295,11 @@ const OBSERVATION_CATEGORIES = [
       'street','road','path','staircase','archway','gate','wall',
       'sky','cloud','horizon','distance','background','architectural',
       'urban','rural','domestic','sacred','secular','night','day',
+      // Buildings and structures from region detection
+      'house','building','skyscraper','office building','lighthouse','porch',
+      'fireplace','fountain','swimming pool','stairs',
+      // Vegetation (spatially grounded)
+      'tree','plant','flower','houseplant','palm tree','flowerpot',
     ]),
   },
   {
@@ -660,6 +703,7 @@ function findSnippetForTerm(term, descAnnotations) {
 function categorizePhrase(phrase) {
   const tokens = phrase.split(/\s+/);
   for (const cat of OBSERVATION_CATEGORIES) {
+    if (cat.seeds.has(phrase)) return cat.key;
     for (const token of tokens) {
       if (cat.seeds.has(token)) return cat.key;
     }
@@ -667,32 +711,34 @@ function categorizePhrase(phrase) {
   return 'other';
 }
 
-function extractObservations(descAnnotations) {
-  if (descAnnotations.length === 0) return {};
+function extractObservations(descAnnotations, regionAnnotations) {
+  if (descAnnotations.length === 0 && (!regionAnnotations || regionAnnotations.length === 0)) return {};
 
-  // phrase → { sources: Set, count }
+  // phrase → { sources: Set, count, spatial: Map<source, count> }
   const phraseMap = new Map();
 
+  function ensureEntry(canonical) {
+    if (!phraseMap.has(canonical)) {
+      phraseMap.set(canonical, { sources: new Set(), count: 0, spatial: new Map() });
+    }
+    return phraseMap.get(canonical);
+  }
+
+  // --- LLM description extraction (existing logic) ---
   for (const ann of descAnnotations) {
     const clean = stripMarkdown(ann.body || '');
     if (!clean.trim()) continue;
     const doc = nlp(clean);
 
-    // Noun chunks up to max_phrase_tokens
     const nouns = doc.nouns().out('array');
-    // Adjective-noun compounds
     const adjNouns = doc.match('#Adjective+ #Noun+').out('array');
-
     const candidates = [...nouns, ...adjNouns];
 
     for (const raw of candidates) {
-      // Remove parenthetical fragments before normalizing — compromise.js can
-      // include an unclosed paren and its contents as part of a noun chunk.
       let phrase = raw.replace(/\(.*?\)/g, ' ').replace(/\([^)]*$/, '');
       phrase = normalizeText(phrase);
       phrase = stripDeterminer(phrase);
       const tokens = phrase.split(/\s+/).filter(Boolean);
-      // Strip trailing stopwords
       while (tokens.length > 0 && stopwords[tokens[tokens.length - 1]]) tokens.pop();
       phrase = tokens.join(' ');
 
@@ -700,14 +746,30 @@ function extractObservations(descAnnotations) {
       if (tokens.every(t => stopwords[t] || IGNORE_LIST.has(t))) continue;
       if (IGNORE_LIST.has(phrase)) continue;
 
-      // Apply synonym canonicalization
       const canonical = tokens.length === 1 ? canonicalize(phrase) : phrase;
+      const entry = ensureEntry(canonical);
+      entry.sources.add(ann.source);
+      entry.count++;
+    }
+  }
 
-      if (!phraseMap.has(canonical)) {
-        phraseMap.set(canonical, { sources: new Set(), count: 0 });
-      }
-      phraseMap.get(canonical).sources.add(ann.source);
-      phraseMap.get(canonical).count++;
+  // --- Feature-region tags: merge into phrase map with spatial tracking ---
+  if (regionAnnotations && regionAnnotations.length > 0) {
+    for (const ann of regionAnnotations) {
+      let phrase = normalizeText(ann.body || '');
+      phrase = stripDeterminer(phrase);
+      const tokens = phrase.split(/\s+/).filter(Boolean);
+      if (!phrase || tokens.length === 0 || tokens.length > CONFIG.observations_max_phrase_tokens) continue;
+      if (IGNORE_LIST.has(phrase)) continue;
+
+      const canonical = tokens.length === 1 ? canonicalize(phrase) : phrase;
+      const entry = ensureEntry(canonical);
+      entry.sources.add(ann.source);
+      entry.count++;
+
+      // Track bounding-box instances per service
+      const src = ann.source;
+      entry.spatial.set(src, (entry.spatial.get(src) || 0) + 1);
     }
   }
 
@@ -718,12 +780,30 @@ function extractObservations(descAnnotations) {
 
   for (const [phrase, data] of phraseMap) {
     const cat = categorizePhrase(phrase);
-    buckets[cat].push({
+    const obs = {
       phrase,
-      sources:      Array.from(data.sources),
+      sources:       Array.from(data.sources),
       sources_count: data.sources.size,
-      count:        data.count,
-    });
+      count:         data.count,
+    };
+
+    // Attach spatial detection metadata when region tags contributed
+    if (data.spatial.size > 0) {
+      const perService = [];
+      let totalInstances = 0;
+      for (const [src, n] of data.spatial) {
+        perService.push({ source: src, instances: n });
+        totalInstances += n;
+      }
+      perService.sort((a, b) => b.instances - a.instances);
+      obs.spatially_detected = {
+        services: perService.length,
+        total_instances: totalInstances,
+        per_service: perService,
+      };
+    }
+
+    buckets[cat].push(obs);
   }
 
   const result = {};
@@ -754,10 +834,11 @@ function compute(ai_data, object_info, display_image) {
   }
 
   // Separate annotation types
-  const tagAnnotations  = ai_data.filter(r => r.type === 'tag' && r.feature === 'full');
-  const descAnnotations = ai_data.filter(r => r.type === 'description');
-  const faceAnnotations = ai_data.filter(r => r.type === 'face');
-  const textAnnotations = ai_data.filter(r => r.type === 'text');
+  const tagAnnotations    = ai_data.filter(r => r.type === 'tag' && r.feature === 'full');
+  const regionAnnotations = ai_data.filter(r => r.type === 'tag' && r.feature === 'region');
+  const descAnnotations   = ai_data.filter(r => r.type === 'description');
+  const faceAnnotations   = ai_data.filter(r => r.type === 'face');
+  const textAnnotations   = ai_data.filter(r => r.type === 'text');
 
   if (tagAnnotations.length === 0 && descAnnotations.length === 0) {
     return {
@@ -778,7 +859,7 @@ function compute(ai_data, object_info, display_image) {
   const thematicConcepts = extractThematicConcepts(descAnnotations, annotationsById);
 
   // Observations — broad extraction, categorized, no agreement threshold
-  const observations = extractObservations(descAnnotations);
+  const observations = extractObservations(descAnnotations, regionAnnotations);
 
   // Aggregate
   const conceptMap = aggregateOccurrences(occurrences);

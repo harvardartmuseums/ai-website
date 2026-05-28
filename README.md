@@ -72,7 +72,7 @@ GET /object/:object_id/perspectives
 GET /object/:object_id/image/:image_id/perspectives
 ```
 
-The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.4.0`.
+The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.5.0`.
 
 ### Configuration
 
