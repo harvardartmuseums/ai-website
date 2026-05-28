@@ -224,7 +224,7 @@ module.exports = {
 			ai_sorted.descriptions = {
 				Clarifai: {source: 'Clarifai', internalname: 'Clarifai', descriptions: []},
 				Salesforce: {source: 'Salesforce', internalname: 'Salesforce', descriptions: []},
-				OpenAI: {source: 'OpenAI GPT', internalname: 'Azure OpenAI Service', descriptions: []}, 
+				OpenAI: {source: 'OpenAI GPT', internalname: 'OpenAI', descriptions: []}, 
 				Anthropic: {source: 'Anthropic Claude', internalname: 'Anthropic', descriptions: []},
 				Meta: {source: 'Meta Llama', internalname: 'Meta', descriptions: []},
 				Amazon: {source: 'Amazon Nova', internalname: 'Amazon', descriptions: []},
