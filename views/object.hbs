@@ -458,6 +458,12 @@
                 <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
               </div>
 
+              <div id="perspectives-thematic" class="perspectives-block" style="display:none;">
+                <h4 class="perspectives-block-heading">Thematic terms — what the AI descriptions are about</h4>
+                <p class="perspectives-divergence-intro">Single words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image. These reflect conceptual and thematic content rather than observed features—subject matter, emotional register, narrative vocabulary. Treat them as prompts for inquiry, not confirmed readings.</p>
+                <div id="perspectives-thematic-list" class="perspectives-thematic-list"></div>
+              </div>
+
               <div id="perspectives-divergence" class="perspectives-block" style="display:none;">
                 <h4 class="perspectives-block-heading">Where AI services differ — possible lines of inquiry</h4>
                 <p class="perspectives-divergence-intro">These are things only one service mentioned, or cases where services appear to contradict each other. They are not necessarily wrong—they may point to something ambiguous, layered, or worth a closer look.</p>
@@ -466,6 +472,14 @@
 
               <p class="perspectives-footer-note">This tool currently processes English-language AI annotations only. Results may be sparse or incomplete for objects where AI services used other languages or specialized terminology.</p>
             </div>
+          </div>
+        </section>
+
+        <section class="ai-section" id="ai-observations-section" style="display:none;">
+          <h3>What the AIs noticed</h3>
+          <div id="observations-content">
+            <p class="perspectives-intro">Phrases extracted from all AI-generated descriptions for this image, grouped by category. No agreement threshold — everything the models mentioned, organised so you can browse it. Each phrase shows how many descriptions mentioned it and which sources.</p>
+            <div id="observations-categories"></div>
           </div>
         </section>
       </div>
@@ -760,7 +774,9 @@
   function renderPerspectives(data) {
     renderChips(data);
     renderConcepts(data);
+    renderThematic(data);
     renderDivergence(data);
+    renderObservations(data);
     renderDownloadBtn(data);
   }
 
@@ -771,6 +787,9 @@
 
     if (s.concepts_returned != null) {
       html += chip(s.concepts_returned + ' agreement concept' + (s.concepts_returned === 1 ? '' : 's'), '');
+    }
+    if (s.thematic_concepts_returned > 0) {
+      html += chip(s.thematic_concepts_returned + ' thematic term' + (s.thematic_concepts_returned === 1 ? '' : 's'), 'Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image.');
     }
     if (s.divergence_signals_returned > 0) {
       html += chip(s.divergence_signals_returned + ' divergence signal' + (s.divergence_signals_returned === 1 ? '' : 's'), '');
@@ -821,14 +840,45 @@
       var typeBadge    = '<span class="perspectives-badge perspectives-badge--' + c.concept_type + '">' + capitalize(c.concept_type) + '</span>';
       var levelBadge   = '<span class="perspectives-badge perspectives-badge--' + c.agreement_level + '">' + capitalize(c.agreement_level) + '</span>';
       var peopleBadge  = c.people_related ? '<span class="perspectives-badge perspectives-badge--people">People-related</span>' : '';
-      var snippets     = (c.example_annotations || []).map(function(e) {
-        return '<span class="perspectives-snippet">' + escHtml(e.source) + ': “' + escHtml(e.snippet) + '”</span>';
+      var snippets = (c.example_annotations || []).map(function(e) {
+        return '<span class="perspectives-snippet">' + escHtml(e.source) + ': “' + escHtml(e.snippet) + '"</span>';
       }).join('');
+      var variantHtml = '';
+      if (c.variants && c.variants.length > 1) {
+        var variantParts = c.variants.map(function(v) {
+          return '<span class="perspectives-variant">' + escHtml(v.term)
+               + ' <span class="perspectives-variant-sources">(' + v.services.map(escHtml).join(', ') + ')</span></span>';
+        });
+        variantHtml = '<div class="perspectives-variants">Called: ' + variantParts.join(', ') + '</div>';
+      }
       html += '<div class="perspectives-concept">'
             +   '<span class="perspectives-concept-text">' + escHtml(c.concept) + '</span>'
             +   typeBadge + levelBadge + peopleBadge
             +   '<span class="perspectives-agreement">' + c.services_count + ' service' + (c.services_count === 1 ? '' : 's') + ', ' + c.annotations_count + ' annotation' + (c.annotations_count === 1 ? '' : 's') + '</span>'
+            +   variantHtml
             +   (snippets ? '<div class="perspectives-snippets">' + snippets + '</div>' : '')
+            + '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function renderThematic(data) {
+    var block   = document.getElementById('perspectives-thematic');
+    var list    = document.getElementById('perspectives-thematic-list');
+    var concepts = data.thematic_concepts || [];
+    if (concepts.length === 0) {
+      block.style.display = 'none';
+      return;
+    }
+    block.style.display = '';
+    var html = '';
+    for (var i = 0; i < concepts.length; i++) {
+      var t = concepts[i];
+      html += '<div class="perspectives-concept">'
+            +   '<span class="perspectives-concept-text">' + escHtml(t.term) + '</span>'
+            +   '<span class="perspectives-badge perspectives-badge--thematic">Thematic</span>'
+            +   '<span class="perspectives-agreement">' + t.sources_count + ' source' + (t.sources_count === 1 ? '' : 's') + ', ' + t.descriptions_count + ' description' + (t.descriptions_count === 1 ? '' : 's') + '</span>'
+            +   (t.snippet ? '<div class="perspectives-snippets"><span class="perspectives-snippet">' + escHtml(t.snippet) + '</span></div>' : '')
             + '</div>';
     }
     list.innerHTML = html;
@@ -851,7 +901,7 @@
         text = 'Only ' + escHtml(s.service) + ' described this as &#8216;' + escHtml(s.concept) + '&#8217;'
              + ' — ' + capitalize(s.concept_type) + '. ' + s.annotations_count + ' annotation' + (s.annotations_count === 1 ? '' : 's') + '.';
         if (s.example_snippet) {
-          text += ' <span class="perspectives-snippet">“' + escHtml(s.example_snippet) + '”</span>';
+          text += ' <span class="perspectives-snippet">“' + escHtml(s.example_snippet) + '"</span>';
         }
       } else if (s.type === 'cross_service_disagreement') {
         var concepts = (s.concepts || []).map(function(c, idx) {
@@ -862,6 +912,60 @@
       html += '<div class="perspectives-divergence-item">' + text + '</div>';
     }
     list.innerHTML = html;
+  }
+
+  function renderObservations(data) {
+    var section = document.getElementById('ai-observations-section');
+    var container = document.getElementById('observations-categories');
+    var obs = data.observations || {};
+    var cats = Object.keys(obs);
+    if (!section || cats.length === 0) return;
+    section.style.display = '';
+
+    var html = '';
+    for (var i = 0; i < cats.length; i++) {
+      var catKey = cats[i];
+      var cat = obs[catKey];
+      var catId = 'obs-cat-' + catKey;
+      html += '<div class="obs-category">'
+            +   '<button class="obs-category-toggle" onclick="toggleObsCategory(\'' + catKey + '\')" aria-expanded="false">'
+            +     '<span class="obs-category-label">' + escHtml(cat.label) + '</span>'
+            +     '<span class="obs-category-count">' + cat.entries.length + '</span>'
+            +     '<span class="obs-category-chevron">&#9660;</span>'
+            +   '</button>'
+            +   '<div class="obs-category-body" id="' + catId + '" style="display:none;">'
+            +     '<div class="obs-entries">';
+
+      for (var j = 0; j < cat.entries.length; j++) {
+        var e = cat.entries[j];
+        var srcBadges = e.sources.map(function(s) {
+          return '<span class="obs-source-badge">' + escHtml(s) + '</span>';
+        }).join('');
+        html += '<div class="obs-entry">'
+              +   '<span class="obs-phrase">' + escHtml(e.phrase) + '</span>'
+              +   '<span class="obs-entry-meta">'
+              +     srcBadges
+              +     '<span class="obs-count">' + e.count + 'x</span>'
+              +   '</span>'
+              + '</div>';
+      }
+
+      html += '    </div>'  // .obs-entries
+            + '  </div>'    // .obs-category-body
+            + '</div>';     // .obs-category
+    }
+    container.innerHTML = html;
+  }
+
+  function toggleObsCategory(catKey) {
+    var body    = document.getElementById('obs-cat-' + catKey);
+    var btn     = body ? body.previousElementSibling : null;
+    var chevron = btn ? btn.querySelector('.obs-category-chevron') : null;
+    if (!body) return;
+    var open = body.style.display !== 'none';
+    body.style.display = open ? 'none' : '';
+    if (btn) btn.setAttribute('aria-expanded', String(!open));
+    if (chevron) chevron.innerHTML = open ? '&#9660;' : '&#9650;';
   }
 
   function renderDownloadBtn(data) {

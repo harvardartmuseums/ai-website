@@ -3043,7 +3043,7 @@ mark.desc-highlight {
 .perspectives-concept {
   display: flex;
   flex-wrap: wrap;
-  align-items: baseline;
+  align-items: flex-start;
   gap: 6px;
   padding: 8px 0;
   border-bottom: 1px solid var(--c-lightgray);
@@ -3069,6 +3069,7 @@ mark.desc-highlight {
 .perspectives-badge--stronger     { background: #e6f4ea; color: #1e6b35; }
 .perspectives-badge--weaker       { background: var(--c-lightgray); color: var(--c-grayblack); }
 .perspectives-badge--people       { background: #fde8f0; color: #8b1a4a; }
+.perspectives-badge--thematic     { background: #ede8fb; color: #4a2d91; }
 .perspectives-agreement {
   font-size: 12px;
   color: var(--c-gray);
@@ -3124,4 +3125,95 @@ mark.desc-highlight {
   font-size: 13px;
   color: var(--c-gray);
   font-style: italic;
+}
+.perspectives-variants {
+  width: 100%;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--c-grayblack);
+}
+.perspectives-variant {
+  white-space: nowrap;
+}
+.perspectives-variant-sources {
+  color: var(--c-gray);
+  font-style: italic;
+}
+
+/* -------------------------------------------------------------------------
+   What the AIs noticed — observations section
+   ------------------------------------------------------------------------- */
+.obs-category {
+  border-bottom: 1px solid var(--c-lightgray);
+}
+.obs-category:last-child { border-bottom: none; }
+.obs-category-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 10px 0;
+  cursor: pointer;
+  text-align: left;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--c-nearblack);
+}
+.obs-category-toggle:hover { color: var(--c-orangered); }
+.obs-category-label { flex: 1; }
+.obs-category-count {
+  font-size: 11px;
+  font-weight: 400;
+  background: var(--c-lightgray);
+  color: var(--c-grayblack);
+  border-radius: 10px;
+  padding: 1px 7px;
+}
+.obs-category-chevron {
+  font-size: 10px;
+  color: var(--c-gray);
+}
+.obs-category-body {
+  padding-bottom: 10px;
+}
+.obs-entries {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.obs-entry {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: nowrap;
+  gap: 0;
+  font-size: 13px;
+  padding: 3px 0;
+}
+.obs-phrase {
+  font-weight: 500;
+  color: var(--c-nearblack);
+  min-width: 220px;
+  flex-shrink: 0;
+  padding-right: 12px;
+}
+.obs-entry-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.obs-source-badge {
+  font-size: 11px;
+  background: var(--c-lightgray);
+  color: var(--c-grayblack);
+  border-radius: 3px;
+  padding: 1px 6px;
+  white-space: nowrap;
+}
+.obs-count {
+  font-size: 11px;
+  color: var(--c-gray);
+  margin-left: 2px;
 }

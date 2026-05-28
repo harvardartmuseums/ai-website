@@ -39,6 +39,94 @@ Results can be sorted by:
 - **Confidence** (default) — images where the AI had the highest confidence in the search term appear first
 - **Frequency** — images with the most matching annotations appear first
 
+## AI Perspectives (Beta)
+
+The AI Perspectives panel (`/object/:id/perspectives`) surfaces where multiple AI services notice similar things in an artwork—and where they diverge—and provides a broad, categorized index of everything the AI descriptions collectively noticed. It is accessible from the object page, loaded on demand.
+
+### What it computes
+
+For a given image, the tool pulls all tag, description, face, and OCR annotations and runs four separate analyses:
+
+**Agreement concepts** — noun-phrase concepts (1–3 tokens) extracted from tags and AI descriptions using [compromise.js](https://github.com/spencermountain/compromise). Markdown is stripped from description bodies before extraction. Concepts appearing in annotations from at least 2 distinct services and at least 3 annotation records are ranked by a scoring function that weights source breadth (60%) over annotation volume (40%), with log scaling to limit diminishing returns from a single prolific source. Each concept is typed as `descriptive` (visually observed features: `bridge`, `snow`, `crowd`) or `interpretive` (genre or iconographic readings: `portrait`, `altarpiece`, `vanitas`).
+
+A **synonym map** normalizes variant terms to a canonical form before aggregation — `vase`, `urn`, and `pitcher` all count toward the `vessel` concept. When multiple variants are present, the panel shows which specific word each service used, making vocabulary diversity visible: "Called: vase (Amazon, Google), urn (Clarifai), pitcher (Microsoft)."
+
+**Thematic terms** — unigrams, bigrams, and trigrams extracted from long-form LLM descriptions only (Claude, GPT, Gemini, and others), scored by TF-IDF across all descriptions for the image. Terms appearing in descriptions from at least 2 distinct providers and at least 3 descriptions are ranked by source breadth weighted with average TF-IDF. Phrases containing a unigram that is itself subsumed by a higher-scoring phrase are suppressed to keep the output readable. These reflect conceptual and thematic content—subject matter, emotional register, narrative vocabulary—rather than observed features.
+
+**Divergence signals** — cross-service disagreements from a configurable incompatibility list: pairs of concepts (e.g. `indoor`/`outdoor`, `sacred`/`secular`, `living`/`dead`, `portrait`/`landscape`) where different services reached opposing conclusions about the same image. The list covers setting, light and time, figure and subject, mood and register, genre, medium, and compositional oppositions. Signals are only fired when both terms in a pair are independently present in the extracted concepts.
+
+**What the AIs noticed** — a broad, unconstrained extraction from LLM descriptions with no agreement threshold. Noun chunks and adjective-noun compounds up to 5 tokens are extracted, cleaned of markdown and parenthetical fragments, and grouped into six categories: People & Figures, Action & Gesture, Objects & Artefacts, Setting & Space, Colour & Light, and Material & Technique (plus Other). Each phrase shows which sources mentioned it and how many times. This section is designed for browsing and inventory rather than consensus-finding.
+
+**Summary flags** — `has_text` (OCR detected), `has_faces` with a full per-service spread (min/max/avg face count across reporting services, with per-service breakdown), and `depicts_people` (weak/strong) inferred from a people lexicon applied to tags and descriptions.
+
+### Catalogue context
+
+Every perspectives response includes a `catalogue` block drawn from the human record: title, classification, medium, culture, people, places, keywords, wall label text (`labeltext`), and the image-level `alttext` and `description` fields. The image fields are especially useful for secondary images (details, versos, alternate views) where the human cataloguer's focus may differ substantially from the AI's.
+
+### JSON endpoint
+
+The raw output is available as a JSON download or directly at:
+
+```
+GET /object/:object_id/perspectives
+GET /object/:object_id/image/:image_id/perspectives
+```
+
+The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.4.0`.
+
+### Configuration
+
+All tuning parameters live in the `CONFIG` object at the top of `public/javascripts/perspectives.js`.
+
+**Agreement concepts**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `min_services` | 2 | Minimum distinct services a concept must appear in to qualify |
+| `min_annotations` | 3 | Minimum total annotation records a concept must appear in |
+| `top_N` | 15 | Maximum concepts returned |
+| `S_cap` | 5 | Service count cap for log-scaling (prevents one prolific source dominating) |
+| `A_cap` | 20 | Annotation count cap for log-scaling |
+| `w_services` | 0.6 | Weight given to source breadth in the ranking score |
+| `w_annotations` | 0.4 | Weight given to annotation volume in the ranking score |
+| `stronger_norm_services_min` | 0.6 | Normalized service threshold for upgrading `weak` depicts_people to `strong` |
+| `stronger_norm_annotations_min` | 0.5 | Normalized annotation threshold for the same upgrade |
+
+**Depicts people**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `people_services_min` | 2 | Minimum services needed to flag `depicts_people: weak` |
+| `people_annotations_min` | 3 | Minimum annotations needed to flag `depicts_people: weak` |
+| `strong_people_services` | 3 | Absolute service count threshold for `depicts_people: strong` |
+| `strong_people_annotations` | 5 | Absolute annotation count threshold for `depicts_people: strong` |
+
+**Divergence signals**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `max_divergence` | 5 | Maximum number of divergence signals returned |
+
+**Thematic terms**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `thematic_min_sources` | 2 | Minimum distinct LLM providers a term must appear in |
+| `thematic_min_descriptions` | 3 | Minimum description records a term must appear in |
+| `thematic_top_N` | 15 | Maximum thematic terms returned |
+| `thematic_S_cap` | 9 | Provider count cap for log-scaling thematic scores |
+
+**Observations (What the AIs noticed)**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `observations_max_per_category` | 25 | Maximum phrases returned per category |
+| `observations_max_phrase_tokens` | 5 | Maximum tokens in an extracted noun phrase |
+
+### Design intent
+
+Agreement does not mean correctness — multiple services noticing the same surface feature increases the chance something is worth a look, not that the description is accurate or art-historically meaningful. The panel is designed as a thinking aid for curators, cataloguers, and data wranglers: AI observations to follow up, ignore, or find generative. No automatic writes to the catalogue. Results are labeled Beta and the panel includes explicit notes on face detection limitations and English-only annotation handling.
+
 ## Description Comparison Tool
 
 The comparison tool (`/compare/:object_id`) lets you place two descriptions side-by-side and analyze how they differ. It is accessible from the "Compare" link in the Captions section of any object page.
