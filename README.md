@@ -41,7 +41,7 @@ Results can be sorted by:
 
 ## AI Perspectives (Beta)
 
-The AI Perspectives panel (`/object/:id/perspectives`) surfaces where multiple AI services notice similar things in an artwork—and where they diverge—and provides a broad, categorized index of everything the AI descriptions collectively noticed. It is accessible from the object page, loaded on demand.
+The AI Perspectives panel (`/object/:id/perspectives`) surfaces where multiple AI services notice similar things in an artwork—and where they diverge—and provides a broad, categorized index of everything the AI descriptions collectively noticed. It loads automatically in the "Points of attention" section of the object page, alongside curatorial text (when available), framing both as peer observers rather than privileging one over the other.
 
 ### What it computes
 
@@ -55,7 +55,9 @@ A **synonym map** normalizes variant terms to a canonical form before aggregatio
 
 **Divergence signals** — cross-service disagreements from a configurable incompatibility list: pairs of concepts (e.g. `indoor`/`outdoor`, `sacred`/`secular`, `living`/`dead`, `portrait`/`landscape`) where different services reached opposing conclusions about the same image. The list covers setting, light and time, figure and subject, mood and register, genre, medium, and compositional oppositions. Signals are only fired when both terms in a pair are independently present in the extracted concepts.
 
-**What the AIs noticed** — a broad, unconstrained extraction from LLM descriptions with no agreement threshold. Noun chunks and adjective-noun compounds up to 5 tokens are extracted, cleaned of markdown and parenthetical fragments, and grouped into six categories: People & Figures, Action & Gesture, Objects & Artefacts, Setting & Space, Colour & Light, and Material & Technique (plus Other). Each phrase shows which sources mentioned it and how many times. This section is designed for browsing and inventory rather than consensus-finding.
+**What the AIs noticed** — a broad extraction from LLM descriptions and feature-region tags with no agreement threshold. Noun chunks and adjective-noun compounds up to 5 tokens are extracted from descriptions, cleaned of markdown and parenthetical fragments. Feature-region tags (bounding-box detections from AWS Rekognition and Clarifai) are merged into the same phrase map, contributing to source counts and adding a `spatially_detected` field with per-service instance counts when present. Phrases are grouped into seven categories: People & Figures, Animals & Creatures, Action & Gesture, Objects & Artefacts, Setting & Space, Colour & Light, and Material & Technique (plus Other). Category classification checks the full phrase against seed sets first, then individual tokens — enabling multi-word seeds like `human face` and `palm tree`. Each phrase shows which sources mentioned it, how many times, and whether it was spatially grounded with bounding boxes. This section is designed for browsing and inventory rather than consensus-finding.
+
+Category seeds are populated corpus-first: the `utilities/audit-observation-seeds.js` script pulls all distinct region-tag terms from the annotation API, classifies them against current seeds, and reports uncategorized terms for review. Run periodically to maintain coverage as new annotations are added.
 
 **Summary flags** — `has_text` (OCR detected), `has_faces` with a full per-service spread (min/max/avg face count across reporting services, with per-service breakdown), and `depicts_people` (weak/strong) inferred from a people lexicon applied to tags and descriptions.
 
@@ -72,7 +74,7 @@ GET /object/:object_id/perspectives
 GET /object/:object_id/image/:image_id/perspectives
 ```
 
-The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.5.0`.
+The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.5.2`.
 
 ### Configuration
 
@@ -120,12 +122,14 @@ All tuning parameters live in the `CONFIG` object at the top of `public/javascri
 
 | Option | Default | Description |
 |--------|---------|-------------|
-| `observations_max_per_category` | 25 | Maximum phrases returned per category |
+| `observations_max_per_category` | 25 | Maximum phrases returned per category (7 categories + Other) |
 | `observations_max_phrase_tokens` | 5 | Maximum tokens in an extracted noun phrase |
 
 ### Design intent
 
 Agreement does not mean correctness — multiple services noticing the same surface feature increases the chance something is worth a look, not that the description is accurate or art-historically meaningful. The panel is designed as a thinking aid for curators, cataloguers, and data wranglers: AI observations to follow up, ignore, or find generative. No automatic writes to the catalogue. Results are labeled Beta and the panel includes explicit notes on face detection limitations and English-only annotation handling.
+
+The object page is organized around **attention** rather than source. Both the curator's voice (labeltext) and AI Perspectives occupy the same "Points of attention" section with equal visual weight — neither is presented as authoritative. Curatorial statements are often speculative, especially for old objects; AI observations are surface-level pattern matching. Both are entry points for looking. Concept details (variants, example snippets) are collapsed by default and expand on click, keeping the list scannable.
 
 ## Description Comparison Tool
 
