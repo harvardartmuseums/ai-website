@@ -19,5 +19,7 @@
     "morgan": "~1.9.1",
     "openseadragon": "^2.4.1"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "@huggingface/transformers": "^4.2.0"
+  }
 }

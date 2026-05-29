@@ -45,7 +45,7 @@ The AI Perspectives panel (`/object/:id/perspectives`) surfaces where multiple A
 
 ### What it computes
 
-For a given image, the tool pulls all tag, description, face, and OCR annotations and runs four separate analyses:
+For a given image, the tool pulls all tag, description, face, and OCR annotations and runs five analyses:
 
 **Agreement concepts** — noun-phrase concepts (1–3 tokens) extracted from tags and AI descriptions using [compromise.js](https://github.com/spencermountain/compromise). Markdown is stripped from description bodies before extraction. Concepts appearing in annotations from at least 2 distinct services and at least 3 annotation records are ranked by a scoring function that weights source breadth (60%) over annotation volume (40%), with log scaling to limit diminishing returns from a single prolific source. Each concept is typed as `descriptive` (visually observed features: `bridge`, `snow`, `crowd`) or `interpretive` (genre or iconographic readings: `portrait`, `altarpiece`, `vanitas`).
 
@@ -58,6 +58,16 @@ A **synonym map** normalizes variant terms to a canonical form before aggregatio
 **What the AIs noticed** — a broad extraction from LLM descriptions and feature-region tags with no agreement threshold. Noun chunks and adjective-noun compounds up to 5 tokens are extracted from descriptions, cleaned of markdown and parenthetical fragments. Feature-region tags (bounding-box detections from AWS Rekognition and Clarifai) are merged into the same phrase map, contributing to source counts and adding a `spatially_detected` field with per-service instance counts when present. Phrases are grouped into seven categories: People & Figures, Animals & Creatures, Action & Gesture, Objects & Artefacts, Setting & Space, Colour & Light, and Material & Technique (plus Other). Category classification checks the full phrase against seed sets first, then individual tokens — enabling multi-word seeds like `human face` and `palm tree`. Each phrase shows which sources mentioned it, how many times, and whether it was spatially grounded with bounding boxes. This section is designed for browsing and inventory rather than consensus-finding.
 
 Category seeds are populated corpus-first: the `utilities/audit-observation-seeds.js` script pulls all distinct region-tag terms from the annotation API, classifies them against current seeds, and reports uncategorized terms for review. Run periodically to maintain coverage as new annotations are added.
+
+**Mood palette** — expressive and interpretive language extracted from LLM descriptions using a hybrid approach. Unlike the other analyses (which focus on *what* is depicted), the mood palette captures *how* the AIs characterize atmosphere, feeling, and tone. Three extraction strategies work together:
+
+1. *Seed vocabulary* — ~130 curated adjectives that express mood/atmosphere (serene, dramatic, haunting, intimate, etc.). Words appearing at least twice across descriptions are collected with per-source tracking.
+2. *Pattern extraction* — regex patterns catch interpretive constructions: "sense of tranquility", "evokes stillness", "atmosphere of mystery", "imbued with warmth". Prefixes include `sense of`, `feeling of`, `atmosphere of`, `evokes`, `suggests`, `conveys`, `imbued with`, and others.
+3. *Snippet evidence* — for each mood term, a source sentence is attached as expandable context showing the word in its original descriptive passage.
+
+Results are ranked by source breadth (how many independent AIs used the term) then frequency. The section only appears when mood language is present. The mood palette sits between "What the AIs noticed" and "Where AI services tend to agree" in the page layout — observations establish what's there, mood characterizes how it feels, agreement identifies convergence.
+
+Seed vocabulary and pattern lists are maintained with help from `utilities/audit-mood-seeds.js`, which uses [transformers.js](https://huggingface.co/docs/transformers.js) (`all-MiniLM-L6-v2`) for semantic enrichment. The script embeds the top corpus-confirmed seeds, clusters them with k-means to derive data-driven anchors representing regions of mood space, then scores unknown adjectives by cosine similarity to those anchors. This discovers expressive terms the seed list missed without relying on hand-picked anchor phrases.
 
 **Summary flags** — `has_text` (OCR detected), `has_faces` with a full per-service spread (min/max/avg face count across reporting services, with per-service breakdown), and `depicts_people` (weak/strong) inferred from a people lexicon applied to tags and descriptions.
 
@@ -74,7 +84,7 @@ GET /object/:object_id/perspectives
 GET /object/:object_id/image/:image_id/perspectives
 ```
 
-The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.5.2`.
+The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.6.0`.
 
 ### Configuration
 
@@ -124,6 +134,12 @@ All tuning parameters live in the `CONFIG` object at the top of `public/javascri
 |--------|---------|-------------|
 | `observations_max_per_category` | 25 | Maximum phrases returned per category (7 categories + Other) |
 | `observations_max_phrase_tokens` | 5 | Maximum tokens in an extracted noun phrase |
+
+**Mood palette**
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `mood_max` | 20 | Maximum mood terms returned |
 
 ### Design intent
 

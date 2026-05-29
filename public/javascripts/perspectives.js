@@ -3,6 +3,7 @@
 var nlp = require('compromise');
 var _ = require('lodash');
 var stopwords = require('../vocabularies/stopwords');
+var MODELS = require('../../models');
 
 // ---------------------------------------------------------------------------
 // Versioned config — bump algorithm_version on any change (see semver rules
@@ -10,7 +11,7 @@ var stopwords = require('../vocabularies/stopwords');
 // major for schema/NLP backend changes).
 // ---------------------------------------------------------------------------
 
-const ALGORITHM_VERSION = 'ace-v1.5.2';
+const ALGORITHM_VERSION = 'ace-v1.6.1';
 
 const CONFIG = {
   min_services:                2,
@@ -35,6 +36,8 @@ const CONFIG = {
   // Observations (what the AIs noticed)
   observations_max_per_category: 25,
   observations_max_phrase_tokens: 5,
+  // Mood palette
+  mood_max: 20,
 };
 
 // Terms suppressed before any concept is emitted.
@@ -77,6 +80,52 @@ const PEOPLE_LEXICON = new Set([
   // Age/gender terms from region detection (AWS)
   'adult','male','female','baby','teen','bride',
 ]);
+
+// ---------------------------------------------------------------------------
+// Mood palette — seed vocabulary for expressive/interpretive language.
+// Two-part: (1) single-word adjectives that express mood, atmosphere, or
+// emotional register; (2) pattern prefixes that signal interpretive phrasing
+// when followed by a noun ("sense of X", "feeling of X", etc.).
+// ---------------------------------------------------------------------------
+
+const MOOD_SEEDS = new Set([
+  // Atmosphere & tone
+  'serene','tranquil','peaceful','calm','still','quiet','hushed','gentle',
+  'somber','solemn','melancholy','mournful','elegiac','wistful','pensive',
+  'contemplative','meditative','reflective','introspective',
+  'dramatic','theatrical','intense','powerful','forceful','dynamic','energetic',
+  'turbulent','chaotic','violent','aggressive','fierce','stormy',
+  'mysterious','enigmatic','cryptic','eerie','uncanny','haunting','otherworldly',
+  'dreamlike','surreal','fantastical','ethereal','spectral',
+  'intimate','tender','delicate','vulnerable','fragile','soft',
+  'monumental','imposing','majestic','grandiose','awe-inspiring','sublime',
+  'austere','stark','severe','restrained','minimal','sparse',
+  'lush','opulent','lavish','sumptuous','abundant','rich',
+  'playful','whimsical','lighthearted','humorous','witty','ironic',
+  'sensual','erotic','voluptuous',
+  'sacred','devotional','spiritual','transcendent','reverent','divine',
+  'nostalgic','sentimental','bittersweet','longing',
+  'ominous','foreboding','menacing','threatening','sinister','dark',
+  'triumphant','heroic','victorious','celebratory','joyful','jubilant','exuberant',
+  'tragic','sorrowful','grieving','despairing','anguished',
+  'dignified','noble','regal','stately','formal','ceremonial',
+  'rustic','pastoral','idyllic','bucolic',
+  'desolate','bleak','barren','lonely','isolated','solitary',
+  'luminous','radiant','glowing','shimmering','dappled',
+  'muted','subdued','understated','restrained','mystical','beautiful serene','cheerful',
+  'pleasant','elegant','stressful','suspenseful','seductive','vibrant','colorful',
+  'worshipful','lustrous','prayerful','artful','grotesque','masterful','provocative',
+  'vibrant intense','thoughtful intimate','vibrant feel','elegant refined','delightful',
+  'respectful','elegant poised','vibrant surreal','thoughtful serene','magical','graceful',
+  'vibrant artistic','vibrant festive','serious solemn','anxious','creative'
+]);
+
+const MOOD_PATTERN_PREFIXES = [
+  'sense of','feeling of','atmosphere of','mood of','tone of',
+  'air of','quality of','aura of','spirit of','impression of',
+  'evokes','suggests','conveys','radiates','emanates','exudes',
+  'creates a','projects a','imbued with','suffused with','charged with',
+];
 
 // Additional ignore list for thematic extraction — positional, dimensional, and
 // colour-adjacent words that pass the general stopwords filter but carry no
@@ -204,7 +253,10 @@ const SYNONYM_MAP = {
 
 // Inverted lookup: variant → canonical, built once at load time.
 const TERM_TO_CANONICAL = new Map();
+// Forward lookup: canonical → all surface forms (for snippet matching).
+const CANONICAL_TO_FORMS = new Map();
 for (const [canonical, variants] of Object.entries(SYNONYM_MAP)) {
+  CANONICAL_TO_FORMS.set(canonical, [canonical, ...variants]);
   for (const variant of variants) {
     TERM_TO_CANONICAL.set(variant, canonical);
   }
@@ -697,6 +749,96 @@ function findSnippetForTerm(term, descAnnotations) {
 }
 
 // ---------------------------------------------------------------------------
+// Mood palette — expressive/interpretive language across descriptions
+// ---------------------------------------------------------------------------
+
+function extractMoodPalette(descAnnotations) {
+  if (descAnnotations.length === 0) return [];
+
+  const phraseMap = new Map(); // canonical phrase → { sources, count, snippets }
+
+  for (const ann of descAnnotations) {
+    const body = stripMarkdown(ann.body || '');
+    if (!body) continue;
+    const source = ann.source;
+    const annId = ann.id;
+    const model = ann.model || null;
+    const modelName = model && MODELS[model] ? MODELS[model].name : null;
+    const bodyLower = body.toLowerCase();
+    const sentences = body.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(s => s.trim()).filter(Boolean);
+
+    // Strategy 1: seed-word extraction — find mood adjectives in context
+    const words = bodyLower.replace(/[^a-z\s-]/g, ' ').split(/\s+/).filter(Boolean);
+    for (const word of words) {
+      if (!MOOD_SEEDS.has(word)) continue;
+      if (!phraseMap.has(word)) {
+        phraseMap.set(word, { phrase: word, sources: new Set(), count: 0, snippets: [] });
+      }
+      const entry = phraseMap.get(word);
+      entry.sources.add(source);
+      entry.count++;
+    }
+
+    // Strategy 2: pattern extraction — "sense of X", "evokes X", etc.
+    for (const prefix of MOOD_PATTERN_PREFIXES) {
+      const re = new RegExp('\\b' + prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s+([a-z][a-z\\s-]{1,30}?)(?=[.,;:!?\\)]|\\s(?:and|but|or|that|which|while|in|on|with|the|a)\\b|$)', 'gi');
+      let match;
+      while ((match = re.exec(bodyLower)) !== null) {
+        let extracted = match[1].trim().replace(/\s+/g, ' ');
+        // Strip trailing stopwords
+        extracted = extracted.replace(/\s+(the|a|an|and|or|its|this|that|is|are|was)$/i, '').trim();
+        if (extracted.length < 3 || extracted.split(/\s+/).length > 4) continue;
+        // Skip if it's purely a physical descriptor
+        const tokens = extracted.split(/\s+/);
+        if (tokens.every(t => THEMATIC_IGNORE.has(t) || stopwords[t])) continue;
+
+        const canonical = prefix + ' ' + extracted;
+        if (!phraseMap.has(canonical)) {
+          phraseMap.set(canonical, { phrase: canonical, sources: new Set(), count: 0, snippets: [] });
+        }
+        const entry = phraseMap.get(canonical);
+        entry.sources.add(source);
+        entry.count++;
+      }
+    }
+
+    // Strategy 3: sentence-level — one snippet per annotation for provenance
+    for (const sentence of sentences) {
+      const sentLower = sentence.toLowerCase();
+      for (const [phrase, entry] of phraseMap) {
+        if (!entry.sources.has(source)) continue;
+        if (entry.snippets.some(s => s.id === annId)) continue;
+        const re = new RegExp('\\b' + phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
+        if (re.test(sentLower)) {
+          const snip = sentence.length > 160 ? sentence.slice(0, 160) + '...' : sentence;
+          entry.snippets.push({ source, model: modelName || source, id: annId, text: snip });
+        }
+      }
+    }
+  }
+
+  // Score and rank: multi-source phrases first, then by count
+  const results = [];
+  for (const [, entry] of phraseMap) {
+    if (entry.count < 2) continue;
+    results.push({
+      phrase:        entry.phrase,
+      sources_count: entry.sources.size,
+      count:         entry.count,
+      sources:       [...entry.sources],
+      snippets:      entry.snippets.map(s => ({ source: s.source, model: s.model, annotation_id: s.id, text: s.text })),
+    });
+  }
+
+  results.sort((a, b) => {
+    if (b.sources_count !== a.sources_count) return b.sources_count - a.sources_count;
+    return b.count - a.count;
+  });
+
+  return results.slice(0, CONFIG.mood_max);
+}
+
+// ---------------------------------------------------------------------------
 // Observations — what the AIs noticed, categorized
 // ---------------------------------------------------------------------------
 
@@ -714,12 +856,12 @@ function categorizePhrase(phrase) {
 function extractObservations(descAnnotations, regionAnnotations) {
   if (descAnnotations.length === 0 && (!regionAnnotations || regionAnnotations.length === 0)) return {};
 
-  // phrase → { sources: Set, count, spatial: Map<source, count> }
+  // phrase → { sources: Set, count, spatial: Map<source, count>, snippets: [] }
   const phraseMap = new Map();
 
   function ensureEntry(canonical) {
     if (!phraseMap.has(canonical)) {
-      phraseMap.set(canonical, { sources: new Set(), count: 0, spatial: new Map() });
+      phraseMap.set(canonical, { sources: new Set(), count: 0, spatial: new Map(), snippets: [] });
     }
     return phraseMap.get(canonical);
   }
@@ -728,11 +870,17 @@ function extractObservations(descAnnotations, regionAnnotations) {
   for (const ann of descAnnotations) {
     const clean = stripMarkdown(ann.body || '');
     if (!clean.trim()) continue;
+    const source = ann.source;
+    const annId = ann.id;
+    const model = ann.model || null;
+    const modelName = model && MODELS[model] ? MODELS[model].name : null;
     const doc = nlp(clean);
 
     const nouns = doc.nouns().out('array');
     const adjNouns = doc.match('#Adjective+ #Noun+').out('array');
     const candidates = [...nouns, ...adjNouns];
+
+    const matchedCanonicals = new Set();
 
     for (const raw of candidates) {
       let phrase = raw.replace(/\(.*?\)/g, ' ').replace(/\([^)]*$/, '');
@@ -748,8 +896,26 @@ function extractObservations(descAnnotations, regionAnnotations) {
 
       const canonical = tokens.length === 1 ? canonicalize(phrase) : phrase;
       const entry = ensureEntry(canonical);
-      entry.sources.add(ann.source);
+      entry.sources.add(source);
       entry.count++;
+      matchedCanonicals.add(canonical);
+    }
+
+    // Collect one snippet per annotation for each matched phrase
+    const sentences = clean.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(s => s.trim()).filter(Boolean);
+    for (const canonical of matchedCanonicals) {
+      const entry = phraseMap.get(canonical);
+      if (entry.snippets.some(s => s.id === annId)) continue;
+      const forms = CANONICAL_TO_FORMS.get(canonical) || [canonical];
+      const pattern = forms.map(f => f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+      const re = new RegExp('\\b(?:' + pattern + ')(?:s|es|ed|ing|ly)?\\b', 'i');
+      for (const sentence of sentences) {
+        if (re.test(sentence)) {
+          const snip = sentence.length > 160 ? sentence.slice(0, 160) + '...' : sentence;
+          entry.snippets.push({ source, model: modelName || source, id: annId, text: snip });
+          break;
+        }
+      }
     }
   }
 
@@ -785,6 +951,7 @@ function extractObservations(descAnnotations, regionAnnotations) {
       sources:       Array.from(data.sources),
       sources_count: data.sources.size,
       count:         data.count,
+      snippets:      data.snippets.map(s => ({ source: s.source, model: s.model, annotation_id: s.id, text: s.text })),
     };
 
     // Attach spatial detection metadata when region tags contributed
@@ -860,6 +1027,9 @@ function compute(ai_data, object_info, display_image) {
 
   // Observations — broad extraction, categorized, no agreement threshold
   const observations = extractObservations(descAnnotations, regionAnnotations);
+
+  // Mood palette — expressive/interpretive language from descriptions
+  const moodPalette = extractMoodPalette(descAnnotations);
 
   // Aggregate
   const conceptMap = aggregateOccurrences(occurrences);
@@ -1019,6 +1189,7 @@ function compute(ai_data, object_info, display_image) {
     thematic_concepts:   thematicConcepts,
     divergence_signals:  topDivergence,
     observations:        observations,
+    mood_palette:        moodPalette,
   };
 }
 

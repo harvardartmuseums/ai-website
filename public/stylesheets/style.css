@@ -3210,12 +3210,91 @@ mark.desc-highlight {
 }
 
 /* -------------------------------------------------------------------------
+   Mood palette
+   ------------------------------------------------------------------------- */
+.mood-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.mood-term {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-lightgray);
+  font-size: 13px;
+  width: 100%;
+}
+.mood-term:last-child { border-bottom: none; }
+.mood-term--expandable { cursor: pointer; }
+.mood-term--expandable:hover .perspectives-concept-summary {
+  color: var(--c-blue, #2563eb);
+}
+.mood-term--expandable .perspectives-concept-summary::before {
+  content: '\25B8';
+  font-size: 11px;
+  color: var(--c-gray);
+  margin-right: 2px;
+  transition: transform 0.15s;
+}
+.mood-term--expandable.perspectives-concept--open .perspectives-concept-summary::before {
+  transform: rotate(90deg);
+}
+.mood-term-text {
+  font-weight: 500;
+  font-style: italic;
+  color: var(--c-nearblack);
+}
+.mood-term-sources {
+  margin-left: auto;
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.mood-snippets {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.mood-snippet {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px 8px;
+  background: var(--c-bg-subtle, #f8f8f8);
+  border-radius: 4px;
+  border-left: 3px solid var(--c-lightgray);
+}
+.mood-snippet-source {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--c-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+.mood-snippet-text {
+  font-size: 12px;
+  color: var(--c-nearblack);
+  line-height: 1.5;
+  font-style: italic;
+}
+.mood-snippets-more {
+  background: none;
+  border: none;
+  color: var(--c-blue, #2563eb);
+  font-size: 12px;
+  cursor: pointer;
+  padding: 4px 0;
+  margin-top: 4px;
+}
+.mood-snippets-more:hover {
+  text-decoration: underline;
+}
+
+/* -------------------------------------------------------------------------
    What the AIs noticed — observations section
    ------------------------------------------------------------------------- */
 .obs-category {
   padding: 8px 0;
   border-bottom: 1px solid var(--c-lightgray);
-  cursor: pointer;
 }
 .obs-category:last-child { border-bottom: none; }
 .obs-category-toggle {
@@ -3261,24 +3340,34 @@ mark.desc-highlight {
   gap: 4px;
 }
 .obs-entry {
-  display: flex;
-  align-items: baseline;
-  flex-wrap: nowrap;
-  gap: 0;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--c-lightgray);
   font-size: 13px;
-  padding: 3px 0;
+}
+.obs-entry:last-child { border-bottom: none; }
+.obs-entry--expandable { cursor: pointer; }
+.obs-entry--expandable:hover .perspectives-concept-summary {
+  color: var(--c-blue, #2563eb);
+}
+.obs-entry--expandable .perspectives-concept-summary::before {
+  content: '\25B8';
+  font-size: 11px;
+  color: var(--c-gray);
+  margin-right: 2px;
+  transition: transform 0.15s;
+}
+.obs-entry--expandable.perspectives-concept--open .perspectives-concept-summary::before {
+  transform: rotate(90deg);
 }
 .obs-phrase {
   font-weight: 500;
   color: var(--c-nearblack);
-  min-width: 220px;
-  flex-shrink: 0;
-  padding-right: 12px;
 }
 .obs-entry-meta {
+  margin-left: auto;
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-shrink: 0;
   gap: 4px;
 }
 .obs-source-badge {

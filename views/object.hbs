@@ -142,6 +142,12 @@
                   <div id="observations-categories"></div>
                 </div>
 
+                <div id="perspectives-mood" class="perspectives-block" style="display:none;">
+                  <h5 class="perspectives-block-heading">Mood palette</h5>
+                  <p class="perspectives-divergence-intro">Expressive and interpretive language drawn from AI descriptions — how the models characterize atmosphere, feeling, and tone rather than what they identify.</p>
+                  <div id="perspectives-mood-list" class="perspectives-mood-list"></div>
+                </div>
+
                 <div id="perspectives-agreement" class="perspectives-block">
                   <h5 class="perspectives-block-heading">Where AI services tend to agree</h5>
                   <div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
@@ -764,10 +770,11 @@
 
   function renderPerspectives(data) {
     renderChips(data);
+    renderObservations(data);
+    renderMoodPalette(data);
     renderConcepts(data);
     renderThematic(data);
     renderDivergence(data);
-    renderObservations(data);
     renderDownloadBtn(data);
   }
 
@@ -934,8 +941,8 @@
       var catKey = cats[i];
       var cat = obs[catKey];
       var catId = 'obs-cat-' + catKey;
-      html += '<div class="obs-category" onclick="toggleObsCategory(\'' + catKey + '\')">'
-            +   '<div class="obs-category-toggle">'
+      html += '<div class="obs-category">'
+            +   '<div class="obs-category-toggle" onclick="toggleObsCategory(\'' + catKey + '\')">'
             +     '<span class="obs-category-label">' + escHtml(cat.label) + '</span>'
             +     '<span class="obs-category-count">' + cat.entries.length + ' phrase' + (cat.entries.length === 1 ? '' : 's') + '</span>'
             +   '</div>'
@@ -944,6 +951,8 @@
 
       for (var j = 0; j < cat.entries.length; j++) {
         var e = cat.entries[j];
+        var snippets = e.snippets || [];
+        var hasDetail = snippets.length > 0;
         var srcBadges = e.sources.map(function(s) {
           return '<span class="obs-source-badge">' + escHtml(s) + '</span>';
         }).join('');
@@ -957,13 +966,31 @@
                        + '&#9635; ' + sd.total_instances + ' region' + (sd.total_instances !== 1 ? 's' : '')
                        + '</span>';
         }
-        html += '<div class="obs-entry">'
-              +   '<span class="obs-phrase">' + escHtml(e.phrase) + '</span>'
-              +   '<span class="obs-entry-meta">'
-              +     spatialBadge
-              +     srcBadges
-              +     '<span class="obs-count">' + e.count + 'x</span>'
-              +   '</span>'
+        html += '<div class="obs-entry' + (hasDetail ? ' obs-entry--expandable' : '') + '"' + (hasDetail ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
+              +   '<div class="perspectives-concept-summary">'
+              +     '<span class="obs-phrase">' + escHtml(e.phrase) + '</span>'
+              +     '<span class="obs-entry-meta">'
+              +       spatialBadge
+              +       srcBadges
+              +       '<span class="obs-count">' + e.count + 'x</span>'
+              +     '</span>'
+              +   '</div>'
+              +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets mood-snippets">'
+              +     snippets.slice(0, 5).map(function(s) {
+                      var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                      return '<div class="mood-snippet">'
+                           + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
+                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                           + '</div>';
+                    }).join('')
+              +     (snippets.length > 5 ? '<div class="mood-snippets-overflow" style="display:none;">' + snippets.slice(5).map(function(s) {
+                      var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                      return '<div class="mood-snippet">'
+                           + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
+                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                           + '</div>';
+                    }).join('') + '</div><button class="mood-snippets-more" onclick="toggleMoodOverflow(event, this)">Show all ' + snippets.length + ' references</button>' : '')
+              +   '</div></div>' : '')
               + '</div>';
       }
 
@@ -972,6 +999,64 @@
             + '</div>';     // .obs-category
     }
     container.innerHTML = html;
+  }
+
+  function renderMoodPalette(data) {
+    var block = document.getElementById('perspectives-mood');
+    var list = document.getElementById('perspectives-mood-list');
+    var palette = data.mood_palette || [];
+    if (palette.length === 0) {
+      block.style.display = 'none';
+      return;
+    }
+    block.style.display = '';
+    var html = '<div class="mood-palette">';
+    for (var i = 0; i < palette.length; i++) {
+      var m = palette[i];
+      var snippets = m.snippets || [];
+      var hasDetail = snippets.length > 0;
+      var sourceBadges = (m.sources || []).map(function(s) {
+        return '<span class="obs-source-badge">' + escHtml(s) + '</span>';
+      }).join('');
+      html += '<div class="mood-term' + (hasDetail ? ' mood-term--expandable' : '') + '"' + (hasDetail ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
+            +   '<div class="perspectives-concept-summary">'
+            +     '<span class="mood-term-text">' + escHtml(m.phrase) + '</span>'
+            +     '<span class="mood-term-sources">' + sourceBadges + '</span>'
+            +   '</div>'
+            +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets mood-snippets">'
+            +     snippets.slice(0, 5).map(function(s) {
+                    var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                    return '<div class="mood-snippet">'
+                         + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
+                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                         + '</div>';
+                  }).join('')
+            +     (snippets.length > 5 ? '<div class="mood-snippets-overflow" style="display:none;">' + snippets.slice(5).map(function(s) {
+                    var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                    return '<div class="mood-snippet">'
+                         + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
+                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                         + '</div>';
+                  }).join('') + '</div><button class="mood-snippets-more" onclick="toggleMoodOverflow(event, this)">Show all ' + snippets.length + ' references</button>' : '')
+            +   '</div></div>' : '')
+            + '</div>';
+    }
+    html += '</div>';
+    list.innerHTML = html;
+  }
+
+  function toggleMoodOverflow(event, btn) {
+    event.stopPropagation();
+    var overflow = btn.previousElementSibling;
+    if (!overflow) return;
+    var showing = overflow.style.display !== 'none';
+    overflow.style.display = showing ? 'none' : '';
+    if (showing) {
+      btn.textContent = btn.dataset.showLabel;
+    } else {
+      btn.dataset.showLabel = btn.textContent;
+      btn.textContent = 'Hide additional references';
+    }
   }
 
   function toggleObsCategory(catKey) {
