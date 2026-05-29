@@ -2980,6 +2980,53 @@ mark.desc-highlight {
 }
 
 /* -------------------------------------------------------------------------
+   Points of attention section
+   ------------------------------------------------------------------------- */
+
+.attention-section h2 {
+  margin-bottom: 4px;
+}
+
+.attention-intro {
+  font-size: 14px;
+  color: var(--c-gray);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.attention-card {
+  border: 1px solid var(--c-lightgray);
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.attention-card-heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+
+.attention-card--curator .attention-card-body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.attention-card--curator .attention-card-body p {
+  margin-bottom: 8px;
+}
+
+.attention-card-intro {
+  font-size: 13px;
+  color: var(--c-gray);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* -------------------------------------------------------------------------
    AI Perspectives panel
    ------------------------------------------------------------------------- */
 .beta-badge {
@@ -3041,15 +3088,37 @@ mark.desc-highlight {
   color: var(--c-nearblack);
 }
 .perspectives-concept {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: 6px;
   padding: 8px 0;
   border-bottom: 1px solid var(--c-lightgray);
   font-size: 13px;
 }
 .perspectives-concept:last-child { border-bottom: none; }
+.perspectives-concept--expandable {
+  cursor: pointer;
+}
+.perspectives-concept--expandable:hover .perspectives-concept-summary {
+  color: var(--c-blue, #2563eb);
+}
+.perspectives-concept-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
+}
+.perspectives-concept--expandable .perspectives-concept-summary::before {
+  content: '\25B8';
+  font-size: 11px;
+  color: var(--c-gray);
+  margin-right: 2px;
+  transition: transform 0.15s;
+}
+.perspectives-concept--open .perspectives-concept-summary::before {
+  transform: rotate(90deg);
+}
+.perspectives-concept-detail {
+  margin-top: 6px;
+  padding-left: 16px;
+}
 .perspectives-concept-text {
   font-weight: 600;
   color: var(--c-nearblack);
@@ -3144,38 +3213,46 @@ mark.desc-highlight {
    What the AIs noticed — observations section
    ------------------------------------------------------------------------- */
 .obs-category {
+  padding: 8px 0;
   border-bottom: 1px solid var(--c-lightgray);
+  cursor: pointer;
 }
 .obs-category:last-child { border-bottom: none; }
 .obs-category-toggle {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   width: 100%;
   background: none;
   border: none;
-  padding: 10px 0;
+  padding: 0;
   cursor: pointer;
   text-align: left;
   font-size: 13px;
   font-weight: 600;
   color: var(--c-nearblack);
 }
-.obs-category-toggle:hover { color: var(--c-orangered); }
+.obs-category-toggle::before {
+  content: '\25B8';
+  font-size: 11px;
+  color: var(--c-gray);
+  margin-right: 2px;
+  transition: transform 0.15s;
+}
+.obs-category--open .obs-category-toggle::before {
+  transform: rotate(90deg);
+}
+.obs-category-toggle:hover { color: var(--c-blue, #2563eb); }
 .obs-category-label { flex: 1; }
 .obs-category-count {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
-  background: var(--c-lightgray);
-  color: var(--c-grayblack);
-  border-radius: 10px;
-  padding: 1px 7px;
-}
-.obs-category-chevron {
-  font-size: 10px;
   color: var(--c-gray);
+  margin-left: auto;
 }
 .obs-category-body {
+  margin-top: 6px;
+  padding-left: 16px;
   padding-bottom: 10px;
 }
 .obs-entries {

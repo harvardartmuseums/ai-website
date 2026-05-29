@@ -113,6 +113,61 @@
     <div class="content">
     {{#if ai_sorted}}
       <div class="ai-content">
+
+        <section class="ai-section attention-section" id="attention-section">
+          <h2>Points of attention</h2>
+          <p class="attention-intro">What has been noticed about this image — by curators and by AI services independently. Neither is definitive; both offer entry points for looking.</p>
+
+          {{#if object_info.labeltext}}
+          <div class="attention-card attention-card--curator">
+            <h4 class="attention-card-heading">A curator wrote</h4>
+            <div class="attention-card-body">
+              {{{markdown object_info.labeltext}}}
+            </div>
+          </div>
+          {{/if}}
+
+          <div class="attention-card attention-card--ai" id="ai-perspectives-section">
+            <h4 class="attention-card-heading">AI Perspectives <span class="beta-badge">Beta</span></h4>
+            <div id="perspectives-panel">
+              <div id="perspectives-loading"><p class="perspectives-status">Loading…</p></div>
+              <div id="perspectives-error" style="display:none;"><p class="perspectives-status perspectives-status--error"></p></div>
+              <div id="perspectives-content" style="display:none;">
+
+                <div id="perspectives-chips" class="perspectives-chips"></div>
+
+                <div id="ai-observations-section" class="perspectives-block">
+                  <h5 class="perspectives-block-heading">What the AIs noticed</h5>
+                  <p class="perspectives-divergence-intro">Phrases extracted from AI-generated descriptions, grouped by category. No agreement threshold — everything the models mentioned, organised for browsing.</p>
+                  <div id="observations-categories"></div>
+                </div>
+
+                <div id="perspectives-agreement" class="perspectives-block">
+                  <h5 class="perspectives-block-heading">Where AI services tend to agree</h5>
+                  <div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
+                  <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
+                </div>
+
+                <div id="perspectives-thematic" class="perspectives-block" style="display:none;">
+                  <h5 class="perspectives-block-heading">Thematic terms — what the AI descriptions are about</h5>
+                  <p class="perspectives-divergence-intro">Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image. These reflect conceptual and thematic content rather than observed features. Treat them as prompts for inquiry, not confirmed readings.</p>
+                  <div id="perspectives-thematic-list" class="perspectives-thematic-list"></div>
+                </div>
+
+                <div id="perspectives-divergence" class="perspectives-block" style="display:none;">
+                  <h5 class="perspectives-block-heading">Where AI services differ — possible lines of inquiry</h5>
+                  <p class="perspectives-divergence-intro">Cases where services appear to contradict each other. They may point to something ambiguous, layered, or worth a closer look.</p>
+                  <div id="perspectives-divergence-list" class="perspectives-divergence-list"></div>
+                </div>
+
+                <p class="perspectives-footer-note">This tool currently processes English-language AI annotations only.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="gray-line-break"></div>
+
         <h2>Machine Generated Data</h2>
         <section class="ai-section">
           <h3>Tags</h3>
@@ -438,50 +493,6 @@
             </div>
           </section>
         {{/if}}
-        <section class="ai-section" id="ai-perspectives-section">
-          <h3>
-            AI Perspectives <span class="beta-badge">Beta</span>
-            <button class="quickbar-btn perspectives-toggle-btn" id="perspectives-toggle-btn" onclick="togglePerspectivesPanel()">Load</button>
-          </h3>
-          <div id="perspectives-panel" style="display:none;">
-            <div id="perspectives-loading" style="display:none;"><p class="perspectives-status">Loading…</p></div>
-            <div id="perspectives-error"   style="display:none;"><p class="perspectives-status perspectives-status--error"></p></div>
-            <div id="perspectives-content" style="display:none;">
-
-              <p class="perspectives-intro">Several AI services have described the primary image of this work. Below is where they tend to agree—and where they differ. These are surface-level observations and interpretive guesses, not catalogue facts. Use them as starting points for your own looking.</p>
-
-              <div id="perspectives-chips" class="perspectives-chips"></div>
-
-              <div id="perspectives-agreement" class="perspectives-block">
-                <h4 class="perspectives-block-heading">Where AI services tend to agree</h4>
-                <div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
-                <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
-              </div>
-
-              <div id="perspectives-thematic" class="perspectives-block" style="display:none;">
-                <h4 class="perspectives-block-heading">Thematic terms — what the AI descriptions are about</h4>
-                <p class="perspectives-divergence-intro">Single words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image. These reflect conceptual and thematic content rather than observed features—subject matter, emotional register, narrative vocabulary. Treat them as prompts for inquiry, not confirmed readings.</p>
-                <div id="perspectives-thematic-list" class="perspectives-thematic-list"></div>
-              </div>
-
-              <div id="perspectives-divergence" class="perspectives-block" style="display:none;">
-                <h4 class="perspectives-block-heading">Where AI services differ — possible lines of inquiry</h4>
-                <p class="perspectives-divergence-intro">These are things only one service mentioned, or cases where services appear to contradict each other. They are not necessarily wrong—they may point to something ambiguous, layered, or worth a closer look.</p>
-                <div id="perspectives-divergence-list" class="perspectives-divergence-list"></div>
-              </div>
-
-              <p class="perspectives-footer-note">This tool currently processes English-language AI annotations only. Results may be sparse or incomplete for objects where AI services used other languages or specialized terminology.</p>
-            </div>
-          </div>
-        </section>
-
-        <section class="ai-section" id="ai-observations-section" style="display:none;">
-          <h3>What the AIs noticed</h3>
-          <div id="observations-content">
-            <p class="perspectives-intro">Phrases extracted from all AI-generated descriptions for this image, grouped by category. No agreement threshold — everything the models mentioned, organised so you can browse it. Each phrase shows how many descriptions mentioned it and which sources.</p>
-            <div id="observations-categories"></div>
-          </div>
-        </section>
       </div>
     {{else}}
       No AI data for this image
@@ -641,6 +652,8 @@
   }
 
   document.addEventListener('DOMContentLoaded', function() {
+    loadPerspectives();
+
     if (document.getElementById('0face-button')) {
       document.getElementById('0face-button').click()
     }
@@ -713,34 +726,12 @@
 
   var _perspectivesData    = null;
   var _perspectivesLoaded  = false;
-  var _perspectivesVisible = false;
   var _perspectivesUrl     = '/object/{{object_info.id}}/image/{{display_image.imageid}}/perspectives';
-
-  function togglePerspectivesPanel() {
-    var panel  = document.getElementById('perspectives-panel');
-    var btn    = document.getElementById('perspectives-toggle-btn');
-    if (!panel) return;
-
-    if (!_perspectivesLoaded) {
-      panel.style.display = '';
-      _perspectivesVisible = true;
-      btn.textContent = 'Hide';
-      loadPerspectives();
-      return;
-    }
-
-    _perspectivesVisible = !_perspectivesVisible;
-    panel.style.display  = _perspectivesVisible ? '' : 'none';
-    btn.textContent      = _perspectivesVisible ? 'Hide' : 'Show';
-  }
 
   function loadPerspectives() {
     var loading = document.getElementById('perspectives-loading');
     var error   = document.getElementById('perspectives-error');
     var content = document.getElementById('perspectives-content');
-    loading.style.display = '';
-    error.style.display   = 'none';
-    content.style.display = 'none';
 
     fetch(_perspectivesUrl)
       .then(function(r) {
@@ -752,12 +743,12 @@
         _perspectivesLoaded = true;
         loading.style.display = 'none';
         if (data.status === 'no_annotations') {
-          error.querySelector('p').textContent = 'No AI annotations are available for the primary image of this object. Agreement and divergence suggestions cannot be generated.';
+          error.querySelector('p').textContent = 'No AI annotations are available for the primary image of this object.';
           error.style.display = '';
           return;
         }
         if (data.status === 'error') {
-          error.querySelector('p').textContent = data.message || 'An error occurred loading AI Perspectives.';
+          error.querySelector('p').textContent = data.message || 'An error occurred.';
           error.style.display = '';
           return;
         }
@@ -766,7 +757,7 @@
       })
       .catch(function(err) {
         loading.style.display = 'none';
-        error.querySelector('p').textContent = 'AI Perspectives could not be loaded. Please try again later.';
+        error.querySelector('p').textContent = 'AI Perspectives could not be loaded.';
         error.style.display = '';
       });
   }
@@ -831,7 +822,7 @@
     var list = document.getElementById('perspectives-concepts-list');
     var concepts = data.concepts || [];
     if (concepts.length === 0) {
-      list.innerHTML = '<p class="perspectives-empty">AI services described this image in ways that didn\’t overlap enough to generate agreement concepts. The divergence signals above (if any) may still be useful.</p>';
+      list.innerHTML = '<p class="perspectives-empty">AI services described this image in ways that didn\'t overlap enough to generate agreement concepts. The divergence signals above (if any) may still be useful.</p>';
       return;
     }
     var html = '';
@@ -841,7 +832,7 @@
       var levelBadge   = '<span class="perspectives-badge perspectives-badge--' + c.agreement_level + '">' + capitalize(c.agreement_level) + '</span>';
       var peopleBadge  = c.people_related ? '<span class="perspectives-badge perspectives-badge--people">People-related</span>' : '';
       var snippets = (c.example_annotations || []).map(function(e) {
-        return '<span class="perspectives-snippet">' + escHtml(e.source) + ': “' + escHtml(e.snippet) + '"</span>';
+        return '<span class="perspectives-snippet">' + escHtml(e.source) + ': "' + escHtml(e.snippet) + '"</span>';
       }).join('');
       var variantHtml = '';
       if (c.variants && c.variants.length > 1) {
@@ -851,15 +842,25 @@
         });
         variantHtml = '<div class="perspectives-variants">Called: ' + variantParts.join(', ') + '</div>';
       }
-      html += '<div class="perspectives-concept">'
-            +   '<span class="perspectives-concept-text">' + escHtml(c.concept) + '</span>'
-            +   typeBadge + levelBadge + peopleBadge
-            +   '<span class="perspectives-agreement">' + c.services_count + ' service' + (c.services_count === 1 ? '' : 's') + ', ' + c.annotations_count + ' annotation' + (c.annotations_count === 1 ? '' : 's') + '</span>'
-            +   variantHtml
-            +   (snippets ? '<div class="perspectives-snippets">' + snippets + '</div>' : '')
+      var hasDetail = snippets || variantHtml;
+      html += '<div class="perspectives-concept' + (hasDetail ? ' perspectives-concept--expandable' : '') + '"' + (hasDetail ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
+            +   '<div class="perspectives-concept-summary">'
+            +     '<span class="perspectives-concept-text">' + escHtml(c.concept) + '</span>'
+            +     typeBadge + levelBadge + peopleBadge
+            +     '<span class="perspectives-agreement">' + c.services_count + ' service' + (c.services_count === 1 ? '' : 's') + ', ' + c.annotations_count + ' annotation' + (c.annotations_count === 1 ? '' : 's') + '</span>'
+            +   '</div>'
+            +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;">' + variantHtml + (snippets ? '<div class="perspectives-snippets">' + snippets + '</div>' : '') + '</div>' : '')
             + '</div>';
     }
     list.innerHTML = html;
+  }
+
+  function toggleConceptDetail(el) {
+    var detail = el.querySelector('.perspectives-concept-detail');
+    if (!detail) return;
+    var open = detail.style.display !== 'none';
+    detail.style.display = open ? 'none' : '';
+    el.classList.toggle('perspectives-concept--open', !open);
   }
 
   function renderThematic(data) {
@@ -874,11 +875,14 @@
     var html = '';
     for (var i = 0; i < concepts.length; i++) {
       var t = concepts[i];
-      html += '<div class="perspectives-concept">'
-            +   '<span class="perspectives-concept-text">' + escHtml(t.term) + '</span>'
-            +   '<span class="perspectives-badge perspectives-badge--thematic">Thematic</span>'
-            +   '<span class="perspectives-agreement">' + t.sources_count + ' source' + (t.sources_count === 1 ? '' : 's') + ', ' + t.descriptions_count + ' description' + (t.descriptions_count === 1 ? '' : 's') + '</span>'
-            +   (t.snippet ? '<div class="perspectives-snippets"><span class="perspectives-snippet">' + escHtml(t.snippet) + '</span></div>' : '')
+      var hasSnippet = !!t.snippet;
+      html += '<div class="perspectives-concept' + (hasSnippet ? ' perspectives-concept--expandable' : '') + '"' + (hasSnippet ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
+            +   '<div class="perspectives-concept-summary">'
+            +     '<span class="perspectives-concept-text">' + escHtml(t.term) + '</span>'
+            +     '<span class="perspectives-badge perspectives-badge--thematic">Thematic</span>'
+            +     '<span class="perspectives-agreement">' + t.sources_count + ' source' + (t.sources_count === 1 ? '' : 's') + ', ' + t.descriptions_count + ' description' + (t.descriptions_count === 1 ? '' : 's') + '</span>'
+            +   '</div>'
+            +   (hasSnippet ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets"><span class="perspectives-snippet">' + escHtml(t.snippet) + '</span></div></div>' : '')
             + '</div>';
     }
     list.innerHTML = html;
@@ -901,7 +905,7 @@
         text = 'Only ' + escHtml(s.service) + ' described this as &#8216;' + escHtml(s.concept) + '&#8217;'
              + ' — ' + capitalize(s.concept_type) + '. ' + s.annotations_count + ' annotation' + (s.annotations_count === 1 ? '' : 's') + '.';
         if (s.example_snippet) {
-          text += ' <span class="perspectives-snippet">“' + escHtml(s.example_snippet) + '"</span>';
+          text += ' <span class="perspectives-snippet">"' + escHtml(s.example_snippet) + '"</span>';
         }
       } else if (s.type === 'cross_service_disagreement') {
         var concepts = (s.concepts || []).map(function(c, idx) {
@@ -919,7 +923,10 @@
     var container = document.getElementById('observations-categories');
     var obs = data.observations || {};
     var cats = Object.keys(obs);
-    if (!section || cats.length === 0) return;
+    if (!section || cats.length === 0) {
+      if (section) section.style.display = 'none';
+      return;
+    }
     section.style.display = '';
 
     var html = '';
@@ -927,12 +934,11 @@
       var catKey = cats[i];
       var cat = obs[catKey];
       var catId = 'obs-cat-' + catKey;
-      html += '<div class="obs-category">'
-            +   '<button class="obs-category-toggle" onclick="toggleObsCategory(\'' + catKey + '\')" aria-expanded="false">'
+      html += '<div class="obs-category" onclick="toggleObsCategory(\'' + catKey + '\')">'
+            +   '<div class="obs-category-toggle">'
             +     '<span class="obs-category-label">' + escHtml(cat.label) + '</span>'
-            +     '<span class="obs-category-count">' + cat.entries.length + '</span>'
-            +     '<span class="obs-category-chevron">&#9660;</span>'
-            +   '</button>'
+            +     '<span class="obs-category-count">' + cat.entries.length + ' phrase' + (cat.entries.length === 1 ? '' : 's') + '</span>'
+            +   '</div>'
             +   '<div class="obs-category-body" id="' + catId + '" style="display:none;">'
             +     '<div class="obs-entries">';
 
@@ -969,18 +975,16 @@
   }
 
   function toggleObsCategory(catKey) {
-    var body    = document.getElementById('obs-cat-' + catKey);
-    var btn     = body ? body.previousElementSibling : null;
-    var chevron = btn ? btn.querySelector('.obs-category-chevron') : null;
+    var body = document.getElementById('obs-cat-' + catKey);
     if (!body) return;
+    var category = body.parentElement;
     var open = body.style.display !== 'none';
     body.style.display = open ? 'none' : '';
-    if (btn) btn.setAttribute('aria-expanded', String(!open));
-    if (chevron) chevron.innerHTML = open ? '&#9660;' : '&#9650;';
+    category.classList.toggle('obs-category--open', !open);
   }
 
   function renderDownloadBtn(data) {
-    var heading = document.querySelector('#ai-perspectives-section h3');
+    var heading = document.querySelector('#ai-perspectives-section .attention-card-heading');
     if (!heading || document.getElementById('perspectives-download-btn')) return;
     var btn = document.createElement('a');
     btn.id        = 'perspectives-download-btn';
