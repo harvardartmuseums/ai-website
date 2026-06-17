@@ -241,5 +241,17 @@ If you have any questions or concerns, please reach out to AWS Support [5].
         service: "Imagga",
         summary: "Added Imagga structured tags and captions model",
         details: `Started using Imagga's structured tags model to tag and caption images.`
-      }
+      },
+      {
+        date_of_change: "2026-06-01",
+        service: "Google",
+        summary: "Gemini 2.0 Flash and Gemini 2.0 Flash-Lite deprecation",
+        details: `See https://ai.google.dev/gemini-api/docs/models/gemini-2.0-flash-lite and https://ai.google.dev/gemini-api/docs/models/gemini-2.0-flash`
+      },    
+      {
+        date_of_change: "2026-06-17",
+        service: "Google",
+        summary: "Added Google Gemini 3.1 Flash-Lite",
+        details: `Started using gemini-3.1-flash-lite on Google Cloudto generate descriptions. See model info at https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite.`
+      }           
 ];

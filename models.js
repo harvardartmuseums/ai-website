@@ -25,10 +25,11 @@ module.exports = {
   // Google
   // https://ai.google.dev/gemini-api/docs/changelog
   // Dates for GA releases, not previews or early access. GA releases are when the models are widely available and considered stable.
-  'gemini-2.0-flash':                                { name: 'Gemini 2.0 Flash',      released: '2024-12-11', openWeight: false },
-  'gemini-2.0-flash-lite':                           { name: 'Gemini 2.0 Flash Lite', released: '2025-02-25', openWeight: false },
+  'gemini-2.0-flash':                                { name: 'Gemini 2.0 Flash',      released: '2024-12-11', deprecated: '2026-06-01', openWeight: false },
+  'gemini-2.0-flash-lite':                           { name: 'Gemini 2.0 Flash Lite', released: '2025-02-25', deprecated: '2026-06-01', openWeight: false },
   'gemini-2.5-flash':                                { name: 'Gemini 2.5 Flash',      released: '2025-06-17', openWeight: false },
   'gemini-2.5-flash-lite':                           { name: 'Gemini 2.5 Flash Lite', released: '2025-07-22', openWeight: false },
+  'gemini-3.1-flash-lite':                           { name: 'Gemini 3.1 Flash Lite', released: '2025-05-07', openWeight: false, modelCardUrl: 'https://deepmind.google/models/model-cards/gemini-3-1-flash-lite' },
   // Meta
   'us.meta.llama3-2-11b-instruct-v1:0':              { name: 'Llama 3.2 11B',         released: '2024-09-25', openWeight: true  },
   'us.meta.llama3-2-90b-instruct-v1:0':              { name: 'Llama 3.2 90B',         released: '2024-09-25', openWeight: true  },
