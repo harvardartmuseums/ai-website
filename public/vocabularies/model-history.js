@@ -253,5 +253,36 @@ If you have any questions or concerns, please reach out to AWS Support [5].
         service: "Google",
         summary: "Added Google Gemini 3.1 Flash-Lite",
         details: `Started using gemini-3.1-flash-lite on Google Cloudto generate descriptions. See model info at https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite.`
-      }           
+      },    
+      {
+        date_of_change: "2026-07-16",
+        service: "Clarifai",
+        summary: "Clarifai’s portfolio of computer vision models will discontinue service on July 17th, 2026",
+        details: `May 19, 2026
+
+Hi there!
+
+We have exciting news - Clarifai Compute Orchestration and Reasoning Engine are joining Nebius [1] (NASDAQ: NBIS). Combining the industry leading inference performance and flexible compute orchestration with one of the fastest growing AI cloud companies, this new chapter in Clarifai’s journey will offer new frontiers of model capability, speed and economics.
+
+Thank you so much for being a part of that journey with us.
+As a part of this licensing transaction, Clarifai’s portfolio of computer vision models will discontinue service on July 17th, 2026. Customers with existing balances will receive a full refund via their existing payment method at that time.
+Here is what to expect over the next 60 days:
+Tuesday, May 19th: New signups for Clarifai Compute Orchestration and Reasoning Engine are no longer accepted.
+Wednesday, June 17th: New payments for Clarifai Compute Orchestration and Reasoning Engine are no longer accepted.
+Friday, July 17th: Service for Clarifai Compute Orchestration and Reasoning Engine discontinues.
+We understand this transition is inconvenient. We encourage customers using existing Clarifai vision models to switch to newer Vision Language Models for their detection and classification tasks. An overview of popular models of this type is available here [2].
+
+To get started using Nebius Token Factory in the language of your choice, check out their quickstart guide here [3].
+We’re here to help as you move your inference needs - feel free to contact us at support@clarifai.com with any questions.
+
+Thank you again for your patronage and we look forward to cranking more tokens for you as a part of Nebius Token Factory.
+
+Best,
+The Clarifai Team
+
+[1] https://nebius.com
+[2] https://huggingface.co/blog/vlms-2025
+[3] https://docs.tokenfactory.nebius.com/quickstart
+`
+      }                 
 ];
