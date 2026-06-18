@@ -35,7 +35,7 @@ async function refreshStatsCache() {
     "by_source": {
       "terms": {
         "field": "source", "min_doc_count": 0, "size": 20,
-        "exclude": "Manual", "order": { "_key": "asc" }
+        "exclude": "Manual|Azure OpenAI Service", "order": { "_key": "asc" }
       },
       "aggs": {
         "image_coverage": {
@@ -55,7 +55,7 @@ async function refreshStatsCache() {
         "by_source": {
           "terms": {
             "field": "source", "min_doc_count": 0, "size": 20,
-            "exclude": "Manual", "order": { "_key": "asc" }
+            "exclude": "Manual|Azure OpenAI Service", "order": { "_key": "asc" }
           }
         }
       }
