@@ -25,60 +25,75 @@ const API_KEY = process.env['API_KEY']
 let statsCache = null;
 
 async function refreshStatsCache() {
-  const aggs = {
-    "image_count": {
-      "cardinality": { "field": "imageid", "precision_threshold": 100 }
-    },
-    "date_stats": {
-      "extended_stats": { "field": "createdate" }
-    },
-    "by_source": {
-      "terms": {
-        "field": "source", "min_doc_count": 0, "size": 20,
-        "exclude": "Manual|Azure OpenAI Service", "order": { "_key": "asc" }
+  const queries = [
+    {
+      "image_count": {
+        "cardinality": { "field": "imageid", "precision_threshold": 100 }
       },
-      "aggs": {
-        "image_coverage": {
-          "cardinality": { "field": "imageid", "precision_threshold": 1000 }
+      "date_stats": {
+        "extended_stats": { "field": "createdate" }
+      }
+    },
+    {
+      "by_source": {
+        "terms": {
+          "field": "source", "min_doc_count": 0, "size": 20,
+          "exclude": "Manual|Azure OpenAI Service", "order": { "_key": "asc" }
         },
-        "by_type": {
-          "terms": { "field": "type", "min_doc_count": 0, "order": { "_key": "asc" } }
-        },
-        "by_model": {
-          "terms": { "field": "model.keyword", "size": 50 }
+        "aggs": {
+          "image_coverage": {
+            "cardinality": { "field": "imageid", "precision_threshold": 1000 }
+          },
+          "by_type": {
+            "terms": { "field": "type", "min_doc_count": 0, "order": { "_key": "asc" } }
+          },
+          "by_model": {
+            "terms": { "field": "model.keyword", "size": 50 }
+          }
         }
       }
     },
-    "by_type": {
-      "terms": { "field": "type", "order": { "_key": "asc" } },
-      "aggs": {
-        "by_source": {
-          "terms": {
-            "field": "source", "min_doc_count": 0, "size": 20,
-            "exclude": "Manual|Azure OpenAI Service", "order": { "_key": "asc" }
+    {
+      "by_type": {
+        "terms": { "field": "type", "order": { "_key": "asc" } },
+        "aggs": {
+          "by_source": {
+            "terms": {
+              "field": "source", "min_doc_count": 0, "size": 20,
+              "exclude": "Manual|Azure OpenAI Service", "order": { "_key": "asc" }
+            }
           }
         }
       }
     }
-  };
-  const qs = { size: 0, apikey: API_KEY, aggregation: JSON.stringify(aggs) };
-  const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+  ];
+
+  const start = Date.now();
   try {
-    const res = await fetch(url);
-    if (!res.ok) {
-      console.error(`Stats cache refresh failed: HTTP ${res.status} ${res.statusText}`);
-      return;
-    }
-    const data = await res.json();
-    data.aggregations.by_source.buckets.forEach(a => {
+    const results = await Promise.all(queries.map(async (aggs) => {
+      const qs = { size: 0, apikey: API_KEY, aggregation: JSON.stringify(aggs) };
+      const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status} ${res.statusText}`);
+      }
+      return res.json();
+    }));
+
+    const aggregations = Object.assign({}, ...results.map(r => r.aggregations));
+    aggregations.by_source.buckets.forEach(a => {
       a.image_coverage.percentage =
-        (a.image_coverage.value / data.aggregations.image_count.value) * 100;
+        (a.image_coverage.value / aggregations.image_count.value) * 100;
     });
-    data.refreshed_at = new Date().toISOString();
-    statsCache = data;
-    console.log(`Stats cache refreshed at ${statsCache.refreshed_at}`);
+
+    statsCache = {
+      info: results[0].info,
+      aggregations,
+      refreshed_at: new Date().toISOString()
+    };
+    console.log(`Stats cache refreshed at ${statsCache.refreshed_at} (${Date.now() - start}ms)`);
   } catch (e) {
-    console.error('Stats cache refresh failed:', e.message);
+    console.error(`Stats cache refresh failed after ${Date.now() - start}ms:`, e.message);
   }
 }
 
