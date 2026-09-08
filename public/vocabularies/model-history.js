@@ -284,5 +284,35 @@ The Clarifai Team
 [2] https://huggingface.co/blog/vlms-2025
 [3] https://docs.tokenfactory.nebius.com/quickstart
 `
-      }                 
+      },
+      {
+        date_of_change: "2028-09-25",
+        service: "Microsoft",
+        summary: "Azure AI Vision Image Analysis Retirement",
+        details: `October 9, 2025
+Azure AI Vision Image Analysis will be retired on 25 September 2028. Replace with alternative Azure features
+
+You’re receiving this notification because you’re associated with one or more Azure subscriptions that use Azure AI Vision.
+
+Microsoft is announcing the planned retirement of the Azure AI Vision – Image Analysis service.
+
+Microsoft will provide full support for all existing Azure AI Vision – Image Analysis customers until 25 September 2028. During this support window, customers are encouraged to begin planning and executing their transition to one of the following Azure products. Your product transition plan will depend on the specific use cases for Image Analysis.
+
+For OCR and Read capabilities, utilize Document Intelligence
+For Face scenarios, use the Face API
+For other Azure AI Vision scenarios, utilize the GPT model series found in the Azure AI Foundry
+Azure AI is offering a new product currently in preview, Azure AI Content Understanding, that is powered by LLMs and supports many image analysis use cases.
+See the Azure AI Vision – Image Analysis documentation for more information on your specific use case.
+Required action
+
+To avoid service disruptions such as failure on dependent services, please transition to alternative options by 25 September 2028. 
+
+You can view your affected resources in the Azure portal. All AI Vision resources will be impacted.
+
+Help and support
+
+If you have questions, get answers from community experts in Microsoft Q&A. If you have a support plan and need technical help, open the Azure portal and select the question mark icon at the top of the page.
+
+Learn more about service retirements that may impact your resources in the Azure Retirement Workbook. Please note that retirements may not be visible in the workbook for up to two weeks after being announced.`
+      }       
 ];
