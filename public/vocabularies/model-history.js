@@ -1,6 +1,7 @@
 // Entry Template:
 //       {
 //         date_of_change: "2026-09-10",
+//         date_of_notification: "2026-08-10",
 //         service: "AWS",
 //         summary: "Bedrock Model Deprecation Notice – Claude 3 Haiku 'anthropic.claude-3-haiku-20240307-v1:0'",
 //         details: `MESSAGE`
@@ -284,6 +285,64 @@ The Clarifai Team
 [2] https://huggingface.co/blog/vlms-2025
 [3] https://docs.tokenfactory.nebius.com/quickstart
 `
+      },
+      {
+        date_of_change: "2027-03-30",
+        date_of_notification: "2026-10-02",
+        service: "AWS",
+        summary: "Amazon Bedrock — Deprecation of Select Models",
+        details: `Hello,
+
+[Dynamic resource status updates are not provided for this Planned Lifecycle Event (PLE) and resources associated with this event will not be assigned any status even if the requisite action has been taken or the resource has been deleted. For more details about PLEs, please consult the user guide for AWS Health Planned Lifecycle Events [1].]
+
+We are contacting you because you have used one or more of the models on the Amazon Bedrock deprecation list.
+
+Effective immediately, by moving the following models into the Legacy state [2], AWS is initiating the deprecation process for these models. Once a model enters the Legacy state, no additional Service Quota increases [3] will be granted for it. Each model will remain in the Legacy state until March 30, 2027. On March 30, 2027, these models will reach end-of-life and will no longer be accessible in Amazon Bedrock.
+
+Consistent with the Amazon Bedrock model lifecycle policy [2], AWS may remove access to a Legacy model for accounts that show no recent usage, in advance of the end-of-life date. We recommend migrating to a supported model as soon as possible to avoid interruption.
+
+Information about your affected model(s) you were identified as using in the last 30 days is available in the 'Affected resources' section of the Health Dashboard, the 'affectedEntities' field in the EventBridge event details, or the 'entities' field in the Health DescribeAffectedEntities API responses.
+
+Important dates:
+
+• September 30, 2026: Legacy state begins
+• March 30, 2027: Models reach end-of-life — requests made to these model IDs will fail
+
+Model Name Model ID
+Deepseek R1 deepseek.r1-v1:0
+Deepseek V3.1 deepseek.v3-v1:0; deepseek.v3.1
+Devstral 2 123B mistral.devstral-2-123b
+Gemma 3 4B google.gemma-3-4b-it
+GLM 4.7 Flash zai.glm-4-7-flash
+Kimi K2 Thinking moonshot.kimi-k2-thinking; moonshotai.kimi-k2-thinking
+Llama 4 Maverick 17B meta.llama4-maverick-17b-instruct-v1:0, meta.llama4-maverick-17b-instruct-v1:0:128k, meta.llama4-maverick-17b-instruct-v1:0:1m
+Llama 4 Scout 17B meta.llama4-scout-17b-instruct-v1:0, meta.llama4-scout-17b-instruct-v1:0:128k, meta.llama4-scout-17b-instruct-v1:0:10m
+Meta Llama 3 70B meta.llama3-70b-instruct-v1:0, meta.llama3-70b-instruct-v1:0:8k
+Meta Llama 3 8B meta.llama3-8b-instruct-v1:0, meta.llama3-8b-instruct-v1:0:8k
+Meta Llama 3.1 70B meta.llama3-1-70b-instruct-v1:0, meta.llama3-1-70b-instruct-v1:0:128k
+Meta Llama 3.1 8B meta.llama3-1-8b-instruct-v1:0, meta.llama3-1-8b-instruct-v1:0:128k
+Meta Llama 3.3 70B meta.llama3-3-70b-instruct-v1:0
+MiniMax M2 minimax.minimax-m2
+MiniMax M2.1 minimax.minimax-m2.1
+Mistral 7B mistral.mistral-7b-instruct-v0:2
+Mistral Mixtral 8x7B mistral.mixtral-8x7b-instruct-v0:1
+Nemotron Nano 2 9B nvidia.nemotron-nano-9b-v2
+Nemotron Nano 2 VL 12B nvidia.nemotron-nano-12b-v2
+Qwen3 Coder 30B qwen.qwen3-coder-30b-a3b-v1:0; qwen.qwen3-coder-30b-a3b-instruct
+Qwen3 Coder 480B qwen.qwen3-coder-480b-a35b-v1:0; qwen.qwen3-coder-480b-a35b-instruct
+Voxtral Mini 1.0 mistral.voxtral-mini-3b-2507
+Voxtral Small 1.0 mistral.magistral-small-2509
+GLM 4.7 zai.glm-4.7
+Gemma 3 27B google.gemma-3-27b-it
+Gemma 3 12B google.gemma-3-12b-it
+
+
+If you have any questions or concerns, please reach out to AWS Support [4].
+
+[1] https://docs.aws.amazon.com/health/latest/ug/aws-health-planned-lifecycle-events.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html
+[3] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[4] https://aws.amazon.com/support`
       },
       {
         date_of_change: "2028-09-25",
