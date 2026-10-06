@@ -3290,6 +3290,53 @@ mark.desc-highlight {
 }
 
 /* -------------------------------------------------------------------------
+   Coverage Radar Chart
+   ------------------------------------------------------------------------- */
+.radar-layout {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+#perspectives-radar-chart {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  min-width: 0;
+}
+#perspectives-radar-chart svg {
+  max-width: 100%;
+  height: auto;
+}
+.radar-legend {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+.radar-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+.radar-legend-item:hover {
+  background: #f3f4f6;
+}
+.radar-legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* -------------------------------------------------------------------------
    What the AIs noticed — observations section
    ------------------------------------------------------------------------- */
 .obs-category {

@@ -120,7 +120,7 @@
 
           {{#if object_info.labeltext}}
           <div class="attention-card attention-card--curator">
-            <h4 class="attention-card-heading">A curator wrote</h4>
+            <h4 class="attention-card-heading">A Harvard Art Museums staff member wrote</h4>
             <div class="attention-card-body">
               {{{markdown object_info.labeltext}}}
             </div>
@@ -146,6 +146,15 @@
                   <h5 class="perspectives-block-heading">Mood palette</h5>
                   <p class="perspectives-divergence-intro">Expressive and interpretive language drawn from AI descriptions — how the models characterize atmosphere, feeling, and tone rather than what they identify.</p>
                   <div id="perspectives-mood-list" class="perspectives-mood-list"></div>
+                </div>
+
+                <div id="perspectives-radar" class="perspectives-block" style="display:none;">
+                  <h5 class="perspectives-block-heading">Coverage map</h5>
+                  <p class="perspectives-divergence-intro">How each source distributes its attention across different dimensions of description. Overlapping shapes indicate shared focus; extended arms indicate where a source goes deeper.</p>
+                  <div class="radar-layout">
+                    <div id="perspectives-radar-chart"></div>
+                    <div id="perspectives-radar-legend" class="radar-legend"></div>
+                  </div>
                 </div>
 
                 <div id="perspectives-agreement" class="perspectives-block">
@@ -772,6 +781,7 @@
     renderChips(data);
     renderObservations(data);
     renderMoodPalette(data);
+    renderCoverageRadar(data);
     renderConcepts(data);
     renderThematic(data);
     renderDivergence(data);
@@ -1066,6 +1076,152 @@
     var open = body.style.display !== 'none';
     body.style.display = open ? 'none' : '';
     category.classList.toggle('obs-category--open', !open);
+  }
+
+  // -------------------------------------------------------------------------
+  // Coverage Radar Chart (D3)
+  // -------------------------------------------------------------------------
+  var RADAR_COLORS = [
+    '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
+    '#0891b2', '#be185d', '#4d7c0f', '#6366f1', '#475569'
+  ];
+
+  function renderCoverageRadar(data) {
+    var radar = data.coverage_radar;
+    if (!radar || !radar.sources || radar.sources.length === 0) return;
+
+    document.getElementById('perspectives-radar').style.display = '';
+
+    var container = document.getElementById('perspectives-radar-chart');
+    var dims = radar.dimensions;
+    var sources = radar.sources;
+    var numAxes = dims.length;
+
+    var width = Math.min(container.offsetWidth || 800, 800);
+    var height = width;
+    var cx = width / 2;
+    var cy = height / 2;
+    var radius = (width / 2) - 130;
+    var angleSlice = (Math.PI * 2) / numAxes;
+
+    var svg = d3.select(container).append('svg')
+      .attr('width', width)
+      .attr('height', height)
+      .attr('viewBox', '0 0 ' + width + ' ' + height);
+
+    var g = svg.append('g')
+      .attr('transform', 'translate(' + cx + ',' + cy + ')');
+
+    // Grid circles
+    var levels = 5;
+    for (var lv = 1; lv <= levels; lv++) {
+      var r = (radius / levels) * lv;
+      g.append('circle')
+        .attr('r', r)
+        .attr('fill', 'none')
+        .attr('stroke', '#e5e7eb')
+        .attr('stroke-width', 1);
+    }
+
+    // Axis lines and labels
+    for (var i = 0; i < numAxes; i++) {
+      var angle = angleSlice * i - Math.PI / 2;
+      var x = Math.cos(angle) * radius;
+      var y = Math.sin(angle) * radius;
+
+      g.append('line')
+        .attr('x1', 0).attr('y1', 0)
+        .attr('x2', x).attr('y2', y)
+        .attr('stroke', '#d1d5db')
+        .attr('stroke-width', 1);
+
+      var labelX = Math.cos(angle) * (radius + 18);
+      var labelY = Math.sin(angle) * (radius + 18);
+      var anchor = Math.abs(labelX) < 5 ? 'middle' : (labelX > 0 ? 'start' : 'end');
+
+      g.append('text')
+        .attr('x', labelX)
+        .attr('y', labelY)
+        .attr('text-anchor', anchor)
+        .attr('dominant-baseline', 'middle')
+        .attr('font-size', '11px')
+        .attr('fill', '#374151')
+        .text(dims[i].label);
+    }
+
+    // Source polygons — each in a group for highlight interaction
+    var polyGroups = [];
+    sources.forEach(function(src, idx) {
+      var color = RADAR_COLORS[idx % RADAR_COLORS.length];
+      var pg = g.append('g').attr('class', 'radar-poly').attr('data-idx', idx);
+      var points = [];
+      for (var i = 0; i < numAxes; i++) {
+        var angle = angleSlice * i - Math.PI / 2;
+        var val = src.values[dims[i].key] ? src.values[dims[i].key].normalized : 0;
+        var r = val * radius;
+        points.push([Math.cos(angle) * r, Math.sin(angle) * r]);
+      }
+
+      var pathData = 'M' + points.map(function(p) { return p[0] + ',' + p[1]; }).join('L') + 'Z';
+
+      pg.append('path')
+        .attr('d', pathData)
+        .attr('fill', color)
+        .attr('fill-opacity', 0.08)
+        .attr('stroke', color)
+        .attr('stroke-width', 1.5)
+        .attr('stroke-opacity', 0.7);
+
+      points.forEach(function(p) {
+        pg.append('circle')
+          .attr('cx', p[0]).attr('cy', p[1])
+          .attr('r', 3)
+          .attr('fill', color)
+          .attr('fill-opacity', 0.6);
+      });
+
+      polyGroups.push(pg);
+    });
+
+    // Highlight interaction
+    function highlightSource(idx) {
+      polyGroups.forEach(function(pg, i) {
+        if (i === idx) {
+          pg.selectAll('path').attr('fill-opacity', 0.25).attr('stroke-width', 3).attr('stroke-opacity', 1);
+          pg.selectAll('circle').attr('r', 4).attr('fill-opacity', 1);
+          pg.raise();
+        } else {
+          pg.selectAll('path').attr('fill-opacity', 0.03).attr('stroke-width', 1).attr('stroke-opacity', 0.2);
+          pg.selectAll('circle').attr('fill-opacity', 0.15);
+        }
+      });
+    }
+    function resetHighlight() {
+      polyGroups.forEach(function(pg) {
+        pg.selectAll('path').attr('fill-opacity', 0.08).attr('stroke-width', 1.5).attr('stroke-opacity', 0.7);
+        pg.selectAll('circle').attr('r', 3).attr('fill-opacity', 0.6);
+      });
+    }
+
+    // Legend with hover
+    var legendEl = document.getElementById('perspectives-radar-legend');
+    var legendHtml = '';
+    sources.forEach(function(src, idx) {
+      var color = RADAR_COLORS[idx % RADAR_COLORS.length];
+      legendHtml += '<span class="radar-legend-item" data-radar-idx="' + idx + '">'
+        + '<span class="radar-legend-swatch" style="background:' + color + '"></span>'
+        + escHtml(src.source)
+        + '</span>';
+    });
+    legendEl.innerHTML = legendHtml;
+
+    // Attach hover events to legend items
+    var legendItems = legendEl.querySelectorAll('.radar-legend-item');
+    legendItems.forEach(function(item) {
+      var idx = parseInt(item.getAttribute('data-radar-idx'));
+      item.addEventListener('mouseenter', function() { highlightSource(idx); });
+      item.addEventListener('mouseleave', function() { resetHighlight(); });
+    });
   }
 
   function renderDownloadBtn(data) {

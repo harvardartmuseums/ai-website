@@ -11,7 +11,7 @@ var MODELS = require('../../models');
 // major for schema/NLP backend changes).
 // ---------------------------------------------------------------------------
 
-const ALGORITHM_VERSION = 'ace-v1.6.1';
+const ALGORITHM_VERSION = 'ace-v1.7.0';
 
 const CONFIG = {
   min_services:                2,
@@ -293,7 +293,7 @@ const OBSERVATION_CATEGORIES = [
       'lobster','turtle','tortoise','frog','lizard','crocodile',
       'jellyfish','seahorse','shellfish','oyster',
       'mammal','marine mammal','marine invertebrates','invertebrate','reptile',
-      'beast','creature','animal','animals',
+      'beast','creature','animal','animals','monster','sea monster','mythical creature','mythical animal',
     ]),
   },
   {
@@ -332,7 +332,7 @@ const OBSERVATION_CATEGORIES = [
       'sculpture','bust','doll','toy','balloon','flag',
       'musical instrument','guitar','piano','violin','drum','harp',
       'umbrella','glasses','sunglasses','camera','pen',
-      'rug','furniture','shelf','desk','couch','stool','pillow',
+      'rug','furniture','shelf','desk','couch','stool','pillow','chain',
     ]),
   },
   {
@@ -990,6 +990,90 @@ function extractObservations(descAnnotations, regionAnnotations) {
 }
 
 // ---------------------------------------------------------------------------
+// Coverage Radar — per-source term coverage across dimensions
+// ---------------------------------------------------------------------------
+
+const RADAR_DIMENSIONS = [
+  { key: 'people',             label: 'People & Figures',     seeds: OBSERVATION_CATEGORIES[0].seeds },
+  { key: 'objects',            label: 'Objects & Artefacts',  seeds: OBSERVATION_CATEGORIES[3].seeds },
+  { key: 'setting',            label: 'Setting & Space',      seeds: OBSERVATION_CATEGORIES[4].seeds },
+  { key: 'colour_light',      label: 'Colour & Light',       seeds: OBSERVATION_CATEGORIES[5].seeds },
+  { key: 'action',            label: 'Action & Gesture',     seeds: OBSERVATION_CATEGORIES[2].seeds },
+  { key: 'animals',           label: 'Animals & Creatures',  seeds: OBSERVATION_CATEGORIES[1].seeds },
+  { key: 'material_technique', label: 'Material & Technique', seeds: OBSERVATION_CATEGORIES[6].seeds },
+  { key: 'mood',              label: 'Mood & Atmosphere',    seeds: MOOD_SEEDS },
+];
+
+function extractCoverageRadar(descAnnotations, object_info) {
+  // source → dimension → Set of matched terms
+  const coverage = new Map();
+
+  function ensureSource(src) {
+    if (!coverage.has(src)) {
+      const dims = {};
+      for (const d of RADAR_DIMENSIONS) dims[d.key] = new Set();
+      coverage.set(src, dims);
+    }
+    return coverage.get(src);
+  }
+
+  for (const ann of descAnnotations) {
+    const body = stripMarkdown(ann.body || '');
+    if (!body.trim()) continue;
+    const source = ann.source;
+    const dims = ensureSource(source);
+    const words = body.toLowerCase().replace(/[^a-z\s-]/g, ' ').split(/\s+/).filter(Boolean);
+
+    for (const word of words) {
+      for (const d of RADAR_DIMENSIONS) {
+        if (d.seeds.has(word)) {
+          dims[d.key].add(word);
+        }
+      }
+    }
+  }
+
+  // Include curator wall label if available
+  if (object_info && object_info.labeltext) {
+    const dims = ensureSource('Curator');
+    const words = object_info.labeltext.toLowerCase().replace(/[^a-z\s-]/g, ' ').split(/\s+/).filter(Boolean);
+    for (const word of words) {
+      for (const d of RADAR_DIMENSIONS) {
+        if (d.seeds.has(word)) {
+          dims[d.key].add(word);
+        }
+      }
+    }
+  }
+
+  // Build result: find max per dimension for normalization
+  const maxPerDim = {};
+  for (const d of RADAR_DIMENSIONS) maxPerDim[d.key] = 0;
+  for (const [, dims] of coverage) {
+    for (const d of RADAR_DIMENSIONS) {
+      maxPerDim[d.key] = Math.max(maxPerDim[d.key], dims[d.key].size);
+    }
+  }
+
+  const sources = [];
+  for (const [src, dims] of coverage) {
+    const values = {};
+    for (const d of RADAR_DIMENSIONS) {
+      const raw = dims[d.key].size;
+      values[d.key] = { raw, normalized: maxPerDim[d.key] > 0 ? raw / maxPerDim[d.key] : 0 };
+    }
+    sources.push({ source: src, values });
+  }
+  sources.sort((a, b) => a.source.localeCompare(b.source));
+
+  return {
+    dimensions: RADAR_DIMENSIONS.map(d => ({ key: d.key, label: d.label })),
+    sources,
+    max_per_dimension: maxPerDim,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main compute function
 // ---------------------------------------------------------------------------
 
@@ -1030,6 +1114,9 @@ function compute(ai_data, object_info, display_image) {
 
   // Mood palette — expressive/interpretive language from descriptions
   const moodPalette = extractMoodPalette(descAnnotations);
+
+  // Coverage radar — per-source term coverage across dimensions
+  const coverageRadar = extractCoverageRadar(descAnnotations, object_info);
 
   // Aggregate
   const conceptMap = aggregateOccurrences(occurrences);
@@ -1190,6 +1277,7 @@ function compute(ai_data, object_info, display_image) {
     divergence_signals:  topDivergence,
     observations:        observations,
     mood_palette:        moodPalette,
+    coverage_radar:      coverageRadar,
   };
 }
 
