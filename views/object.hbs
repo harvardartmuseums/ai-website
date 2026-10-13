@@ -1,411 +1,97 @@
-<section class="object-view-panel">
-  <a class="object-nav-header" href="/">
-    <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
-  </a>
-  <div class="object-image-container">
-    <div id="openseadragon1">
-    </div>
-    <div id="image-toolbar">
-      <a id="zoom-in" href="#zoom-in" title="Zoom in"><i class="fa fa-search-plus toolbar-button"></i></a>
-      <a id="zoom-out" href="#zoom-out" title="Zoom out"><i class="fa fa-search-minus toolbar-button"></i></a>
-    </div>
-  </div>
-</section>
-
-<section class="object-info-panel">
-    <div class="object-human-info">
-        <h2>Human Generated Data</h2>
-    </div>
-    <table class="object-human-info">
-      <tr>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Title</h5>
-            <h4>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h4>
-          </div>
-        </td>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Date</h5>
-            <h4>{{object_info.dated}}</h4>
-            {{#unless object_info.dated}}
-              <h4>-</h4>
-            {{/unless}}
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>People</h5>
-            {{#each object_info.people}}
-              <h4>{{role}}: {{name}}, {{culture}} {{displaydate}}</h4>
-            {{/each}}
-            {{#unless object_info.people}}
-              <h4>-</h4>
-            {{/unless}}
-          </div>
-        </td>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Classification</h5>
-            <h4>{{object_info.classification}}</h4>
-          </div>
-        </td>
-      </tr>
-      </tr>
-      <tr>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Credit Line</h5>
-            <h4>{{object_info.creditline}}, {{object_info.objectnumber}}</h4>
-          </div>
-        </td>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            {{#if object_info.copyright}}
-            <h5>Copyright</h5>
-            <h4>{{object_info.copyright}}</h4>
-            {{/if}}
-          </div>
-        </td>
-      </tr>      
-    </table>
-    <div class="object-human-info-mobile">
-      <div class="object-info-section">
-        <h2>Human Generated Data</h2>
-      </div>
-      <div class="object-info-section">
-        <h5>Title</h5>
-        <h4>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h4>
-      </div>
-      {{#if object_info.people}}
-      <div class="object-info-section">
-        <h5>People</h5>
-        {{#each object_info.people}}
-          <h4>{{role}}: {{name}}, {{culture}} {{displaydate}}</h4>
-        {{/each}}
-      </div>
-      {{/if}}
-      {{#if object_info.dated}}
-      <div class="object-info-section">
-        <h5>Date</h5>
-        <h4>{{object_info.dated}}</h4>
-      </div>
-      {{/if}}
-      <div class="object-info-section">
-        <h5>Classification</h5>
-        <h4>{{object_info.classification}}</h4>
-      </div>
-      <div class="object-info-section">
-        <h5>Credit Line</h5>
-        <h4>{{object_info.creditline}}, {{object_info.objectnumber}}</h4>
-      </div>
-      {{#if object_info.copyright}}
-      <div class="object-info-section">
-        <h5>Copyright</h5>
-        <h4>{{object_info.copyright}}</h4>
-      </div>
-      {{/if}}
-    </div>
-
-    <div class="gray-line-break"></div>
-    <div class="content">
-    {{#if ai_sorted}}
-      <div class="ai-content">
-
-        <section class="ai-section attention-section" id="attention-section">
-          <h2>Points of attention</h2>
-          <p class="attention-intro">What has been noticed about this image — by curators and by AI services independently. Neither is definitive; both offer entry points for looking.</p>
-
-          {{#if object_info.labeltext}}
-          <div class="attention-card attention-card--curator">
-            <h4 class="attention-card-heading">A Harvard Art Museums staff member wrote</h4>
-            <div class="attention-card-body">
-              {{{markdown object_info.labeltext}}}
-            </div>
-          </div>
-          {{/if}}
+{{> image_context}}
+<section class="object-info-panel image-research-workspace">
+  <header class="research-heading"><span class="research-label">Image research</span><h1>AI analysis of image {{display_image.imageid}}</h1><p>Image of {{object_info.title}} · Associated object {{object_info.id}}</p>{{#if image_summary.descriptions}}<p class="image-summary">{{{image_summary.descriptions}}}</p>{{/if}}</header>
+  <nav class="research-tabs" aria-label="Image analysis views"><a href="#perspectives" data-research-tab="perspectives">Perspectives <span class="beta-badge">Beta</span></a><a href="#descriptions" data-research-tab="descriptions">Descriptions</a><a href="#compare" data-research-tab="compare">Compare</a><a href="#tags" data-research-tab="tags">Tags</a><a href="#other" data-research-tab="other">Other analyses</a></nav>
+  <div class="content">
+    {{#if selected_annotation}}
+    <section class="research-source-record" id="research-source-record">
+      <h2>Complete source annotation</h2>
+      <p>Annotation {{selected_annotation.id}} · {{selected_annotation.source}}{{#if selected_annotation.model}} · {{selected_annotation.model}}{{/if}} · {{selected_annotation.type}}</p>
+      <p class="research-note">About image {{display_image.imageid}}{{#if selected_annotation.createdate}} · Generated {{selected_annotation.createdate}}{{/if}}</p>
+      <div class="research-source-body">{{selected_annotation.body}}</div>
+    </section>
+    {{/if}}
+<div id="research-perspectives" data-research-panel="perspectives"><section class="ai-section attention-section" id="attention-section">
+          <h2>AI perspectives on this image</h2>
+          <p class="attention-intro">Explore patterns across providers, then inspect the descriptions behind them.</p>
 
           <div class="attention-card attention-card--ai" id="ai-perspectives-section">
-            <h4 class="attention-card-heading">AI Perspectives <span class="beta-badge">Beta</span></h4>
+            <div class="attention-card-heading"></div>
             <div id="perspectives-panel">
               <div id="perspectives-loading"><p class="perspectives-status">Loading…</p></div>
               <div id="perspectives-error" style="display:none;"><p class="perspectives-status perspectives-status--error"></p></div>
               <div id="perspectives-content" style="display:none;">
 
-                <div id="perspectives-chips" class="perspectives-chips"></div>
-
-                <div id="ai-observations-section" class="perspectives-block">
-                  <h5 class="perspectives-block-heading">What the AIs noticed</h5>
-                  <p class="perspectives-divergence-intro">Phrases extracted from AI-generated descriptions, grouped by category. No agreement threshold — everything the models mentioned, organised for browsing.</p>
-                  <div id="observations-categories"></div>
-                </div>
-
-                <div id="perspectives-mood" class="perspectives-block" style="display:none;">
-                  <h5 class="perspectives-block-heading">Mood palette</h5>
-                  <p class="perspectives-divergence-intro">Expressive and interpretive language drawn from AI descriptions — how the models characterize atmosphere, feeling, and tone rather than what they identify.</p>
-                  <div id="perspectives-mood-list" class="perspectives-mood-list"></div>
-                </div>
-
                 <div id="perspectives-radar" class="perspectives-block" style="display:none;">
-                  <h5 class="perspectives-block-heading">Coverage map</h5>
-                  <p class="perspectives-divergence-intro">How each source distributes its attention across different dimensions of description. Overlapping shapes indicate shared focus; extended arms indicate where a source goes deeper.</p>
+                  <h5 id="radar-heading" class="perspectives-block-heading">What models describe</h5>
+                  <p class="perspectives-divergence-intro">Breadth of descriptive vocabulary across eight dimensions</p>
+                  <div class="radar-controls">
+                    <label for="radar-view">Compare by</label>
+                    <select id="radar-view" class="compare-select"><option value="outputs">Models · individual outputs</option><option value="providers">Providers · pooled vocabulary</option></select>
+                    <label for="radar-search">Find a model or provider</label>
+                    <input id="radar-search" type="search" placeholder="Model, provider, date, or annotation ID">
+                    <label for="radar-add">Add a series</label><select id="radar-add" class="compare-select"></select>
+                  </div>
+                  <p id="radar-view-note" class="research-note"></p>
+                  <details class="radar-method"><summary>How this is calculated</summary><p>Models shows one description per series, identified by its annotation ID. Providers shows the union of vocabulary across each provider’s descriptions. Both views use the largest provider union per dimension from all AI outputs for this image. Hiding series keeps the scale fixed. Word counts indicate opportunities to match vocabulary; larger shapes do not indicate accuracy or quality.</p><p>The optional object wall label never sets the AI scale. Reference values above the AI maximum are marked at the chart edge; raw counts remain available below. A dimension with no matched AI vocabulary has no relative scale.</p></details>
                   <div class="radar-layout">
                     <div id="perspectives-radar-chart"></div>
                     <div id="perspectives-radar-legend" class="radar-legend"></div>
                   </div>
+                  <label for="radar-dimension">Explore a dimension</label><select id="radar-dimension" class="compare-select"></select>
+                  <div id="radar-evidence" aria-live="polite"></div>
                 </div>
 
-                <div id="perspectives-agreement" class="perspectives-block">
-                  <h5 class="perspectives-block-heading">Where AI services tend to agree</h5>
-                  <div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
+
+                <div id="perspectives-chips" class="perspectives-chips"></div>
+
+                <details class="research-perspective-detail"><summary>What the AIs noticed</summary><div id="ai-observations-section" class="perspectives-block">
+                  <h5 class="perspectives-block-heading">What the AIs noticed</h5>
+                  <p class="perspectives-divergence-intro">Phrases extracted from AI-generated descriptions, grouped by category. No agreement threshold — everything the models mentioned, organised for browsing.</p>
+                  <div id="observations-categories"></div>
+                </div></details>
+
+                <details class="research-perspective-detail"><summary>Mood palette</summary><div id="perspectives-mood" class="perspectives-block" style="display:none;">
+                  <h5 class="perspectives-block-heading">Mood palette</h5>
+                  <p class="perspectives-divergence-intro">Expressive and interpretive language drawn from AI descriptions — how the models characterize atmosphere, feeling, and tone rather than what they identify.</p>
+                  <div id="perspectives-mood-list" class="perspectives-mood-list"></div>
+                </div></details>
+
+                <details class="research-perspective-detail"><summary>Shared vocabulary</summary><div id="perspectives-agreement" class="perspectives-block">
+                  <h5 class="perspectives-block-heading">Shared vocabulary across providers</h5>
+                  <p class="perspectives-divergence-intro">Repeated terms and conservative linguistic equivalents. Related concepts retain separate support counts.</p><div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
                   <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
-                </div>
+                </div></details>
 
-                <div id="perspectives-thematic" class="perspectives-block" style="display:none;">
+                <details class="research-perspective-detail"><summary>Thematic terms</summary><div id="perspectives-thematic" class="perspectives-block" style="display:none;">
                   <h5 class="perspectives-block-heading">Thematic terms — what the AI descriptions are about</h5>
                   <p class="perspectives-divergence-intro">Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image. These reflect conceptual and thematic content rather than observed features. Treat them as prompts for inquiry, not confirmed readings.</p>
                   <div id="perspectives-thematic-list" class="perspectives-thematic-list"></div>
-                </div>
+                </div></details>
 
-                <div id="perspectives-divergence" class="perspectives-block" style="display:none;">
-                  <h5 class="perspectives-block-heading">Where AI services differ — possible lines of inquiry</h5>
-                  <p class="perspectives-divergence-intro">Cases where services appear to contradict each other. They may point to something ambiguous, layered, or worth a closer look.</p>
-                  <div id="perspectives-divergence-list" class="perspectives-divergence-list"></div>
-                </div>
+                <details class="research-perspective-detail"><summary>How descriptions relate</summary><div id="perspectives-relationships" class="perspectives-block" style="display:none;">
+                  <h5 class="perspectives-block-heading">How descriptions relate</h5>
+                  <p class="perspectives-divergence-intro">Explore exact terms within curated concept families. Shared family membership does not imply the same meaning or agreement. Excerpts preserve the context of each mention.</p>
+                  <div id="perspectives-relationships-list" class="perspectives-relationships-list"></div>
+                </div></details>
 
                 <p class="perspectives-footer-note">This tool currently processes English-language AI annotations only.</p>
               </div>
             </div>
           </div>
-        </section>
-
-        <div class="gray-line-break"></div>
-
-        <h2>Machine Generated Data</h2>
-        <section class="ai-section">
-          <h3>Tags</h3>
-          <div class="tag-box">
-            {{#each ai_sorted.tagsect}}
-              <div class="service-tags">
-                <div class="tag-heading">
-                  <h4>{{source}}<br/><span>created on {{createdate}}</span></h4>
-                </div>
-                <div class="tag-list">
-                  <table class="tag-table">
-                    {{#each tags}}
-                      <tr>
-                        <td class="tag-body"><a href="/search/{{body}}">{{body}}</a></td>
-                        <td class="tag-confidence">{{confidence}}</td>
-                      </tr>
-                      <tr>
-                        <td colspan="2">
-                          <div class="confidence-bar">
-                            <div class="red-bar" style="width:{{confidence}}%"></div>
-                          </div>
-                        <td>
-                      </tr>
-                    {{/each}}
-                  </table>
-                </div>
-              </div>
-            {{/each}}
-          </div>
-        </section>
-        <section class="ai-section">
-          <h3>Color Analysis</h3>
-          <div class="content-box captions-colors-box">
-            <div class="captions-colors-box-content" style="height:25px;">
-           {{#each object_info.colors}}
-              <div style="float:left;background:{{color}};height:25px;width:25px;"></div>
-           {{/each}}
-           </div>
-           </div>
-        </section>
-        {{#if ai_sorted.facesect}}
-          <section class="ai-section">
-            <h3>Face analysis</h3>
-            <div class="faces-box">
-              <div class="faces-toggle">
-                {{#each ai_sorted.facesect}}
-                  <div class="face-subsect">
-                    <div class="faces-sources">
-                      <h4>{{source}}</h4>
-                    </div>
-                    <div class="faces-icons">
-                      {{#each faces}}
-                        <button id="{{@key}}face-button" onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{imageFragmentURL}})"></div></button>
-                      {{/each}}
-                    </div>
-                  </div>
-                {{/each}}
-              </div>
-              <div class="face-info">
-                {{#each ai_sorted.facesect}}
-                  {{#each faces}}
-                    <div class="face-info-box" id="{{id}}">
-                      <div class="face-content">
-                        <div class="face-image">
-                          <img src={{imageFragmentURL}}></img>
-                        </div>
-                        <div class="face-text">
-                          <h4>{{source}}</h4>
-                          <table>
-                            {{#each sorted_raw}}
-                              <tr>
-                                <td class="face-text-type">{{type}}</td>
-                                <td class="face-text-body">{{body}}</td>
-                              </tr>
-                            {{/each}}
-                          </table>
-                        </div>
-                      </div>
-                    </div>
-                  {{/each}}
-                {{/each}}
-              </div>
-            </div>
-          </section>
-        {{/if}}
-        {{#if ai_sorted.featuresect}}
-          <section class="ai-section">
-            <h3>Feature analysis</h3>
-            <div class="faces-box">
-              <div class="faces-toggle">
-                {{#each ai_sorted.featuresect}}
-                  <div class="face-subsect">
-                    <div class="faces-sources">
-                      <h4>{{source}}</h4>
-                    </div>
-                    <div class="faces-icons">
-                      {{#isEmpty features}}
-                        <div><p>No features identified</p></div>
-                      {{else}}
-                        {{#each features}}
-                            <div class="feature-icon-title">{{@key}}</div>
-                            <div>
-                            {{#each this}}
-                              <button id="{{@key}}feature-button" onclick="togglefeature('{{id}}')">
-                              <div class="feature-images" id="{{id}}featureicon" style="background-image:url({{imageFragmentURL}})"></div>
-                              </button>
-                            {{/each}}
-                            </div>
-                        {{/each}}
-                      {{/isEmpty}}
-                  </div>
-                </div>
-                {{/each}}
-              </div>
-              <div class="face-info">
-                  {{#each ai_sorted.featuresect}}
-                    {{#each features}}
-                    {{#each this}}
-                      <div class="feature-info-box" id="{{id}}">
-                        <div class="feature-content">
-                          <div class="feature-image">
-                            <img class="feature-slide" src={{imageFragmentURL}}></img>
-                          </div>
-                          <div class="feature-text">
-                            <h4>{{source}}</h4>
-                            <table>
-                              <tr>
-                                <td class="tag-body"><a href="/feature/{{body}}">{{body}}</a></td>
-                                <td class="tag-confidence">{{confidence}}%</td>
-                              </tr>
-                              <tr>
-                                <td colspan="2">
-                                  <div class="confidence-bar">
-                                    <div class="red-bar" style="width:{{confidence}}%"></div>
-                                  </div>
-                                <td>
-                              </tr>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                      {{/each}}
-                    {{/each}}
-                  {{/each}}
-              </div>
-            </div>
-          </section>
-        {{/if}}
-        {{#if ai_sorted.categories}}
-          <section class="ai-section">
-            <h3>Categories</h3>
-            <div class="content-box captions-colors-box">
-              {{#each ai_sorted.categories}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>{{source}}<br/><span style="font-size: small;">created on {{createdate}}</span></h4>
-                </div>
-                {{#isEmpty categories}}
-                <p>No categories identified</p>
-                {{else}}
-                <table class="captions-table">
-                  {{#each categories}}
-                    <tr>
-                      <td><a href="/category/{{body}}">{{body}}</a></td>
-                      <td class="tag-confidence">{{confidence}}%</td>
-                    <tr>
-                    <tr>
-                      <td colspan="2">
-                        <div class="confidence-bar">
-                          <div class="red-bar" style="width:{{confidence}}%"></div>
-                        </div>
-                      <td>
-                    </tr>
-                  {{/each}}
-                </table>
-                {{/isEmpty}}
-              </div>
-              {{/each}}
-            </div>
-          </section>
-        {{/if}}        
-        {{#if ai_sorted.captions}}
-          <section class="ai-section">
-            <h3>Captions</h3>
-              <div class="content-box captions-colors-box">
-              {{#each ai_sorted.captions}}
-              <div class="captions-colors-box-content">
-                <div class="captions-colors-head">
-                  <h4>{{source}}<br/><span style="font-size: small;">created {{#if captions.0.model}}by {{captions.0.model}} {{/if}}on {{createdate}}</span></h4>
-                </div>
-                <table class="captions-table">
-                  {{#each captions}}
-                    <tr>
-                      <td><a href="/search/{{body}}">{{body}}</a></td>
-                      <td class="tag-confidence">{{confidence}}%</td>
-                    <tr>
-                    <tr>
-                      <td colspan="2">
-                        <div class="confidence-bar">
-                          <div class="red-bar" style="width:{{confidence}}%"></div>
-                        </div>
-                      <td>
-                    </tr>
-                  {{/each}}
-                </table>
-              </div>
-              {{/each}}
-              </div>
-          </section>
-        {{/if}}
-        {{#if ai_sorted.descriptions}}
-          <section class="ai-section" id="descriptions">
-              <h3>Descriptions <a class="compare-link" href="/object/{{object_info.id}}/image/{{display_image.imageid}}/compare"><i class="fa fa-columns"></i> Compare</a></h3>
-              {{#if image_summary.descriptions}}<p class="image-summary">{{{image_summary.descriptions}}}</p>{{/if}}
+        </section></div>
+<div id="research-descriptions" data-research-panel="descriptions">{{#unless ai_sorted.descriptions}}<p>No model descriptions are available for this image.</p>{{/unless}}<section class="ai-section" id="descriptions">
+              <h3>Descriptions <a class="compare-link" href="#compare"><i class="fa fa-columns"></i> Compare</a></h3>
               <div class="desc-toolbar">
                 <div class="desc-toolbar-section">
                   <div class="desc-toolbar-controls">
                     <div class="desc-toolbar-control-group">
-                      <span class="desc-toolbar-label">Show me descriptions generated by</span>
+                      <label class="desc-toolbar-label" for="desc-source-select">Provider</label>
                       <select id="desc-source-select" class="compare-select desc-sort-select"></select>
-                      <span class="desc-toolbar-label">that are </span>
+                      <label class="desc-toolbar-label" for="desc-model-select">Model</label><select id="desc-model-select" class="compare-select desc-sort-select"></select>
+                      <label class="desc-toolbar-label" for="desc-length-select">Length</label>
                       <select id="desc-length-select" class="compare-select desc-sort-select"></select>
-                      <span class="desc-toolbar-label">and sort them by</span>
+                      <label class="desc-toolbar-label" for="desc-sort-select">Sort</label>
                       <select id="desc-sort-select" class="compare-select desc-sort-select">
                         <option value="source-asc">source A–Z</option>
                         <option value="words-desc">most words</option>
@@ -423,22 +109,22 @@
                 <div class="desc-toolbar-section">
                   <div class="desc-toolbar-controls">
                     <div class="desc-toolbar-control-group">
-                      <span class="desc-toolbar-label">Highlight</span>
+                      <label class="desc-toolbar-label" for="desc-highlight-input">Highlight</label>
                       <input type="search" id="desc-highlight-input" class="desc-highlight-input" placeholder="Search text…">
                       <span id="desc-highlight-count" class="desc-highlight-count"></span>
                     </div>
                     <div class="desc-toolbar-control-group">
-                      <button class="quickbar-btn" id="desc-density-toggle">Hide Density</button>
-                      <button class="quickbar-btn" id="desc-cost-toggle">Hide Cost</button>
+                      <button class="quickbar-btn" id="desc-density-toggle">Show language statistics</button>
+                      <button class="quickbar-btn" id="desc-cost-toggle">Show tokens</button>
                     </div>
                   </div>
                 </div>
               </div>
-              <div id="desc-cards-container">
+              <p id="desc-results-count" role="status"></p><p id="desc-filter-empty" hidden>No descriptions match these filters.</p><button type="button" class="quickbar-btn" id="desc-reset">Reset filters</button><div id="desc-cards-container">
               {{#each ai_sorted.descriptions}}
                 {{#each descriptions}}
-                  <div class="desc-card" data-wordcount="{{stats.total}}" data-source="{{../source}}" data-date="{{createdate}}" data-model-released="{{model_released}}" data-total-tokens="{{#if cost}}{{cost.total}}{{/if}}" data-default-index="{{@../index}}-{{@index}}">
-                    <div class="desc-card-header">
+                  <div class="desc-card" data-annotation-id="{{id}}" data-model="{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}" data-source-raw="{{source}}" data-wordcount="{{stats.total}}" data-source="{{../source}}" data-date="{{createdate}}" data-model-released="{{model_released}}" data-total-tokens="{{#if cost}}{{cost.total}}{{/if}}" data-default-index="{{@../index}}-{{@index}}">
+                    <div class="desc-card-header"><button type="button" class="quickbar-btn research-compare-output" data-annotation-id="{{id}}">Compare with…</button>
                       <span class="desc-card-title">{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}<span class="desc-card-source">{{../source}}</span></span>
                     </div>
                     <div class="desc-card-body">
@@ -466,7 +152,7 @@
                       </div>
                       {{/if}}
                       <div class="panel-stats-section panel-stats-section--cost desc-card-cost">
-                        <span class="sidebar-group-label panel-stats-label">Cost</span>
+                        <span class="sidebar-group-label panel-stats-label">Token usage</span>
                         <div class="panel-stats panel-stats--tokens">
                         {{#if cost}}
                           <span class="panel-stat" title="Tokens sent to the model">Input tokens <strong>{{cost.input}}</strong></span>
@@ -484,10 +170,196 @@
                 {{/each}}
               {{/each}}
               </div>{{! /#desc-cards-container }}
-          </section>
-        {{/if}}
-        {{#if ai_sorted.textsect}}
-          <section class="ai-section">
+          </section></div>
+<section id="research-compare" data-research-panel="compare"><h2>Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
+<div id="research-tags" data-research-panel="tags">{{#unless ai_sorted.tagsect}}<p>No tags are available for this image.</p>{{/unless}}<section class="ai-section">
+          <h3>Tags</h3>
+          <div class="tag-box">
+            {{#each ai_sorted.tagsect}}
+              <div class="service-tags">
+                <div class="tag-heading">
+                  <h4>{{source}}<br/><span>created on {{createdate}}</span></h4>
+                </div>
+                <div class="tag-list">
+                  <table class="tag-table">
+                    {{#each tags}}
+                      <tr>
+                        <td class="tag-body"><a href="/search/{{urlencode body}}">{{body}}</a></td>
+                        <td class="tag-confidence">{{confidence}}</td>
+                      </tr>
+                      <tr>
+                        <td colspan="2">
+                          <div class="confidence-bar">
+                            <div class="red-bar" style="width:{{confidence}}%"></div>
+                          </div>
+                        </td>
+                      </tr>
+                    {{/each}}
+                  </table>
+                </div>
+              </div>
+            {{/each}}
+          </div>
+        </section></div>
+<div id="research-other" data-research-panel="other">{{#unless has_other_analysis}}<p>No other analyses are available for this image.</p>{{/unless}}{{#if ai_sorted.facesect}}<section class="ai-section">
+            <h3>Face analysis</h3>
+            <div class="faces-box">
+              <div class="faces-toggle">
+                {{#each ai_sorted.facesect}}
+                  <div class="face-subsect">
+                    <div class="faces-sources">
+                      <h4>{{source}}</h4>
+                    </div>
+                    <div class="faces-icons">
+                      {{#each faces}}
+                        <button type="button" aria-label="Inspect detected face" id="{{id}}face-button" onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{imageFragmentURL}})"></div></button>
+                      {{/each}}
+                    </div>
+                  </div>
+                {{/each}}
+              </div>
+              <div class="face-info">
+                {{#each ai_sorted.facesect}}
+                  {{#each faces}}
+                    <div class="face-info-box" id="{{id}}">
+                      <div class="face-content">
+                        <div class="face-image">
+                          <img src="{{imageFragmentURL}}" alt="Detected image region">
+                        </div>
+                        <div class="face-text">
+                          <h4>{{source}}</h4>
+                          <table>
+                            {{#each sorted_raw}}
+                              <tr>
+                                <td class="face-text-type">{{type}}</td>
+                                <td class="face-text-body">{{body}}</td>
+                              </tr>
+                            {{/each}}
+                          </table>
+                        </div>
+                      </div>
+                    </div>
+                  {{/each}}
+                {{/each}}
+              </div>
+            </div>
+          </section>{{/if}}{{#if ai_sorted.featuresect}}<section class="ai-section">
+            <h3>Feature analysis</h3>
+            <div class="faces-box">
+              <div class="faces-toggle">
+                {{#each ai_sorted.featuresect}}
+                  <div class="face-subsect">
+                    <div class="faces-sources">
+                      <h4>{{source}}</h4>
+                    </div>
+                    <div class="faces-icons">
+                      {{#isEmpty features}}
+                        <div><p>No features identified</p></div>
+                      {{else}}
+                        {{#each features}}
+                            <div class="feature-icon-title">{{@key}}</div>
+                            <div>
+                            {{#each this}}
+                              <button type="button" aria-label="Inspect detected feature" id="{{id}}feature-button" onclick="togglefeature('{{id}}')">
+                              <div class="feature-images" id="{{id}}featureicon" style="background-image:url({{imageFragmentURL}})"></div>
+                              </button>
+                            {{/each}}
+                            </div>
+                        {{/each}}
+                      {{/isEmpty}}
+                  </div>
+                </div>
+                {{/each}}
+              </div>
+              <div class="face-info">
+                  {{#each ai_sorted.featuresect}}
+                    {{#each features}}
+                    {{#each this}}
+                      <div class="feature-info-box" id="{{id}}">
+                        <div class="feature-content">
+                          <div class="feature-image">
+                            <img class="feature-slide" src="{{imageFragmentURL}}" alt="Detected image region">
+                          </div>
+                          <div class="feature-text">
+                            <h4>{{source}}</h4>
+                            <table>
+                              <tr>
+                                <td class="tag-body"><a href="/feature/{{urlencode body}}">{{body}}</a></td>
+                                <td class="tag-confidence">{{confidence}}%</td>
+                              </tr>
+                              <tr>
+                                <td colspan="2">
+                                  <div class="confidence-bar">
+                                    <div class="red-bar" style="width:{{confidence}}%"></div>
+                                  </div>
+                                <td>
+                              </tr>
+                            </table>
+                          </div>
+                        </div>
+                      </div>
+                      {{/each}}
+                    {{/each}}
+                  {{/each}}
+              </div>
+            </div>
+          </section>{{/if}}{{#if ai_sorted.categories}}<section class="ai-section">
+            <h3>Categories</h3>
+            <div class="content-box captions-colors-box">
+              {{#each ai_sorted.categories}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>{{source}}<br/><span style="font-size: small;">created on {{createdate}}</span></h4>
+                </div>
+                {{#isEmpty categories}}
+                <p>No categories identified</p>
+                {{else}}
+                <table class="captions-table">
+                  {{#each categories}}
+                    <tr>
+                      <td><a href="/category/{{urlencode body}}">{{body}}</a></td>
+                      <td class="tag-confidence">{{confidence}}%</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        <div class="confidence-bar">
+                          <div class="red-bar" style="width:{{confidence}}%"></div>
+                        </div>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </table>
+                {{/isEmpty}}
+              </div>
+              {{/each}}
+            </div>
+          </section>{{/if}}{{#if ai_sorted.captions}}<section class="ai-section">
+            <h3>Captions</h3>
+              <div class="content-box captions-colors-box">
+              {{#each ai_sorted.captions}}
+              <div class="captions-colors-box-content">
+                <div class="captions-colors-head">
+                  <h4>{{source}}<br/><span style="font-size: small;">created {{#if captions.0.model}}by {{captions.0.model}} {{/if}}on {{createdate}}</span></h4>
+                </div>
+                <table class="captions-table">
+                  {{#each captions}}
+                    <tr>
+                      <td><a href="/search/{{urlencode body}}">{{body}}</a></td>
+                      <td class="tag-confidence">{{confidence}}%</td>
+                    </tr>
+                    <tr>
+                      <td colspan="2">
+                        <div class="confidence-bar">
+                          <div class="red-bar" style="width:{{confidence}}%"></div>
+                        </div>
+                      </td>
+                    </tr>
+                  {{/each}}
+                </table>
+              </div>
+              {{/each}}
+              </div>
+          </section>{{/if}}{{#if ai_sorted.textsect}}<section class="ai-section">
             <h3>Text analysis</h3>
             <div class="content-box text-box">
                 {{#each ai_sorted.textsect}}
@@ -498,7 +370,7 @@
                     <div class="text-tags-list">
                       {{#each text}}
                         <div class="text-tag">
-                          <img class="text-image" src="{{imageFragmentURL}}"></img>
+                          <img class="text-image" src="{{imageFragmentURL}}" alt="Image region containing detected text">
                           <div class="text-icon-title">{{body}}</div>
                         </div>
                       {{/each}}
@@ -506,24 +378,27 @@
                   </div>
                 {{/each}}
             </div>
-          </section>
-        {{/if}}
-      </div>
-    {{else}}
-      No AI data for this image
-    {{/if}}
-  </div>
-</section>
-
+          </section>{{/if}}{{#if object_info.colors}}<section class="ai-section">
+          <h3>Object color palette</h3><p class="research-note">Colors from the museum object record; not a model annotation of the selected image.</p>
+          <div class="content-box captions-colors-box">
+            <div class="captions-colors-box-content" style="height:25px;">
+           {{#each object_info.colors}}
+              <div style="float:left;background:{{color}};height:25px;width:25px;"></div>
+           {{/each}}
+           </div>
+           </div>
+        </section>{{/if}}</div>
+</div></section>
 <script src="/javascripts/openseadragon/openseadragon.min.js"></script>
 
 <script type="text/javascript">
   var viewer = OpenSeadragon({
       id: "openseadragon1",
-      prefixUrl: "../javascripts/openseadragon/images/",
+      prefixUrl: "/javascripts/openseadragon/images/",
       toolbar: "image-toolbar",
       zoomInButton: "zoom-in",
       zoomOutButton: "zoom-out",
+      homeButton: "zoom-home",
       {{#if object_info.imagepermissionlevel}}
       maxZoomLevel: 1,
       {{/if}}
@@ -532,8 +407,8 @@
       ]
   });
 
-  var descDensityVisible = true;
-  var descCostVisible = true;
+  var descDensityVisible = false;
+  var descCostVisible = false;
   var originalCardHTML = new Map();
 
   function allCards() {
@@ -556,12 +431,14 @@
     var sourceSel = document.getElementById('desc-source-select');
     var lengthVal = lengthSel ? lengthSel.value : 'any';
     var sourceVal = sourceSel ? sourceSel.value : 'all';
+    var modelSel = document.getElementById('desc-model-select');
+    var modelVal = modelSel ? modelSel.value : 'all';
     var ranges = { short: [0, 100], medium: [101, 300], long: [301, Infinity] };
     var minVal = lengthVal !== 'any' ? ranges[lengthVal][0] : 0;
     var maxVal = lengthVal !== 'any' ? ranges[lengthVal][1] : Infinity;
     allCards().forEach(function(card) {
       var words = parseInt(card.dataset.wordcount, 10) || 0;
-      var srcMatch = sourceVal === 'all' || card.dataset.source === sourceVal;
+      var srcMatch = (sourceVal === 'all' || card.dataset.source === sourceVal) && (modelVal === 'all' || card.dataset.model === modelVal);
       card.style.display = (srcMatch && words >= minVal && words <= maxVal) ? '' : 'none';
     });
   }
@@ -573,21 +450,19 @@
     var cards = allCards();
     var val = select.value;
     cards.sort(function(a, b) {
-      if (val === 'words-desc') return (parseInt(b.dataset.wordcount) || 0) - (parseInt(a.dataset.wordcount) || 0);
-      if (val === 'words-asc')  return (parseInt(a.dataset.wordcount) || 0) - (parseInt(b.dataset.wordcount) || 0);
-      if (val === 'date-desc')  return (b.dataset.date || '') > (a.dataset.date || '') ? 1 : -1;
-      if (val === 'date-asc')   return (a.dataset.date || '') > (b.dataset.date || '') ? 1 : -1;
-      if (val === 'model-desc') return (b.dataset.modelReleased || '') > (a.dataset.modelReleased || '') ? 1 : -1;
-      if (val === 'model-asc')  return (a.dataset.modelReleased || '') > (b.dataset.modelReleased || '') ? 1 : -1;
-      if (val === 'source-asc') return (a.dataset.source || '').localeCompare(b.dataset.source || '');
-      if (val === 'tokens-desc') return (parseInt(b.dataset.totalTokens) || 0) - (parseInt(a.dataset.totalTokens) || 0);
-      if (val === 'tokens-asc') {
-        var ta = parseInt(a.dataset.totalTokens) || Infinity;
-        var tb = parseInt(b.dataset.totalTokens) || Infinity;
-        return ta - tb;
-      }
-      // default: restore original order via data-default-index
-      return (a.dataset.defaultIndex || '').localeCompare(b.dataset.defaultIndex || '');
+      var numeric = {words: 'wordcount', tokens: 'totalTokens'};
+      var parts = val.split('-'), field = numeric[parts[0]], direction = parts[1] === 'desc' ? -1 : 1;
+      var av, bv;
+      if (field) {
+        av = a.dataset[field] === '' ? NaN : Number(a.dataset[field]);
+        bv = b.dataset[field] === '' ? NaN : Number(b.dataset[field]);
+      } else if (parts[0] === 'date' || parts[0] === 'model') {
+        field = parts[0] === 'date' ? 'date' : 'modelReleased';
+        av = Date.parse(a.dataset[field]); bv = Date.parse(b.dataset[field]);
+      } else return (a.dataset.source || '').localeCompare(b.dataset.source || '');
+      if (!Number.isFinite(av)) return Number.isFinite(bv) ? 1 : 0;
+      if (!Number.isFinite(bv)) return -1;
+      return (av - bv) * direction;
     });
     cards.forEach(function(c) { container.appendChild(c); });
   }
@@ -602,7 +477,7 @@
       if (!textEl) return;
       if (!originalCardHTML.has(card)) originalCardHTML.set(card, textEl.innerHTML);
       textEl.innerHTML = originalCardHTML.get(card);
-      if (!query) return;
+      if (!query || card.style.display === 'none') return;
       var re;
       try { re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); }
       catch(e) { return; }
@@ -614,9 +489,16 @@
         var matches = tn.nodeValue.match(re);
         if (!matches) return;
         totalHits += matches.length;
-        var span = document.createElement('span');
-        span.innerHTML = tn.nodeValue.replace(re, '<mark class="desc-highlight">$1</mark>');
-        tn.parentNode.replaceChild(span, tn);
+        var fragment = document.createDocumentFragment();
+        var cursor = 0, match;
+        re.lastIndex = 0;
+        while ((match = re.exec(tn.nodeValue))) {
+          fragment.appendChild(document.createTextNode(tn.nodeValue.slice(cursor, match.index)));
+          var mark = document.createElement('mark'); mark.className = 'desc-highlight'; mark.textContent = match[0];
+          fragment.appendChild(mark); cursor = match.index + match[0].length;
+        }
+        fragment.appendChild(document.createTextNode(tn.nodeValue.slice(cursor)));
+        tn.parentNode.replaceChild(fragment, tn);
       });
     });
     if (countEl) countEl.textContent = query ? totalHits + (totalHits === 1 ? ' match' : ' matches') : '';
@@ -648,6 +530,15 @@
       lengthSel.addEventListener('change', applyDescFilter);
     }
 
+    var modelSel = document.getElementById('desc-model-select');
+    if (modelSel) {
+      var allModels = document.createElement('option'); allModels.value = 'all'; allModels.textContent = 'any model'; modelSel.appendChild(allModels);
+      Array.from(new Set(allCards().map(function(card) { return card.dataset.model; }).filter(Boolean))).sort().forEach(function(model) {
+        var option = document.createElement('option'); option.value = model; option.textContent = model; modelSel.appendChild(option);
+      });
+      modelSel.addEventListener('change', applyDescFilter);
+    }
+
     // Source select — single pick
     var sourceSel = document.getElementById('desc-source-select');
     if (sourceSel) {
@@ -669,15 +560,13 @@
   document.addEventListener('DOMContentLoaded', function() {
     loadPerspectives();
 
-    if (document.getElementById('0face-button')) {
-      document.getElementById('0face-button').click()
-    }
-
-    if (document.getElementById('0feature-button')) {
-      document.getElementById('0feature-button').click()
-    }
+    var firstFace = document.querySelector('button[id$="face-button"]');
+    if (firstFace) firstFace.click();
+    var firstFeature = document.querySelector('button[id$="feature-button"]');
+    if (firstFeature) firstFeature.click();
 
     buildFilterSelects();
+    applyDescVisibility();
     applyDescFilter();
 
     var sortSelect = document.getElementById('desc-sort-select');
@@ -690,7 +579,7 @@
     if (densityToggle) {
       densityToggle.addEventListener('click', function() {
         descDensityVisible = !descDensityVisible;
-        this.textContent = descDensityVisible ? 'Hide Density' : 'Show Density';
+        this.textContent = descDensityVisible ? 'Hide language statistics' : 'Show language statistics';
         applyDescVisibility();
       });
     }
@@ -699,7 +588,7 @@
     if (costToggle) {
       costToggle.addEventListener('click', function() {
         descCostVisible = !descCostVisible;
-        this.textContent = descCostVisible ? 'Hide Cost' : 'Show Cost';
+        this.textContent = descCostVisible ? 'Hide tokens' : 'Show tokens';
         applyDescVisibility();
       });
     }
@@ -758,7 +647,7 @@
         _perspectivesLoaded = true;
         loading.style.display = 'none';
         if (data.status === 'no_annotations') {
-          error.querySelector('p').textContent = 'No AI annotations are available for the primary image of this object.';
+          error.querySelector('p').textContent = 'No AI annotations are available for this image.';
           error.style.display = '';
           return;
         }
@@ -767,8 +656,8 @@
           error.style.display = '';
           return;
         }
-        renderPerspectives(data);
         content.style.display = '';
+        renderPerspectives(data);
       })
       .catch(function(err) {
         loading.style.display = 'none';
@@ -784,8 +673,20 @@
     renderCoverageRadar(data);
     renderConcepts(data);
     renderThematic(data);
-    renderDivergence(data);
+    renderRelationships(data);
     renderDownloadBtn(data);
+    document.querySelectorAll('.research-perspective-detail').forEach(function(detail) {
+      var block = detail.querySelector('.perspectives-block');
+      detail.hidden = block && block.style.display === 'none';
+    });
+    document.querySelectorAll('#perspectives-content div[onclick]').forEach(function(control) {
+      control.setAttribute('role', 'button'); control.setAttribute('tabindex', '0');
+      control.addEventListener('keydown', function(event) {
+        // Nested evidence links must keep their own Enter-key navigation.
+        if (event.target !== control) return;
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); control.click(); }
+      });
+    });
   }
 
   function renderChips(data) {
@@ -799,8 +700,8 @@
     if (s.thematic_concepts_returned > 0) {
       html += chip(s.thematic_concepts_returned + ' thematic term' + (s.thematic_concepts_returned === 1 ? '' : 's'), 'Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image.');
     }
-    if (s.divergence_signals_returned > 0) {
-      html += chip(s.divergence_signals_returned + ' divergence signal' + (s.divergence_signals_returned === 1 ? '' : 's'), '');
+    if (s.concept_relationships_returned > 0) {
+      html += chip(s.concept_relationships_returned + ' concept famil' + (s.concept_relationships_returned === 1 ? 'y' : 'ies'), 'Curated vocabulary relationships, with supporting excerpts.');
     }
     if (s.has_text) {
       html += chip('Text in image', '');
@@ -835,11 +736,19 @@
     return '<span class="perspectives-chip">' + escHtml(label) + '</span>';
   }
 
+  function evidenceLink(e) {
+    return e.url ? '<a class="perspectives-evidence-link" href="' + escHtml(e.url) + '">Read complete annotation</a>' : '';
+  }
+  function evidenceHTML(e) {
+    var label = e.source + (e.display_model && e.display_model !== e.source ? ' — ' + e.display_model : '');
+    return '<span class="perspectives-snippet">' + escHtml(label) + ': "' + escHtml(e.snippet || e.text) + '"</span>' + evidenceLink(e);
+  }
+
   function renderConcepts(data) {
     var list = document.getElementById('perspectives-concepts-list');
     var concepts = data.concepts || [];
     if (concepts.length === 0) {
-      list.innerHTML = '<p class="perspectives-empty">AI services described this image in ways that didn\'t overlap enough to generate agreement concepts. The divergence signals above (if any) may still be useful.</p>';
+      list.innerHTML = '<p class="perspectives-empty">No shared vocabulary meets the provider and annotation thresholds. Explore concept families and individual observations below.</p>';
       return;
     }
     var html = '';
@@ -849,7 +758,7 @@
       var levelBadge   = '<span class="perspectives-badge perspectives-badge--' + c.agreement_level + '">' + capitalize(c.agreement_level) + '</span>';
       var peopleBadge  = c.people_related ? '<span class="perspectives-badge perspectives-badge--people">People-related</span>' : '';
       var snippets = (c.example_annotations || []).map(function(e) {
-        return '<span class="perspectives-snippet">' + escHtml(e.source) + ': "' + escHtml(e.snippet) + '"</span>';
+        return evidenceHTML(e);
       }).join('');
       var variantHtml = '';
       if (c.variants && c.variants.length > 1) {
@@ -899,40 +808,37 @@
             +     '<span class="perspectives-badge perspectives-badge--thematic">Thematic</span>'
             +     '<span class="perspectives-agreement">' + t.sources_count + ' source' + (t.sources_count === 1 ? '' : 's') + ', ' + t.descriptions_count + ' description' + (t.descriptions_count === 1 ? '' : 's') + '</span>'
             +   '</div>'
-            +   (hasSnippet ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets"><span class="perspectives-snippet">' + escHtml(t.snippet) + '</span></div></div>' : '')
+            +   (hasSnippet ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets">' + (t.example_annotations || []).map(evidenceHTML).join('') + '</div></div>' : '')
             + '</div>';
     }
     list.innerHTML = html;
   }
 
-  function renderDivergence(data) {
-    var block  = document.getElementById('perspectives-divergence');
-    var list   = document.getElementById('perspectives-divergence-list');
-    var signals = data.divergence_signals || [];
-    if (signals.length === 0) {
-      block.style.display = 'none';
+  function renderRelationships(data) {
+    var block = document.getElementById('perspectives-relationships');
+    var list = document.getElementById('perspectives-relationships-list');
+    var families = data.concept_relationships || [];
+    block.style.display = '';
+    if (!families.length) {
+      list.innerHTML = '<p class="perspectives-empty">No related terms were found in the current curated vocabulary. Individual observations remain available above.</p>';
       return;
     }
-    block.style.display = '';
-    var html = '';
-    for (var i = 0; i < signals.length; i++) {
-      var s = signals[i];
-      var text = '';
-      if (s.type === 'single_service') {
-        text = 'Only ' + escHtml(s.service) + ' described this as &#8216;' + escHtml(s.concept) + '&#8217;'
-             + ' — ' + capitalize(s.concept_type) + '. ' + s.annotations_count + ' annotation' + (s.annotations_count === 1 ? '' : 's') + '.';
-        if (s.example_snippet) {
-          text += ' <span class="perspectives-snippet">"' + escHtml(s.example_snippet) + '"</span>';
-        }
-      } else if (s.type === 'cross_service_disagreement') {
-        var concepts = (s.concepts || []).map(function(c, idx) {
-          return (s.services && s.services[idx] ? escHtml(s.services[idx]) : 'a service') + ' suggests &#8216;' + escHtml(c) + '&#8217;';
-        });
-        text = 'Services disagree: ' + concepts.join('; ') + '.';
-      }
-      html += '<div class="perspectives-divergence-item">' + text + '</div>';
-    }
-    list.innerHTML = html;
+    list.innerHTML = families.map(function(family) {
+      var synonyms = (family.synonym_groups || []).map(function(group) {
+        return '<p class="perspectives-type-note">Linguistic equivalents: ' + group.terms.map(escHtml).join(', ') + '</p>';
+      }).join('');
+      return '<details class="research-concept-family"><summary>' + escHtml(capitalize(family.family))
+        + ' — ' + family.terms.length + ' related terms</summary>' + synonyms
+        + family.terms.map(function(term) {
+          return '<details class="research-family-term"><summary>' + escHtml(term.term)
+            + ' — ' + term.services.map(escHtml).join(', ') + ' · ' + term.annotations_count
+            + ' annotation' + (term.annotations_count === 1 ? '' : 's') + '</summary>'
+            + (term.example_annotations || []).map(function(e) {
+              return '<div class="research-family-evidence"><span class="perspectives-type-note">'
+                + escHtml(capitalize(e.type || 'annotation')) + '</span> ' + evidenceHTML(e) + '</div>';
+            }).join('') + '</details>';
+        }).join('') + '</details>';
+    }).join('');
   }
 
   function renderObservations(data) {
@@ -982,22 +888,22 @@
               +     '<span class="obs-entry-meta">'
               +       spatialBadge
               +       srcBadges
-              +       '<span class="obs-count">' + e.count + 'x</span>'
+              +       '<span class="obs-count" title="' + e.occurrences_count + ' occurrences or region detections">' + e.annotations_count + ' annotation' + (e.annotations_count === 1 ? '' : 's') + '</span>'
               +     '</span>'
               +   '</div>'
               +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets mood-snippets">'
               +     snippets.slice(0, 5).map(function(s) {
-                      var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                      var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
                       return '<div class="mood-snippet">'
                            + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
                            + '</div>';
                     }).join('')
               +     (snippets.length > 5 ? '<div class="mood-snippets-overflow" style="display:none;">' + snippets.slice(5).map(function(s) {
-                      var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                      var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
                       return '<div class="mood-snippet">'
                            + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
                            + '</div>';
                     }).join('') + '</div><button class="mood-snippets-more" onclick="toggleMoodOverflow(event, this)">Show all ' + snippets.length + ' references</button>' : '')
               +   '</div></div>' : '')
@@ -1035,17 +941,17 @@
             +   '</div>'
             +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets mood-snippets">'
             +     snippets.slice(0, 5).map(function(s) {
-                    var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                    var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
                     return '<div class="mood-snippet">'
                          + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
                          + '</div>';
                   }).join('')
             +     (snippets.length > 5 ? '<div class="mood-snippets-overflow" style="display:none;">' + snippets.slice(5).map(function(s) {
-                    var label = s.model && s.model !== s.source ? s.source + ' — ' + s.model : s.source;
+                    var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
                     return '<div class="mood-snippet">'
                          + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>'
+                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
                          + '</div>';
                   }).join('') + '</div><button class="mood-snippets-more" onclick="toggleMoodOverflow(event, this)">Show all ' + snippets.length + ' references</button>' : '')
             +   '</div></div>' : '')
@@ -1081,147 +987,8 @@
   // -------------------------------------------------------------------------
   // Coverage Radar Chart (D3)
   // -------------------------------------------------------------------------
-  var RADAR_COLORS = [
-    '#2563eb', '#dc2626', '#059669', '#d97706', '#7c3aed',
-    '#0891b2', '#be185d', '#4d7c0f', '#6366f1', '#475569'
-  ];
-
   function renderCoverageRadar(data) {
-    var radar = data.coverage_radar;
-    if (!radar || !radar.sources || radar.sources.length === 0) return;
-
-    document.getElementById('perspectives-radar').style.display = '';
-
-    var container = document.getElementById('perspectives-radar-chart');
-    var dims = radar.dimensions;
-    var sources = radar.sources;
-    var numAxes = dims.length;
-
-    var width = Math.min(container.offsetWidth || 800, 800);
-    var height = width;
-    var cx = width / 2;
-    var cy = height / 2;
-    var radius = (width / 2) - 130;
-    var angleSlice = (Math.PI * 2) / numAxes;
-
-    var svg = d3.select(container).append('svg')
-      .attr('width', width)
-      .attr('height', height)
-      .attr('viewBox', '0 0 ' + width + ' ' + height);
-
-    var g = svg.append('g')
-      .attr('transform', 'translate(' + cx + ',' + cy + ')');
-
-    // Grid circles
-    var levels = 5;
-    for (var lv = 1; lv <= levels; lv++) {
-      var r = (radius / levels) * lv;
-      g.append('circle')
-        .attr('r', r)
-        .attr('fill', 'none')
-        .attr('stroke', '#e5e7eb')
-        .attr('stroke-width', 1);
-    }
-
-    // Axis lines and labels
-    for (var i = 0; i < numAxes; i++) {
-      var angle = angleSlice * i - Math.PI / 2;
-      var x = Math.cos(angle) * radius;
-      var y = Math.sin(angle) * radius;
-
-      g.append('line')
-        .attr('x1', 0).attr('y1', 0)
-        .attr('x2', x).attr('y2', y)
-        .attr('stroke', '#d1d5db')
-        .attr('stroke-width', 1);
-
-      var labelX = Math.cos(angle) * (radius + 18);
-      var labelY = Math.sin(angle) * (radius + 18);
-      var anchor = Math.abs(labelX) < 5 ? 'middle' : (labelX > 0 ? 'start' : 'end');
-
-      g.append('text')
-        .attr('x', labelX)
-        .attr('y', labelY)
-        .attr('text-anchor', anchor)
-        .attr('dominant-baseline', 'middle')
-        .attr('font-size', '11px')
-        .attr('fill', '#374151')
-        .text(dims[i].label);
-    }
-
-    // Source polygons — each in a group for highlight interaction
-    var polyGroups = [];
-    sources.forEach(function(src, idx) {
-      var color = RADAR_COLORS[idx % RADAR_COLORS.length];
-      var pg = g.append('g').attr('class', 'radar-poly').attr('data-idx', idx);
-      var points = [];
-      for (var i = 0; i < numAxes; i++) {
-        var angle = angleSlice * i - Math.PI / 2;
-        var val = src.values[dims[i].key] ? src.values[dims[i].key].normalized : 0;
-        var r = val * radius;
-        points.push([Math.cos(angle) * r, Math.sin(angle) * r]);
-      }
-
-      var pathData = 'M' + points.map(function(p) { return p[0] + ',' + p[1]; }).join('L') + 'Z';
-
-      pg.append('path')
-        .attr('d', pathData)
-        .attr('fill', color)
-        .attr('fill-opacity', 0.08)
-        .attr('stroke', color)
-        .attr('stroke-width', 1.5)
-        .attr('stroke-opacity', 0.7);
-
-      points.forEach(function(p) {
-        pg.append('circle')
-          .attr('cx', p[0]).attr('cy', p[1])
-          .attr('r', 3)
-          .attr('fill', color)
-          .attr('fill-opacity', 0.6);
-      });
-
-      polyGroups.push(pg);
-    });
-
-    // Highlight interaction
-    function highlightSource(idx) {
-      polyGroups.forEach(function(pg, i) {
-        if (i === idx) {
-          pg.selectAll('path').attr('fill-opacity', 0.25).attr('stroke-width', 3).attr('stroke-opacity', 1);
-          pg.selectAll('circle').attr('r', 4).attr('fill-opacity', 1);
-          pg.raise();
-        } else {
-          pg.selectAll('path').attr('fill-opacity', 0.03).attr('stroke-width', 1).attr('stroke-opacity', 0.2);
-          pg.selectAll('circle').attr('fill-opacity', 0.15);
-        }
-      });
-    }
-    function resetHighlight() {
-      polyGroups.forEach(function(pg) {
-        pg.selectAll('path').attr('fill-opacity', 0.08).attr('stroke-width', 1.5).attr('stroke-opacity', 0.7);
-        pg.selectAll('circle').attr('r', 3).attr('fill-opacity', 0.6);
-      });
-    }
-
-    // Legend with hover
-    var legendEl = document.getElementById('perspectives-radar-legend');
-    var legendHtml = '';
-    sources.forEach(function(src, idx) {
-      var color = RADAR_COLORS[idx % RADAR_COLORS.length];
-      legendHtml += '<span class="radar-legend-item" data-radar-idx="' + idx + '">'
-        + '<span class="radar-legend-swatch" style="background:' + color + '"></span>'
-        + escHtml(src.source)
-        + '</span>';
-    });
-    legendEl.innerHTML = legendHtml;
-
-    // Attach hover events to legend items
-    var legendItems = legendEl.querySelectorAll('.radar-legend-item');
-    legendItems.forEach(function(item) {
-      var idx = parseInt(item.getAttribute('data-radar-idx'));
-      item.addEventListener('mouseenter', function() { highlightSource(idx); });
-      item.addEventListener('mouseleave', function() { resetHighlight(); });
-    });
+    window.renderResearchRadar(data);
   }
 
   function renderDownloadBtn(data) {
@@ -1232,7 +999,7 @@
     btn.className = 'quickbar-btn perspectives-download-btn';
     btn.textContent = 'Download JSON';
     btn.href      = _perspectivesUrl;
-    btn.download  = 'object-' + (data.objectid || '') + '-ai-perspectives.json';
+    btn.download  = 'image-' + (data.imageid || '') + '-ai-perspectives.json';
     heading.appendChild(btn);
   }
 
@@ -1250,3 +1017,10 @@
   }
 
 </script>
+
+<script src="/javascripts/research-workspace.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
+<script src="/vocabularies/stopwords.js"></script>
+<script src="/javascripts/textanalysis.js"></script>
+<script src="/javascripts/compare-workspace.js"></script>
+<script type="module" src="/javascripts/compare-semantic.js"></script>

@@ -25,7 +25,7 @@ const API_KEY = process.env['API_KEY']
 
 let statsCache = null;
 
-// In-memory perspectives cache: key = `${imageid}_${algorithm_version}`
+// In-memory perspectives cache: object ID + image ID + algorithm version.
 // TTL 12 hours, max 1000 entries (oldest-first eviction).
 const PERSPECTIVES_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 const PERSPECTIVES_CACHE_MAX    = 1000;
@@ -211,19 +211,20 @@ function _buildImageSummary(ai_sorted) {
     const withDates = ai_descs.filter(d => d.model_released).sort((a, b) => a.model_released.localeCompare(b.model_released));
     const oldest = withDates[0];
     const newest = withDates[withDates.length - 1];
-    const runDates = ai_descs.map(d => d.createdate).filter(Boolean).sort();
+    const runDates = ai_descs.map(d => d.createdate).filter(date => Number.isFinite(Date.parse(date))).sort();
     const firstRun = runDates[0];
     const lastRun = runDates[runDates.length - 1];
-    const modelLabel = ai_descs.length === 1 ? '1 model' : `${ai_descs.length} models`;
-    const providerLabel = providerCount === 1 ? '1 provider' : `${providerCount} sources`;
-    const descParts = [`This image was run through ${modelLabel} from ${providerLabel}.`];
-    if (oldest && newest && withDates.length > 1) {
+    const modelCount = new Set(ai_descs.filter(d => d.model).map(d => d.source + '\0' + d.model)).size;
+    const modelLabel = modelCount === 1 ? '1 model' : `${modelCount} models`;
+    const providerLabel = providerCount === 1 ? '1 provider' : `${providerCount} providers`;
+    const descParts = [`This image has ${ai_descs.length} description${ai_descs.length === 1 ? '' : 's'} from ${providerLabel}${modelCount ? ' (' + modelLabel + ')' : ''}.`];
+    if (oldest && newest && (oldest.model !== newest.model || oldest.source !== newest.source)) {
       descParts.push(`The oldest model is ${oldest.display_model} (${oldest.model_released.slice(0,4)}) and the newest is ${newest.display_model} (${newest.model_released.slice(0,4)}).`);
     } else if (oldest) {
       descParts.push(`The model is ${oldest.display_model} (${oldest.model_released.slice(0,4)}).`);
     }
     if (firstRun && lastRun) {
-      const fmt = d => new Date(d).toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+      const fmt = d => new Date(d).toLocaleDateString('en-US', {month: 'short', year: 'numeric', timeZone: 'UTC'});
       descParts.push(firstRun === lastRun
         ? `Descriptions were collected in ${fmt(firstRun)}.`
         : `Descriptions were collected between ${fmt(firstRun)} and ${fmt(lastRun)}.`);
@@ -687,8 +688,43 @@ router.get('/category/:category/:page?', function(req, res, next) {
   })
 });
 
+function buildResearchDescriptions(ai_sorted, object_info, display_image) {
+  let descriptions_list = [];
+
+      if (object_info.labeltext) {
+        descriptions_list.push({ key: 'labeltext', scope: 'Object wall label', source: 'Human', model: 'Wall Label Text', createdate: '?', body: object_info.labeltext, isHuman: true, stats: _computeStats(object_info.labeltext) });
+      }
+      if (display_image && display_image.description) {
+        descriptions_list.push({ key: 'imagedesc', scope: 'Human image description', source: 'Human', model: 'Image Description', createdate: '?', body: display_image.description, isHuman: true, stats: _computeStats(display_image.description) });
+      }
+
+      for (let [key, val] of Object.entries(ai_sorted.descriptions || {})) {
+        for (let desc of val.descriptions) {
+          descriptions_list.push({
+            key:           'annotation_' + desc.id,
+            annotation_id: desc.id,
+            source_raw: desc.source,
+            scope: 'Image ' + (display_image ? display_image.imageid : ''),
+            source:        val.source,
+            model:         desc.model || '',
+            display_model: desc.display_model || desc.model || '',
+            model_released: desc.model_released || null,
+            createdate:    desc.createdate,
+            age:           desc.age || '',
+            body:          desc.body || '',
+            isHuman:       false,
+            cost:         desc.cost,
+            stats:         desc.stats || null
+          });
+        }
+      }
+
+  return descriptions_list;
+}
+
 /* GET object info. */
 router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
+  if (req.params.image === 'compare' && !req.params.image_id) return res.redirect('/object/' + encodeURIComponent(req.params.object_id) + '#compare');
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6);
@@ -697,14 +733,23 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
   
   fetch(object_url).then(response => response.json())
   .then(object_info => {
-    let imageid = object_info.images[0].imageid;
-    if (req.params.image_id > 0) {
-      imageid = req.params.image_id;
+    const selected = req.params.image_id
+      ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
+      : (object_info.images || [])[0];
+    if (!selected) {
+      const error = new Error('No matching image is available for this object.');
+      error.status = 404;
+      return next(error);
     }
+    const imageid = selected.imageid;
 
     const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
     fetch(ai_url).then(response => response.json())
     .then(ai_info => {
+      // Evidence links retain the complete, original annotation body and model
+      // identifier before organize.divide enriches/mutates the display records.
+      const selected_annotation = req.query && req.query.annotation
+        ? _.cloneDeep((ai_info.records || []).find(record => String(record.id) === req.query.annotation)) : null;
       let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
       // Divide data into general categories
       let ai_sorted = organize.divide(ai_data)
@@ -712,7 +757,12 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
 
       let display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
 
-      res.render('object', { title: 'AI Data for ' + object_info.title,
+      res.render('object', { title: 'Image ' + imageid + ' — ' + object_info.title,
+                             selected_annotation,
+                             descriptions_list: buildResearchDescriptions(ai_sorted, object_info, display_image),
+                             has_other_analysis: Boolean(object_info.colors && object_info.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
+                             multiple_images: object_info.images.length > 1,
+                             object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
                              navbar: false,
                              year: new Date().getFullYear(),
                              ai_data: ai_data,
@@ -739,81 +789,10 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
                                           image_list: image_list})})
 });
 
-/* GET compare descriptions view. */
-router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, next) {
-  let tag_list = _.sampleSize(example_tags.tags_list, 5);
-  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
-  let image_list = _.sampleSize(example_images.image_list, 6);
-
-  const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
-
-  fetch(object_url).then(response => response.json())
-  .then(object_info => {
-    let imageid = object_info.images[0].imageid;
-    if (req.params.image_id > 0) {
-      imageid = req.params.image_id;
-    }
-
-    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
-    fetch(ai_url).then(response => response.json())
-    .then(ai_info => {
-      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
-      let ai_sorted = organize.divide(ai_data);
-      let display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
-
-      let descriptions_list = [];
-
-      if (object_info.labeltext) {
-        descriptions_list.push({ key: 'labeltext', source: 'Human', model: 'Wall Label Text', createdate: '?', body: object_info.labeltext, isHuman: true, stats: _computeStats(object_info.labeltext) });
-      }
-      if (display_image && display_image.description) {
-        descriptions_list.push({ key: 'imagedesc', source: 'Human', model: 'Image Description', createdate: '?', body: display_image.description, isHuman: true, stats: _computeStats(display_image.description) });
-      }
-
-      for (let [key, val] of Object.entries(ai_sorted.descriptions)) {
-        for (let desc of val.descriptions) {
-          descriptions_list.push({
-            key:           'desc_' + descriptions_list.length,
-            source:        val.source,
-            model:         desc.model || '',
-            display_model: desc.display_model || desc.model || '',
-            model_released: desc.model_released || null,
-            createdate:    desc.createdate,
-            age:           desc.age || '',
-            body:          desc.body || '',
-            isHuman:       false,
-            cost:         desc.cost || { input: '-', output: '-' },
-            stats:         desc.stats || null
-          });
-        }
-      }
-
-      const image_summary = _buildImageSummary(ai_sorted);
-
-      res.render('compare', { title: 'Compare — ' + object_info.title,
-                               navbar: false,
-                               year: new Date().getFullYear(),
-                               object_info: object_info,
-                               display_image: display_image,
-                               descriptions_list: descriptions_list,
-                               image_summary: image_summary,
-                             });
-    })
-    .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
-                                            navbar: true,
-                                            year: new Date().getFullYear(),
-                                            error: true,
-                                            tag_list: tag_list,
-                                            mobile_tag_list: mobile_tag_list,
-                                            image_list: image_list})})
-  })
-  .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
-                                          navbar: true,
-                                          year: new Date().getFullYear(),
-                                          error: true,
-                                          tag_list: tag_list,
-                                          mobile_tag_list: mobile_tag_list,
-                                          image_list: image_list})})
+/* Legacy comparison links now open the selected image workspace. */
+router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res) {
+  const path = '/object/' + encodeURIComponent(req.params.object_id) + (req.params.image_id ? '/image/' + encodeURIComponent(req.params.image_id) : '');
+  res.redirect(path + '#compare');
 });
 
 /* GET AI Perspectives JSON for an object/image. */
@@ -822,12 +801,17 @@ router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, r
 
   fetch(object_url).then(response => response.json())
   .then(object_info => {
-    let imageid = object_info.images[0].imageid;
-    if (req.params.image_id > 0) {
-      imageid = req.params.image_id;
+    const selected = req.params.image_id
+      ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
+      : (object_info.images || [])[0];
+    if (!selected) {
+      const error = new Error('No matching image is available for this object.');
+      error.status = 404;
+      return next(error);
     }
+    const imageid = selected.imageid;
 
-    const cacheKey = `${imageid}_${perspectives.ALGORITHM_VERSION}`;
+    const cacheKey = `${object_info.id}_${imageid}_${perspectives.ALGORITHM_VERSION}`;
     const cached = perspectivesCacheGet(cacheKey);
     if (cached) {
       return res.json(cached);

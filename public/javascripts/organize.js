@@ -235,10 +235,17 @@ module.exports = {
 				Writer: {source: 'Writer', internalname: 'Writer', descriptions: []},
 			};
 
+			// Keep provider evidence reachable even when a new source is not in
+			// the display-name catalog above.
+			const knownSources = new Set(Object.values(ai_sorted.descriptions).map(group => group.internalname));
+			const additionalSources = _.uniq(ai_data.filter(item => item.type === 'description').map(item => item.source));
+			additionalSources.forEach((source, index) => {
+				if (!knownSources.has(source)) ai_sorted.descriptions['additional_' + index] = {source, internalname: source, descriptions: []};
+			});
 			for (let service in ai_sorted.descriptions) {
 				let descriptions = _.filter(ai_data, {type: 'description', source: ai_sorted.descriptions[service].internalname});
 				ai_sorted.descriptions[service].descriptions = _.map(descriptions, function(item){
-					item.createdate = item.createdate.substr(0,10);
+					item.createdate = (item.createdate || '').substr(0,10);
 					item.age = descAge(item.createdate);
 					item.stats = computeStats(item.body);
 					item.cost = extractUsage(item.raw);

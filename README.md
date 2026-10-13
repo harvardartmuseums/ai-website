@@ -41,7 +41,39 @@ Results can be sorted by:
 
 ## AI Perspectives (Beta)
 
-The AI Perspectives panel (`/object/:id/perspectives`) surfaces where multiple AI services notice similar things in an artwork—and where they diverge—and provides a broad, categorized index of everything the AI descriptions collectively noticed. It loads automatically in the "Points of attention" section of the object page, alongside curatorial text (when available), framing both as peer observers rather than privileging one over the other.
+The selected image is the unit of analysis. `/object/:object_id/image/:image_id` provides Perspectives, Descriptions, Compare, Tags, and Other analyses in one workspace. Switching images changes the image and its annotations while retaining the active view. The associated object’s catalog metadata and wall label remain separate in the image sidebar.
+
+Perspectives loads an overview of the selected image’s annotations. The radar defaults to **What models describe**, showing individual description outputs with model/provider, date, annotation ID, and word count. **What providers describe** pools vocabulary across each provider’s outputs. Search the selection list and choose series; switching views preserves each view’s choices. Both views share fixed AI-only axis scales. Expand a dimension’s evidence to inspect terms and supporting descriptions, then choose two outputs for inline comparison. The optional **Object wall label** is a dashed human reference about the object; overflow beyond AI maxima is explicitly marked. Shared vocabulary, concept families, mood, and thematic analysis remain expandable below the chart.
+
+`perspectives.js` uses version `ace-v4.0.0`. Stage 3 changes the radar schema and excludes object-label vocabulary from AI normalization. Scoring weights and inclusion/level thresholds remain unchanged. The major version invalidates cached results.
+
+### Stage 3 radar contract
+
+- `coverage_radar.outputs` has one series per distinct nonempty description annotation. Repeated runs of the same model remain separate. Each output retains raw model ID, display name, provider, date, annotation ID, selected image ID, full annotation URL, and whitespace-delimited word count after Markdown cleanup.
+- `coverage_radar.sources` contains AI provider unions only, with `output_count`, `model_count` (distinct nonempty model IDs), and total `word_count`. These are pooled breadth measures; they do not estimate a typical model’s attention.
+- `max_per_dimension` is calculated from the complete AI provider unions for this image (`scale_basis: "complete_ai_provider_unions"`). Individual outputs and provider unions use the same denominator. Selecting/hiding series or switching views never changes it; changing images establishes a new comparison set.
+- `reference` stores the object wall label separately. Raw counts and terms are retained. `normalized` is null when the AI maximum is zero; `exceeds_scale` records counts above the AI maximum. The UI clamps reference overflow to the boundary with an `!` marker and explanatory evidence text. The object label never increases AI maxima.
+- Every dimension exposes raw counts, exact terms, and supporting annotation IDs. The comparison chooser requires exactly two distinct outputs, including two runs from the same provider/model if desired.
+- Default selections are the first three available outputs/providers, not a ranking or recommendation. Search filters the unselected choices in “Add a series”; the legend shows selected series only. Word count supplies length context; no length normalization, numerical semantic distance, or concept-family pooling is introduced.
+
+### Stage 2 vocabulary relationships
+
+- `concepts` retains agreement scoring for exact normalized phrases and conservative equivalents (such as `hat`/`hats` and `watercolor`/`watercolour`). Surface forms remain available in `variants`.
+- `concept_relationships` replaces `divergence_signals`. Each neighborhood has a `family`, `relationship: "shared_family"`, exact `terms`, and explicit `synonym_groups` with `relationship: "same_meaning"` for linguistic equivalents. These are curated browsing relationships, not a numerical distance or a specificity hierarchy.
+- Each term retains distinct provider names, annotation IDs/counts, and all supporting excerpts with full source links. Full-image tags, region tags, and descriptions contribute; OCR and face records do not become concept claims. The UI exposes type and model in evidence.
+- Families appear when at least two distinct vocabulary terms are observed, even within one provider. Family membership never increases agreement support. Unmapped words remain available in observations; absence from a family means the vocabulary has no relationship defined.
+- The old incompatibility list is removed. Co-occurrence, relatedness, and omission do not establish contradictory claims. A family can contain contextually different uses of a word; inspect excerpts before interpreting their relationship.
+- Radar extraction, provider pooling, scaling, thematic scoring, and mood thresholds are unchanged. Stage 3 adds model-level radar comparisons as described above.
+- Review `SYNONYM_MAP` and `CONCEPT_FAMILIES` in `public/javascripts/perspectives.js` to adjust the explicit vocabulary. Comments identify the algorithm changes.
+
+### Stage 1 evidence contract
+
+- Stage 1 required distinct sources for the old divergence signals. Stage 2 supersedes that method with vocabulary relationships, as described above.
+- Observations and mood entries expose `occurrences_count`, `annotations_count`, and `annotation_ids`. Observation occurrences count text matches plus region annotations; `description_annotations_count` and `region_annotations_count` distinguish their supporting records. `count` remains an alias for the occurrence count. The UI displays distinct annotation support.
+- Radar and mood vocabulary match complete seed entries, including compounds such as `giant panda`; word boundaries prevent `man` from matching inside `woman`. Seed dictionaries and normalization formulas are unchanged.
+- Agreement, thematic, observation, mood, and vocabulary-relationship examples contain match-centered excerpts, source, raw `model`, `display_model`, annotation ID, selected-image ID, and a URL to the complete source annotation. Unknown model identifiers are retained. Thematic entries retain their single `snippet` field and add structured `example_annotations`.
+- Region-only, face-only, and OCR-only inputs return `ok` with their available observations/flags. `no_annotations` is reserved for inputs without any supported annotation types.
+- `npm run test:research` covers the corrected cases, retained scoring behavior, evidence provenance, image selection, and rendering.
 
 ### What it computes
 
@@ -49,11 +81,11 @@ For a given image, the tool pulls all tag, description, face, and OCR annotation
 
 **Agreement concepts** — noun-phrase concepts (1–3 tokens) extracted from tags and AI descriptions using [compromise.js](https://github.com/spencermountain/compromise). Markdown is stripped from description bodies before extraction. Concepts appearing in annotations from at least 2 distinct services and at least 3 annotation records are ranked by a scoring function that weights source breadth (60%) over annotation volume (40%), with log scaling to limit diminishing returns from a single prolific source. Each concept is typed as `descriptive` (visually observed features: `bridge`, `snow`, `crowd`) or `interpretive` (genre or iconographic readings: `portrait`, `altarpiece`, `vanitas`).
 
-A **synonym map** normalizes variant terms to a canonical form before aggregation — `vase`, `urn`, and `pitcher` all count toward the `vessel` concept. When multiple variants are present, the panel shows which specific word each service used, making vocabulary diversity visible: "Called: vase (Amazon, Google), urn (Clarifai), pitcher (Microsoft)."
+A **synonym map** normalizes conservative equivalents before aggregation. Distinct terms such as `vase`, `urn`, and `pitcher` retain separate support; their relationship is available in the vessel family. When linguistic variants are present, the panel shows the original word each service used.
 
 **Thematic terms** — unigrams, bigrams, and trigrams extracted from long-form LLM descriptions only (Claude, GPT, Gemini, and others), scored by TF-IDF across all descriptions for the image. Terms appearing in descriptions from at least 2 distinct providers and at least 3 descriptions are ranked by source breadth weighted with average TF-IDF. Phrases containing a unigram that is itself subsumed by a higher-scoring phrase are suppressed to keep the output readable. These reflect conceptual and thematic content—subject matter, emotional register, narrative vocabulary—rather than observed features.
 
-**Divergence signals** — cross-service disagreements from a configurable incompatibility list: pairs of concepts (e.g. `indoor`/`outdoor`, `sacred`/`secular`, `living`/`dead`, `portrait`/`landscape`) where different services reached opposing conclusions about the same image. The list covers setting, light and time, figure and subject, mood and register, genre, medium, and compositional oppositions. Signals are only fired when both terms in a pair are independently present in the extracted concepts.
+**Concept families** — exact vocabulary matched against curated families, exposed in “How descriptions relate.” Expand a family to explore its terms, then expand a term to inspect its supporting annotations. Terms can share a family without sharing a meaning; linguistic equivalents are identified separately.
 
 **What the AIs noticed** — a broad extraction from LLM descriptions and feature-region tags with no agreement threshold. Noun chunks and adjective-noun compounds up to 5 tokens are extracted from descriptions, cleaned of markdown and parenthetical fragments. Feature-region tags (bounding-box detections from AWS Rekognition and Clarifai) are merged into the same phrase map, contributing to source counts and adding a `spatially_detected` field with per-service instance counts when present. Phrases are grouped into seven categories: People & Figures, Animals & Creatures, Action & Gesture, Objects & Artefacts, Setting & Space, Colour & Light, and Material & Technique (plus Other). Category classification checks the full phrase against seed sets first, then individual tokens — enabling multi-word seeds like `human face` and `palm tree`. Each phrase shows which sources mentioned it, how many times, and whether it was spatially grounded with bounding boxes. This section is designed for browsing and inventory rather than consensus-finding.
 
@@ -84,7 +116,7 @@ GET /object/:object_id/perspectives
 GET /object/:object_id/image/:image_id/perspectives
 ```
 
-The second form targets a specific image within an object's image list. Results are cached in memory keyed on `imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v1.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v1.6.0`.
+The second form targets a specific image within an object's image list. Results are cached in memory keyed on `objectid + imageid + algorithm_version` with a 12-hour TTL. The response is versioned (`algorithm_version: "ace-v4.x.x"`) following semver: patch for list/config changes, minor for scoring or extraction changes, major for schema changes. Current version: `ace-v4.0.0` (stage 3 individual outputs and AI-only radar scale).
 
 ### Configuration
 
@@ -112,12 +144,6 @@ All tuning parameters live in the `CONFIG` object at the top of `public/javascri
 | `people_annotations_min` | 3 | Minimum annotations needed to flag `depicts_people: weak` |
 | `strong_people_services` | 3 | Absolute service count threshold for `depicts_people: strong` |
 | `strong_people_annotations` | 5 | Absolute annotation count threshold for `depicts_people: strong` |
-
-**Divergence signals**
-
-| Option | Default | Description |
-|--------|---------|-------------|
-| `max_divergence` | 5 | Maximum number of divergence signals returned |
 
 **Thematic terms**
 
@@ -149,7 +175,7 @@ The object page is organized around **attention** rather than source. Both the c
 
 ## Description Comparison Tool
 
-The comparison tool (`/compare/:object_id`) lets you place two descriptions side-by-side and analyze how they differ. It is accessible from the "Compare" link in the Captions section of any object page.
+The Compare view (`/object/:object_id/image/:image_id#compare`) places two descriptions side by side without leaving the image workspace. Open it from a description card or the radar’s supporting evidence. Legacy `/object/:object_id/image/:image_id/compare` links redirect to the inline view. Human image descriptions and object wall labels are explicitly labeled by scope.
 
 ### Selecting descriptions
 

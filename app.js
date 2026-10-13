@@ -39,6 +39,7 @@ var redirectToSSL = function(environments) {
 // view engine setup
 hbs.registerHelper('number', function (i) { return 	i.toLocaleString();});
 hbs.registerHelper('ne', function (a, b) { return a !== b; });
+hbs.registerHelper('urlencode', function (value) { return encodeURIComponent(value == null ? '' : String(value)); });
 hbs.registerPartials(path.join(__dirname, '/views/partials'));
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));

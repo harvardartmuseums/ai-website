@@ -11,13 +11,14 @@ var MODELS = require('../../models');
 // major for schema/NLP backend changes).
 // ---------------------------------------------------------------------------
 
-const ALGORITHM_VERSION = 'ace-v1.7.0';
+// Stage 3 adds individual output series and separates the object reference.
+// Use a major version for the radar schema and AI-only normalization contract.
+const ALGORITHM_VERSION = 'ace-v4.0.0';
 
 const CONFIG = {
   min_services:                2,
   min_annotations:             3,
   top_N:                       15,
-  max_divergence:              5,
   S_cap:                       5,
   A_cap:                       20,
   w_services:                  0.6,
@@ -147,74 +148,30 @@ const THEMATIC_IGNORE = new Set([
   'scene','detail','style','work','piece','object','form','use','way','part',
 ]);
 
-// Pairs of semantically incompatible concepts (cross-service divergence).
-// Add pairs as encountered during pilot review; keep phrasing close to what
-// AI services actually produce so matches fire in practice.
-const INCOMPATIBILITY_LIST = [
-  // Setting
-  ['indoor', 'outdoor'],
-  ['interior', 'exterior'],
-  ['urban', 'rural'],
-  ['domestic', 'public'],
-  ['sacred', 'secular'],
-  ['natural', 'architectural'],
-
-  // Light and time
-  ['day', 'night'],
-  ['daytime', 'nighttime'],
-  ['summer', 'winter'],
-  ['spring', 'autumn'],
-
-  // Figure and subject
-  ['man', 'woman'],
-  ['boy', 'girl'],
-  ['nude', 'clothed'],
-  ['standing', 'seated'],
-  ['single figure', 'group'],
-  ['living', 'dead'],
-  ['human', 'animal'],
-
-  // Mood and register
-  ['joyful', 'somber'],
-  ['calm', 'turbulent'],
-  ['sacred', 'profane'],
-  ['celebratory', 'mournful'],
-
-  // Genre
-  ['portrait', 'landscape'],
-  ['portrait', 'figure study'],
-  ['religious', 'secular'],
-  ['mythological', 'historical'],
-  ['narrative', 'devotional'],
-
-  // Medium and technique (where services guess)
-  ['oil', 'watercolor'],
-  ['drawing', 'print'],
-
-  // Compositional
-  ['horizontal', 'vertical'],
-  ['symmetrical', 'asymmetrical'],
-  ['crowded', 'empty'],
-
-  // Color
-  ['monochrome', 'color'],
-  ['monochrome', 'colour'],
-  ['abstract', 'figurative'],
-];
-
-// ---------------------------------------------------------------------------
-// Synonym map — canonical term → array of variant terms that should be treated
-// as equivalent. Conservative: only merge where the distinction genuinely
-// doesn't matter for cataloguing. Extend during quarterly config review.
-// ---------------------------------------------------------------------------
-
+// Stage 2: equivalence and family membership are different relationships.
+// Only conservative linguistic alternatives/inflections affect agreement.
+// A crown and a helmet share a family; neither becomes a "hat" vote.
 const SYNONYM_MAP = {
+  hat: ['hats'], crown: ['crowns'], helmet: ['helmets'],
+  vessel: ['vessels'], vase: ['vases'], cup: ['cups'], bowl: ['bowls'],
+  tree: ['trees'], book: ['books'], bird: ['birds'], horse: ['horses'],
+  dog: ['dogs'], flower: ['flowers'], fruit: ['fruits'], mountain: ['mountains'],
+  arch: ['arches', 'archway'], column: ['columns', 'pillar', 'pillars'],
+  window: ['windows'], cross: ['crosses'], candle: ['candles'],
+  seated: ['sitting'], halo: ['nimbus', 'aureole'],
+  watercolor: ['watercolour'], color: ['colour'],
+};
+
+// Curated browsing families. Membership never contributes to agreement scores.
+// These are deliberately bounded, inspectable relationships, not a complete
+// ontology or a numerical semantic distance. Missing membership means unknown.
+const CONCEPT_FAMILIES = {
   // Vessels and containers
   'vessel':       ['vase', 'urn', 'jar', 'jug', 'pitcher', 'pot', 'bowl', 'flask', 'amphora', 'chalice', 'goblet', 'cup'],
   // Textiles and drapery
   'drapery':      ['drape', 'curtain', 'cloth', 'fabric', 'textile', 'garment', 'robe', 'cloak', 'mantle', 'veil'],
   // Headwear
-  'hat':          ['cap', 'bonnet', 'helmet', 'headdress', 'crown', 'turban', 'hood'],
+  'headwear':          ['hat', 'tricorn', 'tricorne', 'cap', 'bonnet', 'helmet', 'headdress', 'crown', 'turban', 'hood'],
   // Weapons
   'weapon':       ['sword', 'spear', 'lance', 'dagger', 'knife', 'bow', 'arrow', 'shield', 'axe', 'mace'],
   // Religious halo
@@ -226,9 +183,9 @@ const SYNONYM_MAP = {
   // Group of people
   'group':        ['crowd', 'gathering', 'assembly', 'multitude', 'congregation', 'procession', 'throng'],
   // Landscape features
-  'tree':         ['trees', 'foliage', 'branches', 'trunk', 'shrub', 'bush', 'grove', 'forest', 'woodland'],
+  'vegetation':         ['tree', 'trees', 'foliage', 'branches', 'trunk', 'shrub', 'bush', 'grove', 'forest', 'woodland'],
   'water':        ['river', 'stream', 'lake', 'pond', 'pool', 'sea', 'ocean', 'waves', 'waterway'],
-  'mountain':     ['hill', 'hills', 'mountains', 'peak', 'cliff', 'rock', 'rocks', 'rocky', 'terrain'],
+  'landforms':     ['mountain', 'hill', 'hills', 'mountains', 'peak', 'cliff', 'rock', 'rocks', 'rocky', 'terrain'],
   'sky':          ['clouds', 'cloud', 'heavens', 'firmament'],
   // Architectural elements
   'arch':         ['arches', 'arcade', 'archway', 'vault', 'vaulting'],
@@ -244,12 +201,22 @@ const SYNONYM_MAP = {
   'flower':       ['flowers', 'floral', 'bloom', 'blossom', 'bouquet', 'wreath', 'garland'],
   'fruit':        ['fruits', 'grapes', 'apple', 'pear', 'pomegranate', 'lemon', 'orange'],
   // Book / writing
-  'book':         ['books', 'manuscript', 'scroll', 'text', 'inscription', 'tablet'],
+  'writing':         ['book', 'books', 'manuscript', 'scroll', 'text', 'inscription', 'tablet'],
   // Cross / crucifix
   'cross':        ['crucifix', 'cruciform'],
   // Light source
   'candle':       ['candles', 'candlestick', 'torch', 'flame', 'lamp', 'lantern'],
 };
+
+CONCEPT_FAMILIES.medium = ['oil', 'watercolor', 'watercolour', 'tempera', 'gouache', 'ink', 'charcoal', 'pastel'];
+CONCEPT_FAMILIES.posture = ['standing', 'seated', 'sitting', 'kneeling', 'lying'];
+CONCEPT_FAMILIES.atmosphere = ['formal', 'dignified', 'solemn', 'serene', 'calm', 'dramatic', 'somber', 'joyful'];
+for (const [label, terms] of Object.entries(CONCEPT_FAMILIES)) {
+  // Original family labels that are also observed words remain matchable.
+  if (!['headwear', 'writing', 'vegetation', 'landforms', 'medium', 'posture', 'atmosphere'].includes(label)) terms.unshift(label);
+  // Make plural/synonymous surface forms visible within their family too.
+  CONCEPT_FAMILIES[label] = [...new Set(terms.flatMap(term => [term, ...(SYNONYM_MAP[term] || [])]))];
+}
 
 // Inverted lookup: variant → canonical, built once at load time.
 const TERM_TO_CANONICAL = new Map();
@@ -389,7 +356,7 @@ function stripMarkdown(str) {
     .replace(/```[\s\S]*?```/g, ' ')   // fenced code blocks
     .replace(/`[^`]*`/g, ' ')          // inline code
     .replace(/!\[.*?\]\(.*?\)/g, ' ')  // images
-    .replace(/\[.*?\]\(.*?\)/g, ' ')   // links — keep only the label text
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1') // preserve link labels, discard destinations
     .replace(/#{1,6}\s*/g, ' ')        // headings
     .replace(/(\*\*|__)(.*?)\1/g, '$2') // bold
     .replace(/(\*|_)(.*?)\1/g, '$2')   // italic
@@ -403,6 +370,83 @@ function stripMarkdown(str) {
 
 function normalizeText(str) {
   return str.toLowerCase().trim().replace(/\s+/g, ' ').replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
+}
+
+function termPattern(term) {
+  return '\\b' + term.split(/\s+/).map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+') + '\\b';
+}
+
+// Stage 1: match whole vocabulary entries, including multi-word seeds.
+// Testing entries independently preserves overlapping terms without matching
+// "man" inside "woman" or stitching a compound across sentence punctuation.
+const vocabularyPatterns = new WeakMap();
+function matchVocabulary(text, seeds) {
+  if (!vocabularyPatterns.has(seeds)) {
+    vocabularyPatterns.set(seeds, Array.from(seeds, term => [term, new RegExp(termPattern(term), 'gi')]));
+  }
+  const matches = new Map();
+  for (const [term, re] of vocabularyPatterns.get(seeds)) {
+    re.lastIndex = 0;
+    const hits = Array.from(text.matchAll(re));
+    if (hits.length) matches.set(term, hits);
+  }
+  return matches;
+}
+
+// Stage 1: an excerpt must contain the term, not merely the start of a long
+// annotation. Prefer its sentence; center a bounded window on the match when
+// that sentence is too long. A missing match yields no fabricated evidence.
+function supportingSnippet(body, forms, limit = 160) {
+  const clean = stripMarkdown(body || '');
+  const hits = forms.map(form => new RegExp(termPattern(form), 'i').exec(clean)).filter(Boolean);
+  if (!hits.length) return null;
+  const match = hits.sort((a, b) => a.index - b.index)[0];
+  const before = clean.slice(0, match.index);
+  const boundaries = Array.from(before.matchAll(/[.!?]\s+/g));
+  const last = boundaries[boundaries.length - 1];
+  const sentenceStart = last ? last.index + last[0].length : 0;
+  const after = clean.slice(match.index + match[0].length);
+  const end = /[.!?](?:\s|$)/.exec(after);
+  const sentenceEnd = end ? match.index + match[0].length + end.index + 1 : clean.length;
+  const sentence = clean.slice(sentenceStart, sentenceEnd);
+  if (sentence.length <= limit) return sentence.trim();
+  const offset = match.index - sentenceStart;
+  const start = Math.max(0, Math.min(offset - Math.floor((limit - match[0].length) / 2), sentence.length - limit));
+  return (start ? '…' : '') + sentence.slice(start, start + limit).trim() + (start + limit < sentence.length ? '…' : '');
+}
+
+function annotationEvidence(annotation, snippet, context = {}) {
+  const model = annotation.model || null;
+  const metadata = model && MODELS[model];
+  const hasTarget = context.objectid != null && context.imageid != null && annotation.id != null;
+  return {
+    annotation_id: annotation.id,
+    type: annotation.type,
+    source: annotation.source,
+    model,
+    display_model: metadata ? metadata.name : (model || annotation.source),
+    imageid: context.imageid == null ? null : context.imageid,
+    url: hasTarget ? '/object/' + encodeURIComponent(context.objectid) + '/image/' + encodeURIComponent(context.imageid)
+      + '?annotation=' + encodeURIComponent(annotation.id) + (annotation.type === 'description' ? '#descriptions' : '#other') : null,
+    snippet,
+  };
+}
+
+function representativeOccurrences(occurrences, limit = 3) {
+  // One example per source first, then fill remaining slots. This prevents
+  // repeated matches in the first provider's output from hiding other sources.
+  const selected = [], sources = new Set(), ids = new Set();
+  for (const occurrence of occurrences) {
+    if (sources.has(occurrence.source) || ids.has(occurrence.annotation_id)) continue;
+    selected.push(occurrence); sources.add(occurrence.source); ids.add(occurrence.annotation_id);
+    if (selected.length === limit) return selected;
+  }
+  for (const occurrence of occurrences) {
+    if (ids.has(occurrence.annotation_id)) continue;
+    selected.push(occurrence); ids.add(occurrence.annotation_id);
+    if (selected.length === limit) break;
+  }
+  return selected;
 }
 
 function stripDeterminer(str) {
@@ -516,11 +560,13 @@ function aggregateOccurrences(occurrences) {
         total_count:        0,
         // variant_text → Set of sources that used that specific word
         _variants:          new Map(),
-        // keep up to 3 raw occurrences as evidence snippets
+        // Retain distinct annotation evidence; choose representative examples
+        // only after aggregation, without altering occurrence-based scoring.
         _occurrences:       [],
       });
     }
     const entry = map.get(key);
+    const hasAnnotationEvidence = entry.annotation_ids.has(occ.annotation_id);
     entry.services.add(occ.source);
     entry.annotation_ids.add(occ.annotation_id);
     entry.types.add(occ.type);
@@ -528,7 +574,7 @@ function aggregateOccurrences(occurrences) {
     if (occ.people_related) entry.people_related = true;
     if (occ.concept_type === 'interpretive') entry.interpretive_count++;
     entry.total_count++;
-    if (entry._occurrences.length < 3) entry._occurrences.push(occ);
+    if (!hasAnnotationEvidence) entry._occurrences.push(occ);
 
     // Track which services used which variant word (including canonical itself)
     const word = occ.original_text || occ.concept_text;
@@ -536,6 +582,42 @@ function aggregateOccurrences(occurrences) {
     entry._variants.get(word).add(occ.source);
   }
   return map;
+}
+
+// Stage 2: inspect complete seed terms in original text, independently of NLP
+// chunking. Each term retains every distinct supporting annotation, including
+// single-provider observations. Repetition does not add annotation support.
+function extractConceptRelationships(annotations, context) {
+  const families = [];
+  for (const [family, vocabulary] of Object.entries(CONCEPT_FAMILIES)) {
+    const terms = new Map();
+    const seeds = new Set(vocabulary);
+    for (const annotation of annotations) {
+      for (const term of matchVocabulary(stripMarkdown(annotation.body || ''), seeds).keys()) {
+        if (!terms.has(term)) terms.set(term, new Map());
+        const snippet = supportingSnippet(annotation.body, [term]);
+        if (snippet) terms.get(term).set(annotation.id, annotationEvidence(annotation, snippet, context));
+      }
+    }
+    // A neighborhood needs two observed terms, but no agreement threshold.
+    if (terms.size < 2) continue;
+    const entries = [...terms].sort(([a], [b]) => a.localeCompare(b)).map(([term, records]) => {
+      const evidence = [...records.values()];
+      return { term, equivalent_term: canonicalize(term),
+        services: [...new Set(evidence.map(e => e.source))].sort(),
+        annotations_count: evidence.length, annotation_ids: [...records.keys()],
+        example_annotations: evidence };
+    });
+    const equivalents = new Map();
+    for (const entry of entries) {
+      if (!equivalents.has(entry.equivalent_term)) equivalents.set(entry.equivalent_term, []);
+      equivalents.get(entry.equivalent_term).push(entry.term);
+    }
+    families.push({ family, relationship: 'shared_family', terms: entries,
+      synonym_groups: [...equivalents].filter(([, forms]) => forms.length > 1)
+        .map(([concept, forms]) => ({ concept, terms: forms, relationship: 'same_meaning' })) });
+  }
+  return families;
 }
 
 // ---------------------------------------------------------------------------
@@ -561,18 +643,14 @@ function agreementLevel(normServices, normAnnotations) {
 // Build example_annotations snippets from raw annotation records
 // ---------------------------------------------------------------------------
 
-function buildExamples(entry, annotationsById) {
-  return entry._occurrences.map(occ => {
+function buildExamples(entry, annotationsById, context) {
+  return representativeOccurrences(entry._occurrences).map(occ => {
     const rec = annotationsById.get(occ.annotation_id);
-    const body = rec ? (rec.body || '') : '';
-    const snippet = body.length > 120 ? body.slice(0, 120) + '…' : body;
-    return {
-      annotation_id: occ.annotation_id,
-      type:          occ.type,
-      source:        occ.source,
-      snippet:       snippet,
-    };
-  });
+    if (!rec) return null;
+    const forms = CANONICAL_TO_FORMS.get(entry.concept) || [occ.original_text || entry.concept];
+    const snippet = supportingSnippet(rec.body, forms);
+    return snippet ? annotationEvidence(rec, snippet, context) : null;
+  }).filter(Boolean);
 }
 
 // ---------------------------------------------------------------------------
@@ -624,7 +702,7 @@ function generateNgrams(words) {
   return ngrams;
 }
 
-function extractThematicConcepts(descAnnotations, annotationsById) {
+function extractThematicConcepts(descAnnotations, annotationsById, context) {
   if (descAnnotations.length === 0) return [];
 
   // Build per-annotation ngram sets and word lists for TF computation
@@ -728,55 +806,43 @@ function extractThematicConcepts(descAnnotations, annotationsById) {
 
   // Fill snippets only for surviving terms
   for (const entry of kept) {
-    entry.snippet = findSnippetForTerm(entry.term, descAnnotations);
+    const supporting = descAnnotations.filter(ann => supportingSnippet(ann.body, [entry.term]));
+    entry.example_annotations = representativeOccurrences(supporting.map(ann => ({source: ann.source, annotation_id: ann.id})))
+      .map(occ => {
+        const ann = annotationsById.get(occ.annotation_id);
+        return annotationEvidence(ann, supportingSnippet(ann.body, [entry.term]), context);
+      });
+    entry.snippet = entry.example_annotations.length ? entry.example_annotations[0].snippet : null;
   }
 
   return kept;
-}
-
-function findSnippetForTerm(term, descAnnotations) {
-  const re = new RegExp('\\b' + term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b', 'i');
-  for (const ann of descAnnotations) {
-    const body = ann.body || '';
-    const sentences = body.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(s => s.trim()).filter(Boolean);
-    for (const sentence of sentences) {
-      if (re.test(sentence)) {
-        return sentence.length > 160 ? sentence.slice(0, 160) + '…' : sentence;
-      }
-    }
-  }
-  return null;
 }
 
 // ---------------------------------------------------------------------------
 // Mood palette — expressive/interpretive language across descriptions
 // ---------------------------------------------------------------------------
 
-function extractMoodPalette(descAnnotations) {
+function extractMoodPalette(descAnnotations, context) {
   if (descAnnotations.length === 0) return [];
 
-  const phraseMap = new Map(); // canonical phrase → { sources, count, snippets }
+  const phraseMap = new Map(); // phrase → sources, occurrence count, annotation IDs, evidence
 
   for (const ann of descAnnotations) {
     const body = stripMarkdown(ann.body || '');
     if (!body) continue;
     const source = ann.source;
     const annId = ann.id;
-    const model = ann.model || null;
-    const modelName = model && MODELS[model] ? MODELS[model].name : null;
     const bodyLower = body.toLowerCase();
-    const sentences = body.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(s => s.trim()).filter(Boolean);
 
     // Strategy 1: seed-word extraction — find mood adjectives in context
-    const words = bodyLower.replace(/[^a-z\s-]/g, ' ').split(/\s+/).filter(Boolean);
-    for (const word of words) {
-      if (!MOOD_SEEDS.has(word)) continue;
+    for (const [word, hits] of matchVocabulary(body, MOOD_SEEDS)) {
       if (!phraseMap.has(word)) {
-        phraseMap.set(word, { phrase: word, sources: new Set(), count: 0, snippets: [] });
+        phraseMap.set(word, { phrase: word, sources: new Set(), annotation_ids: new Set(), count: 0, snippets: [] });
       }
       const entry = phraseMap.get(word);
       entry.sources.add(source);
-      entry.count++;
+      entry.annotation_ids.add(annId);
+      entry.count += hits.length;
     }
 
     // Strategy 2: pattern extraction — "sense of X", "evokes X", etc.
@@ -794,26 +860,20 @@ function extractMoodPalette(descAnnotations) {
 
         const canonical = prefix + ' ' + extracted;
         if (!phraseMap.has(canonical)) {
-          phraseMap.set(canonical, { phrase: canonical, sources: new Set(), count: 0, snippets: [] });
+          phraseMap.set(canonical, { phrase: canonical, sources: new Set(), annotation_ids: new Set(), count: 0, snippets: [] });
         }
         const entry = phraseMap.get(canonical);
         entry.sources.add(source);
+        entry.annotation_ids.add(annId);
         entry.count++;
       }
     }
 
-    // Strategy 3: sentence-level — one snippet per annotation for provenance
-    for (const sentence of sentences) {
-      const sentLower = sentence.toLowerCase();
-      for (const [phrase, entry] of phraseMap) {
-        if (!entry.sources.has(source)) continue;
-        if (entry.snippets.some(s => s.id === annId)) continue;
-        const re = new RegExp('\\b' + phrase.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\b');
-        if (re.test(sentLower)) {
-          const snip = sentence.length > 160 ? sentence.slice(0, 160) + '...' : sentence;
-          entry.snippets.push({ source, model: modelName || source, id: annId, text: snip });
-        }
-      }
+    // Stage 1: retain complete provenance and a match-centered excerpt.
+    for (const [phrase, entry] of phraseMap) {
+      if (!entry.annotation_ids.has(annId) || entry.snippets.some(s => s.annotation_id === annId)) continue;
+      const snippet = supportingSnippet(body, [phrase]);
+      if (snippet) entry.snippets.push({ ...annotationEvidence(ann, snippet, context), text: snippet });
     }
   }
 
@@ -825,8 +885,11 @@ function extractMoodPalette(descAnnotations) {
       phrase:        entry.phrase,
       sources_count: entry.sources.size,
       count:         entry.count,
+      occurrences_count: entry.count,
+      annotations_count: entry.annotation_ids.size,
+      annotation_ids: Array.from(entry.annotation_ids),
       sources:       [...entry.sources],
-      snippets:      entry.snippets.map(s => ({ source: s.source, model: s.model, annotation_id: s.id, text: s.text })),
+      snippets:      entry.snippets,
     });
   }
 
@@ -853,15 +916,17 @@ function categorizePhrase(phrase) {
   return 'other';
 }
 
-function extractObservations(descAnnotations, regionAnnotations) {
+function extractObservations(descAnnotations, regionAnnotations, context) {
   if (descAnnotations.length === 0 && (!regionAnnotations || regionAnnotations.length === 0)) return {};
 
-  // phrase → { sources: Set, count, spatial: Map<source, count>, snippets: [] }
+  // Stage 1 count contract: count/occurrences_count are textual matches plus
+  // region annotations; annotations_count counts distinct supporting records.
+  // Per-type annotation counts keep detections separate from prose mentions.
   const phraseMap = new Map();
 
   function ensureEntry(canonical) {
     if (!phraseMap.has(canonical)) {
-      phraseMap.set(canonical, { sources: new Set(), count: 0, spatial: new Map(), snippets: [] });
+      phraseMap.set(canonical, { sources: new Set(), annotation_ids: new Set(), description_ids: new Set(), region_ids: new Set(), count: 0, spatial: new Map(), snippets: [] });
     }
     return phraseMap.get(canonical);
   }
@@ -872,8 +937,6 @@ function extractObservations(descAnnotations, regionAnnotations) {
     if (!clean.trim()) continue;
     const source = ann.source;
     const annId = ann.id;
-    const model = ann.model || null;
-    const modelName = model && MODELS[model] ? MODELS[model].name : null;
     const doc = nlp(clean);
 
     const nouns = doc.nouns().out('array');
@@ -897,25 +960,21 @@ function extractObservations(descAnnotations, regionAnnotations) {
       const canonical = tokens.length === 1 ? canonicalize(phrase) : phrase;
       const entry = ensureEntry(canonical);
       entry.sources.add(source);
-      entry.count++;
       matchedCanonicals.add(canonical);
     }
 
-    // Collect one snippet per annotation for each matched phrase
-    const sentences = clean.split(/(?<=[.!?])\s+|(?<=[.!?])$/).map(s => s.trim()).filter(Boolean);
+    // Stage 1: noun and adjective+noun extractors can return the same
+    // candidate. Count text matches once per canonical/annotation instead of
+    // counting extractor hits. Distinct annotation support is a separate metric.
     for (const canonical of matchedCanonicals) {
       const entry = phraseMap.get(canonical);
-      if (entry.snippets.some(s => s.id === annId)) continue;
+      if (entry.description_ids.has(annId)) continue;
+      entry.annotation_ids.add(annId); entry.description_ids.add(annId);
       const forms = CANONICAL_TO_FORMS.get(canonical) || [canonical];
-      const pattern = forms.map(f => f.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-      const re = new RegExp('\\b(?:' + pattern + ')(?:s|es|ed|ing|ly)?\\b', 'i');
-      for (const sentence of sentences) {
-        if (re.test(sentence)) {
-          const snip = sentence.length > 160 ? sentence.slice(0, 160) + '...' : sentence;
-          entry.snippets.push({ source, model: modelName || source, id: annId, text: snip });
-          break;
-        }
-      }
+      const re = new RegExp(forms.map(termPattern).join('|'), 'gi');
+      entry.count += Array.from(clean.matchAll(re)).length;
+      const snippet = supportingSnippet(clean, forms);
+      if (snippet) entry.snippets.push({ ...annotationEvidence(ann, snippet, context), text: snippet });
     }
   }
 
@@ -931,7 +990,11 @@ function extractObservations(descAnnotations, regionAnnotations) {
       const canonical = tokens.length === 1 ? canonicalize(phrase) : phrase;
       const entry = ensureEntry(canonical);
       entry.sources.add(ann.source);
+      if (entry.region_ids.has(ann.id)) continue;
+      entry.annotation_ids.add(ann.id); entry.region_ids.add(ann.id);
       entry.count++;
+      const snippet = supportingSnippet(ann.body, CANONICAL_TO_FORMS.get(canonical) || [phrase]);
+      if (snippet) entry.snippets.push({ ...annotationEvidence(ann, snippet, context), text: snippet });
 
       // Track bounding-box instances per service
       const src = ann.source;
@@ -951,7 +1014,12 @@ function extractObservations(descAnnotations, regionAnnotations) {
       sources:       Array.from(data.sources),
       sources_count: data.sources.size,
       count:         data.count,
-      snippets:      data.snippets.map(s => ({ source: s.source, model: s.model, annotation_id: s.id, text: s.text })),
+      occurrences_count: data.count,
+      annotations_count: data.annotation_ids.size,
+      annotation_ids: Array.from(data.annotation_ids),
+      description_annotations_count: data.description_ids.size,
+      region_annotations_count: data.region_ids.size,
+      snippets:      data.snippets,
     };
 
     // Attach spatial detection metadata when region tags contributed
@@ -1004,73 +1072,68 @@ const RADAR_DIMENSIONS = [
   { key: 'mood',              label: 'Mood & Atmosphere',    seeds: MOOD_SEEDS },
 ];
 
-function extractCoverageRadar(descAnnotations, object_info) {
-  // source → dimension → Set of matched terms
-  const coverage = new Map();
-
-  function ensureSource(src) {
-    if (!coverage.has(src)) {
-      const dims = {};
-      for (const d of RADAR_DIMENSIONS) dims[d.key] = new Set();
-      coverage.set(src, dims);
-    }
-    return coverage.get(src);
-  }
-
-  for (const ann of descAnnotations) {
-    const body = stripMarkdown(ann.body || '');
-    if (!body.trim()) continue;
-    const source = ann.source;
-    const dims = ensureSource(source);
-    const words = body.toLowerCase().replace(/[^a-z\s-]/g, ' ').split(/\s+/).filter(Boolean);
-
-    for (const word of words) {
-      for (const d of RADAR_DIMENSIONS) {
-        if (d.seeds.has(word)) {
-          dims[d.key].add(word);
-        }
+function extractCoverageRadar(descAnnotations, object_info, context) {
+  // Stage 3: one series per annotation, not a silently pooled model history.
+  // A provider series remains the union of its outputs. Both views use maxima
+  // from the complete AI provider unions, so switching/hiding never rescales.
+  const dimensions = () => Object.fromEntries(RADAR_DIMENSIONS.map(d => [d.key, new Set()]));
+  const providers = new Map(), outputs = [];
+  const seen = new Set();
+  for (const annotation of descAnnotations) {
+    const body = stripMarkdown(annotation.body || '').trim();
+    if (!body || seen.has(annotation.id)) continue;
+    seen.add(annotation.id);
+    const source = annotation.source;
+    if (!providers.has(source)) providers.set(source, { terms: dimensions(), ids: dimensions(), outputs: [] });
+    const provider = providers.get(source), terms = dimensions();
+    for (const d of RADAR_DIMENSIONS) {
+      for (const term of matchVocabulary(body, d.seeds).keys()) {
+        terms[d.key].add(term);
+        provider.terms[d.key].add(term);
+        provider.ids[d.key].add(annotation.id);
       }
     }
+    const { snippet, ...metadata } = annotationEvidence(annotation, null, context);
+    const output = { ...metadata, createdate: annotation.createdate || null,
+      word_count: body.split(/\s+/).length, _terms: terms };
+    outputs.push(output); provider.outputs.push(output);
   }
-
-  // Include curator wall label if available
+  const maxPerDim = Object.fromEntries(RADAR_DIMENSIONS.map(d => [d.key, 0]));
+  for (const provider of providers.values()) {
+    for (const d of RADAR_DIMENSIONS) maxPerDim[d.key] = Math.max(maxPerDim[d.key], provider.terms[d.key].size);
+  }
+  function values(terms, ids) {
+    return Object.fromEntries(RADAR_DIMENSIONS.map(d => {
+      const raw = terms[d.key].size, maximum = maxPerDim[d.key];
+      return [d.key, { raw, normalized: maximum ? raw / maximum : null,
+        exceeds_scale: raw > maximum, terms: [...terms[d.key]].sort(),
+        annotation_ids: ids ? [...ids[d.key]] : [] }];
+    }));
+  }
+  const sources = [...providers].sort(([a], [b]) => a.localeCompare(b)).map(([source, provider]) => ({
+    source, output_count: provider.outputs.length,
+    model_count: new Set(provider.outputs.filter(o => o.model).map(o => o.model)).size,
+    word_count: provider.outputs.reduce((sum, o) => sum + o.word_count, 0),
+    values: values(provider.terms, provider.ids),
+  }));
+  const serializedOutputs = outputs.map(({ _terms, ...output }) => ({ ...output,
+    values: values(_terms, Object.fromEntries(RADAR_DIMENSIONS.map(d => [d.key,
+      _terms[d.key].size ? new Set([output.annotation_id]) : new Set()]))),
+  }));
+  // Object language never sets an AI axis maximum. Preserve overflow and the
+  // undefined ratio for zero-coverage AI axes; the renderer marks/clamps these
+  // explicitly instead of stretching the chart or discarding raw evidence.
+  let reference = null;
   if (object_info && object_info.labeltext) {
-    const dims = ensureSource('Curator');
-    const words = object_info.labeltext.toLowerCase().replace(/[^a-z\s-]/g, ' ').split(/\s+/).filter(Boolean);
-    for (const word of words) {
-      for (const d of RADAR_DIMENSIONS) {
-        if (d.seeds.has(word)) {
-          dims[d.key].add(word);
-        }
-      }
-    }
-  }
-
-  // Build result: find max per dimension for normalization
-  const maxPerDim = {};
-  for (const d of RADAR_DIMENSIONS) maxPerDim[d.key] = 0;
-  for (const [, dims] of coverage) {
+    const terms = dimensions();
     for (const d of RADAR_DIMENSIONS) {
-      maxPerDim[d.key] = Math.max(maxPerDim[d.key], dims[d.key].size);
+      for (const term of matchVocabulary(stripMarkdown(object_info.labeltext), d.seeds).keys()) terms[d.key].add(term);
     }
+    reference = { label: 'Object wall label', values: values(terms), body: object_info.labeltext };
   }
-
-  const sources = [];
-  for (const [src, dims] of coverage) {
-    const values = {};
-    for (const d of RADAR_DIMENSIONS) {
-      const raw = dims[d.key].size;
-      values[d.key] = { raw, normalized: maxPerDim[d.key] > 0 ? raw / maxPerDim[d.key] : 0 };
-    }
-    sources.push({ source: src, values });
-  }
-  sources.sort((a, b) => a.source.localeCompare(b.source));
-
-  return {
-    dimensions: RADAR_DIMENSIONS.map(d => ({ key: d.key, label: d.label })),
-    sources,
-    max_per_dimension: maxPerDim,
-  };
+  return { dimensions: RADAR_DIMENSIONS.map(d => ({ key: d.key, label: d.label })),
+    sources, outputs: serializedOutputs, reference, max_per_dimension: maxPerDim,
+    scale_basis: 'complete_ai_provider_unions' };
 }
 
 // ---------------------------------------------------------------------------
@@ -1091,7 +1154,9 @@ function compute(ai_data, object_info, display_image) {
   const faceAnnotations   = ai_data.filter(r => r.type === 'face');
   const textAnnotations   = ai_data.filter(r => r.type === 'text');
 
-  if (tagAnnotations.length === 0 && descAnnotations.length === 0) {
+  // Stage 1: region detections, OCR, and faces are annotations too. Keep their
+  // observations/flags available even when there are no full-image tags or prose.
+  if (![tagAnnotations, regionAnnotations, descAnnotations, faceAnnotations, textAnnotations].some(records => records.length)) {
     return {
       objectid:          object_info ? object_info.id : null,
       imageid:           display_image ? display_image.imageid : null,
@@ -1101,22 +1166,24 @@ function compute(ai_data, object_info, display_image) {
     };
   }
 
+  const context = { objectid: object_info ? object_info.id : null, imageid: display_image ? display_image.imageid : null };
+
   // Extract concept occurrences (tags + noun chunks from descriptions)
   const occurrences = [];
   for (const ann of tagAnnotations)  occurrences.push(...extractFromTag(ann));
   for (const ann of descAnnotations) occurrences.push(...extractFromDescription(ann));
 
   // Thematic extraction — TF-IDF across LLM descriptions only
-  const thematicConcepts = extractThematicConcepts(descAnnotations, annotationsById);
+  const thematicConcepts = extractThematicConcepts(descAnnotations, annotationsById, context);
 
   // Observations — broad extraction, categorized, no agreement threshold
-  const observations = extractObservations(descAnnotations, regionAnnotations);
+  const observations = extractObservations(descAnnotations, regionAnnotations, context);
 
   // Mood palette — expressive/interpretive language from descriptions
-  const moodPalette = extractMoodPalette(descAnnotations);
+  const moodPalette = extractMoodPalette(descAnnotations, context);
 
   // Coverage radar — per-source term coverage across dimensions
-  const coverageRadar = extractCoverageRadar(descAnnotations, object_info);
+  const coverageRadar = extractCoverageRadar(descAnnotations, object_info, context);
 
   // Aggregate
   const conceptMap = aggregateOccurrences(occurrences);
@@ -1154,34 +1221,16 @@ function compute(ai_data, object_info, display_image) {
       people_related:       entry.people_related,
       vocabulary_diversity: variants.length,
       variants:             variants.length > 1 ? variants : null,
-      example_annotations:  buildExamples(entry, annotationsById),
+      example_annotations:  buildExamples(entry, annotationsById, context),
     });
   }
   agreementConcepts.sort((a, b) => b.consensus_score - a.consensus_score);
   const topConcepts = agreementConcepts.slice(0, CONFIG.top_N);
 
-  // -------------------------------------------------------------------------
-  // Divergence signals — cross-service disagreements only
-  // -------------------------------------------------------------------------
-  const allConceptTexts = new Set(conceptMap.keys());
-  const topDivergence = [];
-  for (const [termA, termB] of INCOMPATIBILITY_LIST) {
-    if (topDivergence.length >= CONFIG.max_divergence) break;
-    if (!allConceptTexts.has(termA) || !allConceptTexts.has(termB)) continue;
-    const entryA = conceptMap.get(termA);
-    const entryB = conceptMap.get(termB);
-    if (!entryA || !entryB) continue;
-    topDivergence.push({
-      type:          'cross_service_disagreement',
-      concepts:      [termA, termB],
-      concept_types: [
-        entryA.interpretive_count / entryA.total_count > 0.5 ? 'interpretive' : 'descriptive',
-        entryB.interpretive_count / entryB.total_count > 0.5 ? 'interpretive' : 'descriptive',
-      ],
-      services:      [Array.from(entryA.services)[0], Array.from(entryB.services)[0]],
-      note:          `Services disagree: "${termA}" vs "${termB}"`,
-    });
-  }
+  // Stage 2: co-occurring concepts are neither conflicts nor independent
+  // agreement votes. Expose curated relationships with exact surface evidence.
+  const conceptRelationships = extractConceptRelationships(
+    [...tagAnnotations, ...regionAnnotations, ...descAnnotations], context);
 
   // -------------------------------------------------------------------------
   // Flags: has_text, has_faces
@@ -1263,7 +1312,7 @@ function compute(ai_data, object_info, display_image) {
       total_raw_concepts:           occurrences.length,
       concepts_returned:            topConcepts.length,
       thematic_concepts_returned:   thematicConcepts.length,
-      divergence_signals_returned:  topDivergence.length,
+      concept_relationships_returned: conceptRelationships.length,
       has_text:                   hasText,
       text_sample:                textSample,
       has_faces:                  hasFaces,
@@ -1274,7 +1323,7 @@ function compute(ai_data, object_info, display_image) {
     },
     concepts:            topConcepts,
     thematic_concepts:   thematicConcepts,
-    divergence_signals:  topDivergence,
+    concept_relationships: conceptRelationships,
     observations:        observations,
     mood_palette:        moodPalette,
     coverage_radar:      coverageRadar,
