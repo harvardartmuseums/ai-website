@@ -345,6 +345,39 @@ If you have any questions or concerns, please reach out to AWS Support [4].
 [4] https://aws.amazon.com/support`
       },
       {
+        date_of_change: "2027-04-08",
+        date_of_notification: "2026-10-09",
+        service: "AWS",
+        summary: "Bedrock Model Deprecation Notice – Claude 4.5 Sonnet 'anthropic.claude-sonnet-4-5-20250929-v1:0'",
+        details: `Hello,
+
+[AWS Health may periodically trigger reminder notifications about this communication if resources remain unresolved.]
+
+We are contacting you because you have used model ID 'anthropic.claude-sonnet-4-5-20250929-v1:0' [1] on Amazon Bedrock in the past 30 days.
+
+Effective immediately, by moving Claude Sonnet 4.5 into the Legacy state [2], Anthropic is initiating the deprecation process for this model. Once the model enters the Legacy state, no additional Service Quota increases will be granted for the model. Sonnet 4.5 will stay in the Legacy state until January 8, 2027, when the model will enter the Extended Access state. On April 8, 2027, the model will go end-of-life and will no longer be accessible in Amazon Bedrock.
+
+Important dates:
+
+- October 8, 2026: Legacy state begins
+- January 8, 2027: Extended access begins
+- April 8, 2027: This model will no longer be available for use and requests made to this model ID will fail
+
+We recommend migrating your usage to the latest Anthropic model [1] by updating your application code [3]. You can request an increase to your replacement model quotas through Service Quotas [4]. To make migration easier, Amazon Bedrock provides a prompt optimization and migration tool with built-in evaluations called Bedrock Advanced Prompt Optimization. We recommend using it to automate prompt changes and evaluations that may be necessary when moving to new models [5][6].
+
+Information about affected resources is available in the 'Affected resources' section of the Health Dashboard, the 'affectedEntities' field in the EventBridge event details or the 'entities' field in the Health DescribeAffectedEntities API responses.
+
+If you have any questions or concerns, please reach out to AWS Support [7].
+
+[1] https://docs.aws.amazon.com/bedrock/latest/userguide/model-ids.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html
+[3] https://docs.aws.amazon.com/bedrock/latest/APIReference/welcome.html
+[4] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[5] https://docs.aws.amazon.com/bedrock/latest/userguide/advanced-prompt-optimization-how.html
+[6] https://aws.amazon.com/blogs/aws/amazon-bedrock-introduces-new-advanced-prompt-optimization-and-migration-tool/
+[7] https://aws.amazon.com/support`
+      },
+      {
         date_of_change: "2028-09-25",
         service: "Microsoft",
         summary: "Azure AI Vision Image Analysis Retirement",
