@@ -1,5 +1,5 @@
 /*
- * All outputs — index + reader for the image research page.
+ * Descriptions — index + reader for the image research page.
  *
  * The server renders every description twice: as a compact row in the index
  * (#outputs-list) and as a full article in the reader (#outputs-reader). This

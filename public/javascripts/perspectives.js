@@ -15,7 +15,8 @@ var overview = require('./overview');
 // Stage 3 adds individual output series and separates the object reference.
 // Use a major version for the radar schema and AI-only normalization contract.
 // 4.1 adds the additive `overview` block (see overview.js); no existing field changes.
-const ALGORITHM_VERSION = 'ace-v4.1.0';
+// 4.2 adds overview.colour_words and attribution-pattern name detection.
+const ALGORITHM_VERSION = 'ace-v4.2.0';
 
 const CONFIG = {
   min_services:                2,

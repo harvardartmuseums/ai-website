@@ -4,7 +4,8 @@
   if (!root) return;
   var panels = Array.from(root.querySelectorAll('[data-research-panel]'));
   // Hashes from the previous layout, kept so bookmarks and evidence links work.
-  var LEGACY_VIEWS = { perspectives: 'vocabulary', descriptions: 'outputs', tags: 'detections', other: 'detections' };
+  // (#descriptions needs no entry: it is the Descriptions tab's own hash.)
+  var LEGACY_VIEWS = { perspectives: 'vocabulary', tags: 'detections', other: 'detections' };
   function showView(name) {
     name = LEGACY_VIEWS[name] || name;
     if (!panels.some(function (p) { return p.dataset.researchPanel === name; })) name = 'overview';
@@ -15,11 +16,29 @@
     });
     root.dispatchEvent(new CustomEvent('researchview', { detail: name }));
   }
-  function syncHash() { showView(location.hash.slice(1)); }
+  // A hash may name a section within a view: "#vocabulary/radar" opens the
+  // Vocabulary tab, expands that section if it is collapsed, and scrolls to it.
+  function syncHash() {
+    var parts = location.hash.slice(1).split('/');
+    showView(parts[0]);
+    var section = parts[1] && root.querySelector('[data-research-section="' + parts[1] + '"]');
+    if (!section) return;
+    if (section.tagName === 'DETAILS') section.open = true;
+    // Scroll now: scrollIntoView lays out the page itself, and deferring to an
+    // animation frame never fires while the page is in a background tab.
+    section.scrollIntoView({ block: 'start' });
+  }
   window.addEventListener('hashchange', syncHash);
   syncHash();
-  var picker = document.getElementById('research-image-select');
-  if (picker) picker.addEventListener('change', function () { location.assign(picker.value + location.hash); });
+  // Called by the perspectives loader once Vocabulary sections exist.
+  window.syncResearchSection = function () { if (location.hash.indexOf('/') !== -1) syncHash(); };
+
+  // Image strip: keep each thumbnail's link pointing at the current tab, so
+  // switching images (or opening one in a new tab) stays on the same view.
+  var imageLinks = Array.from(document.querySelectorAll('.research-image-strip a'));
+  function syncImageLinks() { imageLinks.forEach(function (link) { link.hash = location.hash; }); }
+  window.addEventListener('hashchange', syncImageLinks);
+  syncImageLinks();
 
   function descForAnnotation(id) {
     return Array.from(document.querySelectorAll('.desc-data')).find(function (d) { return d.dataset.annotationId === String(id); });

@@ -3057,27 +3057,6 @@ mark.desc-highlight {
   margin-bottom: 14px;
   line-height: 1.5;
 }
-.perspectives-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-.perspectives-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  background: var(--c-lightgray);
-  color: var(--c-nearblack);
-  border-radius: 12px;
-  padding: 3px 10px;
-  cursor: default;
-}
-.perspectives-chip-info {
-  font-size: 11px;
-  color: var(--c-gray);
-}
 .perspectives-block {
   margin-bottom: 22px;
 }

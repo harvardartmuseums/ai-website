@@ -91,6 +91,16 @@ test('distinctive phrases are ones no other description uses, with leading fille
   assert.deepEqual(result.distinctive, { 1: ['naval officer'] });
 });
 
+test('colour words count descriptions, merge spelling variants and leave out tone words', () => {
+  const result = overviewOf({ descriptions: [
+    d(1, 'A red coat and a red sash on a dark ground.'),
+    d(2, 'Gray hair under a black hat; a grey sky.'),
+    d(3, 'A redwood frame, light and airy.'),
+  ] });
+  assert.deepEqual(result.colour_words.map(c => [c.word, c.descriptions_count, c.annotation_ids]),
+    [['black', 1, [2]], ['grey', 1, [2]], ['red', 1, [1]]]);
+});
+
 test('mood keeps single interpretive words and drops tone words', () => {
   const moodPalette = [
     { phrase: 'dark', annotations_count: 9, annotation_ids: [1] },

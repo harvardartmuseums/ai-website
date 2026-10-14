@@ -10,6 +10,7 @@
 //   agreement    nouns most descriptions mention, counted across phrasing
 //                variants ("hat", "black hat", "tricorn hat" all count as hat)
 //   mood         interpretive mood words, excluding colour/tone adjectives
+//   colour_words colours the descriptions name, to set beside the measured palette
 //   attention    how many descriptions touch each radar dimension
 //   distinctive  per description, phrases no other description uses
 //   divergence   claims that disagree with the museum record, plus the
@@ -64,6 +65,17 @@ const LEADING_FILLER = new Set(['this', 'these', 'that', 'those', 'some', 'both'
 const COLOUR_WORDS = new Set(['red', 'orange', 'yellow', 'green', 'blue',
   'purple', 'violet', 'pink', 'brown', 'black', 'white', 'gray', 'grey', 'gold',
   'silver', 'beige', 'cream', 'ochre', 'turquoise', 'teal', 'dark', 'light']);
+
+// Colour words counted for the "Colour: measured and described" card. Spelling
+// variants share one entry; "dark" and "light" are tone, not colour, and stay out.
+const DESCRIBED_COLOURS = {
+  red: ['red'], orange: ['orange'], yellow: ['yellow'], green: ['green'],
+  blue: ['blue'], purple: ['purple', 'violet'], pink: ['pink'], brown: ['brown'],
+  black: ['black'], white: ['white'], grey: ['grey', 'gray'], gold: ['gold', 'golden'],
+  silver: ['silver'], beige: ['beige'], cream: ['cream'], ochre: ['ochre', 'ocher'],
+  turquoise: ['turquoise'], teal: ['teal'],
+};
+const MAX_COLOUR_WORDS = 10;
 
 // Mood-palette entries that describe value or colour rather than feeling.
 const TONAL_WORDS = new Set(['dark', 'muted', 'vibrant', 'colorful', 'colourful',
@@ -199,6 +211,24 @@ function computeMood(moodPalette) {
     .filter(m => !m.phrase.includes(' ') && !TONAL_WORDS.has(m.phrase))
     .slice(0, MAX_MOOD_TERMS)
     .map(m => ({ phrase: m.phrase, descriptions_count: m.annotations_count, annotation_ids: m.annotation_ids }));
+}
+
+// ---------------------------------------------------------------------------
+// Colour words: which colours the descriptions name
+// ---------------------------------------------------------------------------
+
+// Shown beside the image's measured palette. Counts descriptions, not
+// mentions; a description saying "red coat, red sash" counts once for red.
+function computeColourWords(descriptions) {
+  return Object.keys(DESCRIBED_COLOURS)
+    .map(colour => {
+      const pattern = new RegExp('\\b(?:' + DESCRIBED_COLOURS[colour].join('|') + ')\\b', 'i');
+      const ids = descriptions.filter(d => pattern.test(d.body)).map(d => d.id);
+      return { word: colour, descriptions_count: ids.length, annotation_ids: ids };
+    })
+    .filter(c => c.descriptions_count > 0)
+    .sort((a, b) => b.descriptions_count - a.descriptions_count || a.word.localeCompare(b.word))
+    .slice(0, MAX_COLOUR_WORDS);
 }
 
 // ---------------------------------------------------------------------------
@@ -385,6 +415,7 @@ function computeOverview({ descriptions, observations, moodPalette, coverageRada
     providers_count: new Set(texts.map(d => d.source)).size,
     agreement: computeAgreement(texts, observations, excludedWords),
     mood: computeMood(moodPalette),
+    colour_words: computeColourWords(texts),
     attention: computeAttention(coverageRadar),
     distinctive: computeDistinctive(phrasesByDescription || new Map()),
     divergence: computeDivergence(texts, objectInfo),

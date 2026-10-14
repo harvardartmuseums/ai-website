@@ -707,14 +707,36 @@ function buildWorkspaceStats(ai_data) {
     // inscription arrives twice. Count distinct readings per service, the
     // same way organize.divide lists them on the Tags & detections tab.
     text: new Set(ai_data.filter(r => r.type === 'text').map(r => r.source + '\0' + r.body)).size,
-    // "2018–26" reads faster than "2018–2026" in a stat tile.
-    years: first === null ? null : first === last ? String(first) : `${first}–${String(last).slice(2)}`,
+    // When the annotations were generated, e.g. "2018–2026"; not artwork dates.
+    years: first === null ? null : first === last ? String(first) : `${first}–${last}`,
   };
   stats.detections = stats.tags + stats.regions + stats.faces + stats.categories + stats.text;
   return stats;
 }
 
-// One row per AI description for the All outputs index. Human-authored
+// Thumbnails for the image strip under the viewer, one per image of the
+// object in museum display order. Labels identify an image without its ID:
+// position, the image's date, and a short alt text or description.
+function buildImageChoices(object_info, imageid) {
+  const images = (object_info.images || []).slice().sort((a, b) => (a.displayorder || 0) - (b.displayorder || 0));
+  const shorten = (text, max) => text.length > max ? text.slice(0, max).replace(/\s+\S*$/, '') + '…' : text;
+  return images.map((image, index) => {
+    const year = image.date ? String(image.date).slice(0, 4) : null;
+    const about = image.alttext || image.description || '';
+    const label = [`Image ${index + 1} of ${images.length}`, year && `photographed ${year}`]
+      .filter(Boolean).join(', ') + (about ? ': ' + shorten(about, 120) : '');
+    return {
+      imageid: image.imageid,
+      url: `/object/${encodeURIComponent(object_info.id)}/image/${image.imageid}`,
+      // IIIF: fit within 96×96 so tall and wide images both stay whole.
+      thumbnail: image.baseimageurl ? `${image.baseimageurl}/full/!96,96/0/default.jpg` : null,
+      label,
+      selected: image.imageid === Number(imageid),
+    };
+  });
+}
+
+// One row per AI description for the Descriptions index. Human-authored
 // references stay out of the index; they appear on the Overview and in Compare.
 function buildOutputRows(descriptions_list) {
   // Older services record no model ("unknown"); name the provider instead so
@@ -808,20 +830,24 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
       const display_image = image_info && image_info.imageid === embedded_image.imageid
         ? { ...embedded_image, ...image_info } : embedded_image;
       const descriptions_list = buildResearchDescriptions(ai_sorted, object_info, display_image);
-      // An evidence link to a description opens it in the All outputs reader;
+      // An evidence link to a description opens it in the Descriptions reader;
       // any other annotation (tags, faces, regions) is shown as a source record.
       const linksToDescription = selected_annotation && selected_annotation.type === 'description';
+      const image_choices = buildImageChoices(object_info, imageid);
 
-      res.render('object', { title: 'Image ' + imageid + ' — ' + object_info.title,
+      // Matches the page heading; the layout appends "| AI Explorer | Harvard Art Museums".
+      res.render('object', { title: 'How AI describes ' + object_info.title + ' (image ' + imageid + ')',
                              selected_annotation: linksToDescription ? null : selected_annotation,
                              selected_output_id: linksToDescription ? selected_annotation.id : null,
                              descriptions_list,
                              output_rows: buildOutputRows(descriptions_list),
                              workspace_stats: buildWorkspaceStats(ai_info.records || []),
-                             image_position: object_info.images.findIndex(image => image.imageid === Number(imageid)) + 1,
+                             // Same display order as the image strip, so "(2 of 7)" matches it.
+                             image_position: image_choices.findIndex(choice => choice.selected) + 1,
                              has_other_analysis: Boolean(display_image.colors && display_image.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
                              multiple_images: object_info.images.length > 1,
                              object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
+                             image_choices,
                              navbar: true,
                              year: new Date().getFullYear(),
                              ai_data: ai_data,

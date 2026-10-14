@@ -3,25 +3,46 @@
 <div class="research-page">
 {{> image_context}}
 <section class="object-info-panel image-research-workspace">
-  {{!-- Header: who/what/when once, then the four numbers that size the data. --}}
+  {{!-- Header: this page is an account of what AI says, so the heading frames
+        the artwork as its subject rather than presenting a catalogue entry.
+          - Data line: how much AI output, about which image, and when it was
+            generated (annotation dates, not artwork dates). Per-type counts
+            live on the tabs. "Providers" are the companies whose models wrote
+            descriptions.
+          - Museum record: artist, date and medium stay visible as the
+            disclosure's label, because readers need them to judge claims like
+            "names a person not in the record"; the rest opens beneath. --}}
   <header class="research-heading">
-    <span class="research-label">AI analysis · image {{display_image.imageid}}{{#if multiple_images}} ({{image_position}} of {{object_images.length}}){{/if}}</span>
-    <h1>{{object_info.title}}</h1>
-    <p class="research-heading-meta">{{#each object_info.people}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}{{#if object_info.dated}} · {{object_info.dated}}{{/if}}{{#if object_info.medium}} · {{object_info.medium}}{{/if}}</p>
-    <dl class="research-stats">
-      <div><dt>Descriptions</dt><dd>{{workspace_stats.descriptions}}</dd></div>
-      <div><dt>Providers</dt><dd>{{workspace_stats.providers}}</dd></div>
-      <div><dt>Tags</dt><dd>{{workspace_stats.tags}}</dd></div>
-      <div><dt>Years</dt><dd>{{#if workspace_stats.years}}{{workspace_stats.years}}{{else}}—{{/if}}</dd></div>
-    </dl>
+    <h1>How AI describes <cite>{{object_info.title}}</cite></h1>
+    <p class="research-heading-data">
+      {{#if workspace_stats.descriptions}}{{workspace_stats.descriptions}} description{{#unless (eq workspace_stats.descriptions 1)}}s{{/unless}} from {{workspace_stats.providers}} provider{{#unless (eq workspace_stats.providers 1)}}s{{/unless}}{{else}}No AI descriptions{{/if}} of image {{display_image.imageid}}{{#if multiple_images}} ({{image_position}} of {{object_images.length}}){{/if}}{{#if workspace_stats.years}}, generated {{workspace_stats.years}}{{/if}}
+    </p>
+    <details class="research-record">
+      <summary>Museum record{{#if (or object_info.people object_info.dated object_info.medium)}}: {{#each object_info.people}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}{{#if object_info.people}}{{#if object_info.dated}} · {{/if}}{{/if}}{{object_info.dated}}{{#if object_info.medium}}{{#if (or object_info.people object_info.dated)}} · {{/if}}{{object_info.medium}}{{/if}}{{/if}}</summary>
+      <div class="research-record-body">
+        <dl class="research-record-facts">
+          <div><dt>Object number</dt><dd>{{object_info.objectnumber}}</dd></div>
+          <div><dt>Object ID</dt><dd>{{object_info.id}}</dd></div>
+          <div><dt>Classification</dt><dd>{{object_info.classification}}</dd></div>
+          <div><dt>Credit line</dt><dd>{{object_info.creditline}}</dd></div>
+          {{#if object_info.copyright}}<div><dt>Copyright</dt><dd>{{object_info.copyright}}</dd></div>{{/if}}
+        </dl>
+        {{#if object_info.labeltext}}
+        <h2 class="research-record-subhead">Object wall label</h2>
+        <p class="research-record-label">{{object_info.labeltext}}</p>
+        <p class="research-note">Museum-authored text about the object.</p>
+        {{/if}}
+        <a href="{{object_info.url}}">Full museum record <i class="fa fa-external-link" aria-hidden="true"></i></a>
+      </div>
+    </details>
   </header>
 
-  {{!-- Tabs. Compare has no tab: it opens from the All outputs index.
-        research-workspace.js maps the old hashes (#perspectives, #descriptions,
-        #tags, #other) onto these so existing links keep working. --}}
+  {{!-- Tabs. Compare has no tab: it opens from the Descriptions index.
+        research-workspace.js maps the old hashes (#perspectives, #tags,
+        #other) onto these so existing links keep working. --}}
   <nav class="research-tabs" aria-label="Image analysis views">
     <a href="#overview" data-research-tab="overview">Overview</a>
-    <a href="#outputs" data-research-tab="outputs">All outputs <span class="research-tab-count">{{workspace_stats.descriptions}}</span></a>
+    <a href="#descriptions" data-research-tab="descriptions">Descriptions <span class="research-tab-count">{{workspace_stats.descriptions}}</span></a>
     <a href="#vocabulary" data-research-tab="vocabulary">Vocabulary <span class="beta-badge">Beta</span></a>
     <a href="#detections" data-research-tab="detections">Tags &amp; detections <span class="research-tab-count">{{workspace_stats.detections}}</span></a>
     <a href="#data" data-research-tab="data">Data &amp; method</a>
@@ -58,6 +79,25 @@
           <h2 class="overview-card-title">What they pay attention to</h2>
           <div data-overview-slot="attention"><p class="research-note">Loading…</p></div>
         </article>
+        {{!-- Colour: the image's measured palette beside the colour words the
+              descriptions use. The palette covers the whole photograph,
+              including bare canvas, mounts and background. --}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">Colour: measured and described</h2>
+          {{#if display_image.colors}}
+          <div>
+            <p class="overview-card-subhead">Measured in the image</p>
+            {{> image_palette}}
+          </div>
+          {{else}}
+          <p class="research-note">No measured palette is available for this image.</p>
+          {{/if}}
+          <div>
+            <p class="overview-card-subhead">Named in the descriptions</p>
+            <div data-overview-slot="colour"><p class="research-note">Loading…</p></div>
+          </div>
+          <p class="research-note">The palette covers the whole photograph, including any unpainted areas, mount or background.</p>
+        </article>
         <article class="overview-card">
           <h2 class="overview-card-title">Mood words</h2>
           <div data-overview-slot="mood"><p class="research-note">Loading…</p></div>
@@ -88,12 +128,21 @@
       <div class="research-source-body">{{selected_annotation.body}}</div>
     </section>
     {{/if}}
-{{!-- Vocabulary: the detailed perspectives analysis (radar, shared terms,
-      observations, mood, themes, concept families). Rendered by the inline
-      script below from the perspectives JSON. --}}
+{{!-- Vocabulary: the detail behind the Overview cards, in the same order,
+      ending with the radar for comparing models. Each section has a
+      data-research-section name, so #vocabulary/<name> opens the tab at it
+      (see research-workspace.js). Content is rendered by the inline script
+      below from the perspectives JSON; section counts fill in once it loads. --}}
 <div id="research-vocabulary" data-research-panel="vocabulary"><section class="ai-section attention-section" id="attention-section">
           <h2>Vocabulary</h2>
-          <p class="attention-intro">Explore patterns across providers, then inspect the descriptions behind them.</p>
+          <p class="attention-intro">The words behind the Overview, with the excerpts they came from. The radar at the end compares how much each model covers.</p>
+          <nav class="vocab-sections" aria-label="Vocabulary sections">
+            <a href="#vocabulary/shared">Shared vocabulary</a>
+            <a href="#vocabulary/noticed">What the AIs noticed</a>
+            <a href="#vocabulary/mood">Mood and themes</a>
+            <a href="#vocabulary/relate">How descriptions relate</a>
+            <a href="#vocabulary/radar">Compare models</a>
+          </nav>
 
           <div class="attention-card attention-card--ai" id="ai-perspectives-section">
             <div id="perspectives-panel">
@@ -101,8 +150,45 @@
               <div id="perspectives-error" style="display:none;"><p class="perspectives-status perspectives-status--error"></p></div>
               <div id="perspectives-content" style="display:none;">
 
+                {{!-- 1. Detail for the Overview's "What they agree on". --}}
+                <details class="research-perspective-detail" data-research-section="shared" open><summary>Shared vocabulary <span class="vocab-count" data-vocab-count="shared"></span></summary><div id="perspectives-agreement" class="perspectives-block">
+                  <p class="perspectives-divergence-intro">Phrases repeated across providers (at least 2 providers and 3 descriptions or tag sets), with conservative linguistic equivalents. Related concepts keep separate support counts.</p>
+                  <p class="research-note">These are whole phrases (“black tricorn hat”), so counts differ from the Overview, which pools every phrasing of a noun (“hat”).</p>
+                  <div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
+                  <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
+                </div></details>
+
+                {{!-- 2. Detail for "What they pay attention to". --}}
+                <details class="research-perspective-detail" data-research-section="noticed"><summary>What the AIs noticed <span class="vocab-count" data-vocab-count="noticed"></span></summary><div id="ai-observations-section" class="perspectives-block">
+                  <p class="perspectives-divergence-intro">Phrases extracted from AI-generated descriptions, grouped by dimension. No agreement threshold — everything the models mentioned, organised for browsing.</p>
+                  <div id="observations-categories"></div>
+                </div></details>
+
+                {{!-- 3. Detail for "Mood words": feeling, then themes. --}}
+                <details class="research-perspective-detail" data-research-section="mood"><summary>Mood and themes <span class="vocab-count" data-vocab-count="mood"></span></summary>
+                  <div id="perspectives-mood" class="perspectives-block" style="display:none;">
+                    <h3 class="perspectives-block-heading">Mood palette</h3>
+                    <p class="perspectives-divergence-intro">Expressive and interpretive language drawn from AI descriptions — how the models characterize atmosphere, feeling, and tone rather than what they identify.</p>
+                    <div id="perspectives-mood-list" class="perspectives-mood-list"></div>
+                  </div>
+                  <div id="perspectives-thematic" class="perspectives-block" style="display:none;">
+                    <h3 class="perspectives-block-heading">Thematic terms</h3>
+                    <p class="perspectives-divergence-intro">Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image. These reflect conceptual and thematic content rather than observed features. Treat them as prompts for inquiry, not confirmed readings.</p>
+                    <div id="perspectives-thematic-list" class="perspectives-thematic-list"></div>
+                  </div>
+                </details>
+
+                {{!-- 4. Curated concept families. --}}
+                <details class="research-perspective-detail" data-research-section="relate"><summary>How descriptions relate <span class="vocab-count" data-vocab-count="relate"></span></summary><div id="perspectives-relationships" class="perspectives-block" style="display:none;">
+                  <p class="perspectives-divergence-intro">Explore exact terms within curated concept families. Shared family membership does not imply the same meaning or agreement. Excerpts preserve the context of each mention.</p>
+                  <div id="perspectives-relationships-list" class="perspectives-relationships-list"></div>
+                </div></details>
+
+                {{!-- 5. Compare models: topic coverage across the eight dimensions. --}}
+                <section class="vocab-compare" data-research-section="radar" aria-labelledby="radar-section-heading">
+                <h3 class="vocab-compare-heading" id="radar-section-heading">Compare models</h3>
                 <div id="perspectives-radar" class="perspectives-block" style="display:none;">
-                  <h5 id="radar-heading" class="perspectives-block-heading">What models describe</h5>
+                  <h4 id="radar-heading" class="perspectives-block-heading">What models describe</h4>
                   <p class="perspectives-divergence-intro">Breadth of descriptive vocabulary across eight dimensions</p>
                   <div class="radar-controls">
                     <label for="radar-view">Compare by</label>
@@ -120,48 +206,14 @@
                   <label for="radar-dimension">Explore a dimension</label><select id="radar-dimension" class="compare-select"></select>
                   <div id="radar-evidence" aria-live="polite"></div>
                 </div>
-
-
-                <div id="perspectives-chips" class="perspectives-chips"></div>
-
-                <details class="research-perspective-detail"><summary>What the AIs noticed</summary><div id="ai-observations-section" class="perspectives-block">
-                  <h5 class="perspectives-block-heading">What the AIs noticed</h5>
-                  <p class="perspectives-divergence-intro">Phrases extracted from AI-generated descriptions, grouped by category. No agreement threshold — everything the models mentioned, organised for browsing.</p>
-                  <div id="observations-categories"></div>
-                </div></details>
-
-                <details class="research-perspective-detail"><summary>Mood palette</summary><div id="perspectives-mood" class="perspectives-block" style="display:none;">
-                  <h5 class="perspectives-block-heading">Mood palette</h5>
-                  <p class="perspectives-divergence-intro">Expressive and interpretive language drawn from AI descriptions — how the models characterize atmosphere, feeling, and tone rather than what they identify.</p>
-                  <div id="perspectives-mood-list" class="perspectives-mood-list"></div>
-                </div></details>
-
-                <details class="research-perspective-detail"><summary>Shared vocabulary</summary><div id="perspectives-agreement" class="perspectives-block">
-                  <h5 class="perspectives-block-heading">Shared vocabulary across providers</h5>
-                  <p class="perspectives-divergence-intro">Repeated terms and conservative linguistic equivalents. Related concepts retain separate support counts.</p><div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
-                  <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
-                </div></details>
-
-                <details class="research-perspective-detail"><summary>Thematic terms</summary><div id="perspectives-thematic" class="perspectives-block" style="display:none;">
-                  <h5 class="perspectives-block-heading">Thematic terms — what the AI descriptions are about</h5>
-                  <p class="perspectives-divergence-intro">Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image. These reflect conceptual and thematic content rather than observed features. Treat them as prompts for inquiry, not confirmed readings.</p>
-                  <div id="perspectives-thematic-list" class="perspectives-thematic-list"></div>
-                </div></details>
-
-                <details class="research-perspective-detail"><summary>How descriptions relate</summary><div id="perspectives-relationships" class="perspectives-block" style="display:none;">
-                  <h5 class="perspectives-block-heading">How descriptions relate</h5>
-                  <p class="perspectives-divergence-intro">Explore exact terms within curated concept families. Shared family membership does not imply the same meaning or agreement. Excerpts preserve the context of each mention.</p>
-                  <div id="perspectives-relationships-list" class="perspectives-relationships-list"></div>
-                </div></details>
-
-                <p class="perspectives-footer-note">This tool currently processes English-language AI annotations only.</p>
+                </section>
               </div>
             </div>
           </div>
         </section></div>
-{{!-- Compare: no tab of its own. Opened from the All outputs index
+{{!-- Compare: no tab of its own. Opened from the Descriptions index
       ("Open full comparison"), the Overview, or radar evidence. --}}
-<section id="research-compare" data-research-panel="compare"><a class="overview-link" href="#outputs">← All outputs</a><h2>Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
+<section id="research-compare" data-research-panel="compare"><a class="overview-link" href="#descriptions">← Descriptions</a><h2>Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
 {{!-- Tags & detections: full-image tags, then faces, features, categories,
       captions, text and colours. --}}
 <div id="research-detections" data-research-panel="detections">{{#unless ai_sorted.tagsect}}<p>No tags are available for this image.</p>{{/unless}}<section class="ai-section">
@@ -376,13 +428,7 @@
           <section class="ai-section">
             <h3>Image color palette</h3>
             <p class="research-note">Colors measured from image {{display_image.imageid}} by the museum’s image service; not a model annotation.</p>
-            <ul class="image-palette" aria-label="Colors in image {{display_image.imageid}}, largest share first">
-              {{#each display_image.colors}}
-              <li class="image-palette-swatch" style="background: {{color}}; flex-grow: {{percent}};" title="{{color}} · {{hue}} · {{round (multiply percent 100)}}%">
-                <span class="visually-hidden">{{color}}, {{hue}}, {{round (multiply percent 100)}}%</span>
-              </li>
-              {{/each}}
-            </ul>
+            {{> image_palette}}
           </section>{{/if}}</div>{{! /#research-other }}
 </div>{{! /#research-detections }}
 
@@ -507,7 +553,7 @@
   }
 
   // The same JSON feeds the Overview cards (overview-panel.js) and the
-  // shared-term filters and notable phrases in All outputs (outputs-index.js).
+  // shared-term filters and notable phrases in Descriptions (outputs-index.js).
   // `data` is null when the request failed.
   function shareWithWorkspace(data) {
     if (window.renderResearchOverview) window.renderResearchOverview(data);
@@ -517,16 +563,18 @@
   }
 
   function renderPerspectives(data) {
-    renderChips(data);
     renderObservations(data);
     renderMoodPalette(data);
     renderCoverageRadar(data);
     renderConcepts(data);
     renderThematic(data);
     renderRelationships(data);
+    renderSectionCounts(data);
+    if (window.syncResearchSection) window.syncResearchSection();
+    // A section with nothing to show is hidden rather than left empty.
     document.querySelectorAll('.research-perspective-detail').forEach(function(detail) {
-      var block = detail.querySelector('.perspectives-block');
-      detail.hidden = block && block.style.display === 'none';
+      var blocks = Array.from(detail.querySelectorAll('.perspectives-block'));
+      detail.hidden = blocks.length > 0 && blocks.every(function(block) { return block.style.display === 'none'; });
     });
     document.querySelectorAll('#perspectives-content div[onclick]').forEach(function(control) {
       control.setAttribute('role', 'button'); control.setAttribute('tabindex', '0');
@@ -538,51 +586,22 @@
     });
   }
 
-  function renderChips(data) {
-    var s    = data.summary || {};
-    var el   = document.getElementById('perspectives-chips');
-    var html = '';
-
-    if (s.concepts_returned != null) {
-      html += chip(s.concepts_returned + ' agreement concept' + (s.concepts_returned === 1 ? '' : 's'), '');
-    }
-    if (s.thematic_concepts_returned > 0) {
-      html += chip(s.thematic_concepts_returned + ' thematic term' + (s.thematic_concepts_returned === 1 ? '' : 's'), 'Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image.');
-    }
-    if (s.concept_relationships_returned > 0) {
-      html += chip(s.concept_relationships_returned + ' concept famil' + (s.concept_relationships_returned === 1 ? 'y' : 'ies'), 'Curated vocabulary relationships, with supporting excerpts.');
-    }
-    if (s.has_text) {
-      html += chip('Text in image', '');
-    }
-    if (s.has_faces && s.face_stats) {
-      var fs = s.face_stats;
-      var faceLabel;
-      if (fs.min === fs.max) {
-        faceLabel = 'Faces detected (' + fs.min + ' — all services agree)';
-      } else {
-        faceLabel = 'Faces detected (min ' + fs.min + ', max ' + fs.max + ', avg ' + fs.avg + ')';
-      }
-      var perServiceLines = (fs.per_service || []).map(function(p) {
-        return p.source + ': ' + p.count;
-      }).join(' · ');
-      var faceTooltip = 'Services reporting: ' + perServiceLines + '. Face detection uses general-purpose computer vision models trained primarily on photographs. These models are known to perform unevenly across skin tones and may miss faces—or find faces where there are none—in paintings, prints, drawings, and sculptures.';
-      html += chip(faceLabel, faceTooltip);
-    }
-    if (s.depicts_people) {
-      var examples = (s.depicts_people_examples || []).join(', ');
-      var peopleTooltip = 'Based on how multiple AI captions and tags refer to people or figures in the scene' + (examples ? ' (e.g., &#8216;' + examples + '&#8217;)' : '') + '. May include mythological or supernatural figures if AI services describe them this way.';
-      html += chip('Depicts people — ' + (s.depicts_people_level || '') + ' agreement', peopleTooltip);
-    }
-    html += chip('English annotations only', '');
-    el.innerHTML = html;
-  }
-
-  function chip(label, tooltip) {
-    if (tooltip) {
-      return '<span class="perspectives-chip" title="' + escHtml(tooltip) + '">' + escHtml(label) + ' <span class="perspectives-chip-info">ⓘ</span></span>';
-    }
-    return '<span class="perspectives-chip">' + escHtml(label) + '</span>';
+  // Counts beside each Vocabulary section title, so a closed section still
+  // says how much is inside it.
+  function renderSectionCounts(data) {
+    function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+    var observations = Object.values(data.observations || {});
+    var phrases = observations.reduce(function(n, c) { return n + c.entries.length; }, 0);
+    var counts = {
+      shared: plural((data.concepts || []).length, 'phrase'),
+      noticed: plural(phrases, 'phrase') + ' in ' + plural(observations.length, 'dimension'),
+      mood: plural((data.mood_palette || []).length, 'mood word') + ' · ' + plural((data.thematic_concepts || []).length, 'theme'),
+      relate: plural((data.concept_relationships || []).length, 'concept family').replace('familys', 'families'),
+    };
+    Object.keys(counts).forEach(function(key) {
+      var target = document.querySelector('[data-vocab-count="' + key + '"]');
+      if (target) target.textContent = counts[key];
+    });
   }
 
   function evidenceLink(e) {

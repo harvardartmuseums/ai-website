@@ -2,7 +2,7 @@
  * Overview tab — fills the summary cards from the perspectives JSON.
  *
  * Every number on a card is a way into the evidence: selecting a shared term,
- * a dimension or a mood word opens All outputs filtered to the descriptions
+ * a dimension or a mood word opens Descriptions filtered to the descriptions
  * behind it; a divergence item opens that description in the reader.
  *
  * Called once by the perspectives loader in object.hbs:
@@ -32,15 +32,22 @@
     return el('p', 'research-note', text);
   }
 
-  // A button that switches to All outputs and then runs `action` there.
+  // A button that switches to Descriptions and then runs `action` there.
   function outputsButton(className, action) {
     var button = el('button', className);
     button.type = 'button';
     button.addEventListener('click', function () {
-      location.hash = 'outputs';
+      location.hash = 'descriptions';
       if (window.researchOutputs) action(window.researchOutputs);
     });
     return button;
+  }
+
+  // A link to one section of the Vocabulary tab, where each card's detail lives.
+  function vocabularyLink(text, section) {
+    var link = el('a', 'overview-link', text);
+    link.href = '#vocabulary/' + section;
+    return link;
   }
 
   // "Claude Opus 4.5" for an annotation id, read from the index row.
@@ -82,7 +89,8 @@
       bars.appendChild(bar);
     });
     target.replaceChildren(el('p', 'overview-lede', sentence), bars,
-      note('Select a term to see the descriptions that use it.'));
+      note('Select a term to see the descriptions that use it.'),
+      vocabularyLink('Shared phrases, with excerpts →', 'shared'));
   }
 
   // Claims that differ from the museum record, then the length range.
@@ -106,7 +114,7 @@
       items.appendChild(item);
     });
     if (claims.length > MAX_DIVERGENCE_ITEMS) {
-      items.appendChild(el('li', 'research-note', 'and ' + plural(claims.length - MAX_DIVERGENCE_ITEMS, 'more flag') + ' in All outputs.'));
+      items.appendChild(el('li', 'research-note', 'and ' + plural(claims.length - MAX_DIVERGENCE_ITEMS, 'more flag') + ' on the Descriptions tab.'));
     }
 
     var range = signals.find(function (s) { return s.kind === 'length_range'; });
@@ -145,9 +153,9 @@
       tile.setAttribute('aria-label', d.label + ': ' + d.descriptions_count + ' of ' + total + ' descriptions');
       tiles.appendChild(tile);
     });
-    var vocabulary = el('a', 'overview-link', 'Compare models on the vocabulary radar →');
-    vocabulary.href = '#vocabulary';
-    target.replaceChildren(tiles, note('Descriptions that use words from each dimension.'), vocabulary);
+    var links = el('p', 'overview-links');
+    links.append(vocabularyLink('Phrases by dimension →', 'noticed'), vocabularyLink('Compare models on the radar →', 'radar'));
+    target.replaceChildren(tiles, note('Descriptions that use words from each dimension.'), links);
   }
 
   function renderMood(target, overview) {
@@ -164,9 +172,33 @@
       word.setAttribute('aria-label', m.phrase + ': ' + plural(m.descriptions_count, 'description') + '. Show them.');
       words.appendChild(word);
     });
-    var more = el('a', 'overview-link', 'Mood palette and thematic terms →');
-    more.href = '#vocabulary';
-    target.replaceChildren(words, more);
+    target.replaceChildren(words, vocabularyLink('Mood palette and thematic terms →', 'mood'));
+  }
+
+  // CSS colours for the dot beside each colour word. Only names CSS doesn't
+  // already understand need an entry.
+  var COLOUR_DOTS = { grey: 'gray', ochre: '#cc7722', cream: '#fffdd0' };
+
+  // Colour words the descriptions use, set under the measured palette.
+  function renderColour(target, overview) {
+    var colours = overview.colour_words || [], total = overview.descriptions_count;
+    if (!colours.length) {
+      target.replaceChildren(note('No description names a colour.'));
+      return;
+    }
+    var words = el('div', 'overview-words');
+    colours.forEach(function (c) {
+      var word = outputsButton('overview-word', function (outputs) { outputs.filter('“' + c.word + '”', c.annotation_ids); });
+      var dot = el('span', 'overview-word-dot');
+      dot.style.background = COLOUR_DOTS[c.word] || c.word;
+      dot.setAttribute('aria-hidden', 'true');
+      word.appendChild(dot);
+      word.appendChild(document.createTextNode(c.word + ' '));
+      word.appendChild(el('span', 'overview-word-count', String(c.descriptions_count)));
+      word.setAttribute('aria-label', c.word + ': ' + c.descriptions_count + ' of ' + total + ' descriptions. Show them.');
+      words.appendChild(word);
+    });
+    target.replaceChildren(words);
   }
 
   // Faces on the Detections card. Each service records one annotation per face
@@ -198,7 +230,7 @@
     // Faces don't depend on there being descriptions, only on the summary.
     var faces = document.querySelector('[data-overview-faces]');
     if (faces && data && data.summary) renderFaces(faces, data.summary);
-    var renderers = { agreement: renderAgreement, divergence: renderDivergence, attention: renderAttention, mood: renderMood };
+    var renderers = { agreement: renderAgreement, divergence: renderDivergence, attention: renderAttention, colour: renderColour, mood: renderMood };
     Object.keys(renderers).forEach(function (name) {
       var target = slot(name);
       if (!target) return;

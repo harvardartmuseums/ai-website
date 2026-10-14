@@ -1,5 +1,5 @@
 {{!--
-  All outputs: a scannable index of every AI description (left) and a reader
+  Descriptions: a scannable index of every AI description (left) and a reader
   for the selected one (right). Ticking two rows shows them side by side, with
   a link into the full Compare workspace.
 
@@ -8,7 +8,7 @@
   the side-by-side view. The overview data (shared terms, distinctive phrases,
   divergence flags) is layered on once the perspectives JSON arrives.
 --}}
-<section id="research-outputs" data-research-panel="outputs" aria-label="All outputs"{{#if selected_output_id}} data-initial-selection="{{selected_output_id}}"{{/if}}>
+<section id="research-outputs" data-research-panel="descriptions" aria-label="Descriptions"{{#if selected_output_id}} data-initial-selection="{{selected_output_id}}"{{/if}}>
   {{#if output_rows}}
   <div class="outputs-toolbar">
     <div class="outputs-terms" id="outputs-terms" role="group" aria-label="Filter by a term the descriptions share"></div>

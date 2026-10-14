@@ -1,0 +1,10 @@
+{{!-- The selected image's colour palette, from its /image record. One strip;
+      each swatch is as wide as its share of the image. Used on the Overview
+      colour card and in Tags & detections. Expects display_image in scope. --}}
+<ul class="image-palette" aria-label="Colors measured in image {{display_image.imageid}}, largest share first">
+  {{#each display_image.colors}}
+  <li class="image-palette-swatch" style="background: {{color}}; flex-grow: {{percent}};" title="{{color}} · {{hue}} · {{round (multiply percent 100)}}%">
+    <span class="visually-hidden">{{color}}, {{hue}}, {{round (multiply percent 100)}}%</span>
+  </li>
+  {{/each}}
+</ul>

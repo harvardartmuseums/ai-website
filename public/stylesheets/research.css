@@ -1,8 +1,13 @@
 /* Page frame: the site navbar on top, then two columns. The image pane is
    sticky rather than fixed, so it sits below the navbar and stays in view
    once the navbar has scrolled away. */
-.research-page { display: flex; align-items: flex-start; }
-.research-page > .image-research-viewer { position: sticky; top: 0; flex: 0 0 30%; width: 30%; height: 100vh; }
+/* The pane is one navbar (80px) shorter than the window, so at the top of the
+   page its zoom controls and image strip are fully visible. Once scrolled, it
+   sticks to the top and stops 80px short; the wrapper paints the column grey
+   so that gap reads as part of the pane. */
+.research-page { display: flex; align-items: flex-start;
+  background: linear-gradient(to right, var(--c-lightgray) 30%, transparent 30%); }
+.research-page > .image-research-viewer { position: sticky; top: 0; flex: 0 0 30%; width: 30%; height: calc(100vh - 80px); }
 .research-page > .image-research-workspace { flex: 1 1 auto; width: auto; min-width: 0; margin-left: 0; }
 /* Tabs differ in height; keep the scrollbar's space reserved so a short tab
    (no scrollbar) doesn't make the workspace wider than the others. */
@@ -13,7 +18,7 @@ html:has(.research-page) body { background: var(--c-white); }
 /* Narrow screens: stack the image above the workspace. This overrides the
    fixed 35vh image strip that style.css sets for the older object layout. */
 @media (max-width: 800px) {
-  .research-page { display: block; }
+  .research-page { display: block; background: none; }
   .research-page > .image-research-viewer { position: static; width: 100%; height: auto; overflow: visible; border: 0; }
   .research-page > .image-research-workspace { width: 100%; height: auto; margin-top: 0; }
   .research-page .object-image-container { flex: 0 0 auto; height: 60vh; }
@@ -29,15 +34,17 @@ html:has(.research-page) body { background: var(--c-white); }
 .research-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--c-grayblack); }
 .research-image-identity h2 { margin: 6px 0; font-size: 22px; }
 .research-image-identity p { font-size: 13px; margin: 0 0 14px; }
-.research-image-picker { display: block; font-size: 12px; margin: 18px 0; }
-.research-image-picker select { display: block; width: 100%; font: inherit; padding: 8px; margin-top: 6px; }
-.research-object-context { border-top: 1px solid var(--c-gray); padding-top: 20px; margin-top: 22px; font-size: 13px; }
-.research-object-context h3 { font-size: 17px; margin: 8px 0; }
-.research-object-context p { margin: 5px 0; }
-.research-object-context details { margin-top: 14px; }
-.research-object-context dl { margin: 12px 0; }
-.research-object-context dt { font-size: 11px; color: var(--c-grayblack); margin-top: 10px; }
-.research-object-context dd { margin-left: 0; }
+/* Image strip: one thumbnail per image of the object, current one outlined.
+   Scrolls sideways when there are more than fit. */
+.research-image-strip { flex: 0 0 auto; margin-top: 6px; }
+.research-image-strip ol { display: flex; gap: 8px; list-style: none; margin: 0; padding: 4px 2px 8px; overflow-x: auto; }
+.research-image-strip li { flex: 0 0 auto; }
+.research-image-strip a { display: flex; align-items: center; justify-content: center; width: 64px; height: 64px; background: var(--c-white); outline: 1px solid var(--c-hovergray); text-decoration: none; }
+.research-image-strip a:hover { outline-color: var(--c-gray); }
+.research-image-strip a[aria-current="page"] { outline: 2px solid var(--c-nearblack); outline-offset: 2px; }
+.research-image-strip a:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
+.research-image-strip img { max-width: 100%; max-height: 100%; display: block; }
+.research-image-strip-fallback { font-size: 10px; line-height: 1.2; padding: 4px; color: var(--c-grayblack); overflow: hidden; }
 .research-note { color: var(--c-grayblack); font-size: 12px; }
 .research-source-record { margin-bottom: 24px; padding-bottom: 20px; border-bottom: 1px solid var(--c-lightgray); }
 .research-source-body { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.7; }
@@ -108,12 +115,30 @@ html:has(.research-page) body { background: var(--c-white); }
    All outputs is an index of every description beside a reader.
    ========================================================================== */
 
-/* Header: title once, then four stat tiles. */
-.research-heading-meta { font-size: 15px; color: var(--c-grayblack); }
-.research-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-width: 560px; margin: 18px 0 0; }
-.research-stats div { background: var(--c-lightgray); padding: 10px 12px; }
-.research-stats dt { font-size: 12px; color: var(--c-grayblack); }
-.research-stats dd { margin: 0; font-family: "Neutral Bold 3", sans-serif; font-size: 24px; }
+/* Header: the artwork once, then one line sizing the AI data. */
+/* Museum record: artist · date · medium as the disclosure label; the record
+   and wall label open beneath. A long wall label scrolls in its own box. */
+.research-record { margin: 8px 0 0; font-size: 14px; }
+.research-record > summary { cursor: pointer; color: var(--c-grayblack); }
+.research-record > summary:hover { color: var(--c-nearblack); }
+.research-record-body { margin: 10px 0 4px; padding: 14px 16px; background: var(--c-lightgray); max-width: 72ch; }
+.research-record-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px 20px; margin: 0 0 12px; }
+.research-record-facts dt { font-size: 11px; color: var(--c-grayblack); }
+.research-record-facts dd { margin: 0; overflow-wrap: anywhere; }
+.research-record-subhead { margin: 12px 0 4px; font-size: 13px; font-family: "Neutral Medium 3", sans-serif; }
+.research-heading .research-record-label { margin: 0; max-height: 14em; overflow-y: auto; line-height: 1.55; }
+.research-record summary:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
+/* The heading italicises the artwork title (<cite>). style.css declares only
+   upright Neutral faces, so declare the bundled bold italic for that family. */
+@font-face {
+  font-family: "Neutral Bold 3";
+  src: url("/fonts/NeutralL-BoldItalic.woff2") format("woff2");
+  font-style: italic;
+  font-display: auto;
+}
+.research-heading cite { font-style: italic; }
+/* Line under the heading: how much AI data, and which image it describes. */
+.research-heading .research-heading-data { margin-top: 2px; font-size: 14px; color: var(--c-nearblack); }
 .research-tab-count { color: inherit; opacity: .7; margin-left: 2px; }
 .research-tabs a[aria-current] .research-tab-count { opacity: .85; }
 
@@ -163,6 +188,10 @@ html:has(.research-page) body { background: var(--c-white); }
 .overview-word { background: var(--c-lightgray); border: 0; padding: 6px 10px; font: inherit; font-size: 15px; color: inherit; cursor: pointer; }
 .overview-word:hover { background: var(--c-hovergray); }
 .overview-word-count { font-size: 12px; color: var(--c-grayblack); }
+/* Colour card: a dot of the named colour; the outline keeps white visible. */
+.overview-word-dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .25); vertical-align: -1px; }
+.overview-card-subhead { margin: 0 0 6px; font-size: 12px; color: var(--c-grayblack); }
+.overview-card .image-palette { margin-top: 0; max-width: none; }
 
 /* --- All outputs: toolbar ---------------------------------------------------- */
 .outputs-toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--c-lightgray); font-size: 13px; }
@@ -232,7 +261,6 @@ html:has(.research-page) body { background: var(--c-white); }
   .outputs-row { grid-template-columns: 28px minmax(0, 1fr) 80px; }
   .outputs-row > .outputs-words, .outputs-row > .outputs-notable, .outputs-row--head > :nth-child(n+4) { display: none; }
   .outputs-pair-columns { grid-template-columns: 1fr; }
-  .research-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* Image color palette (Tags & detections): one strip, each swatch as wide as
@@ -242,3 +270,13 @@ html:has(.research-page) body { background: var(--c-white); }
 
 /* Text for screen readers only. */
 .visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* Vocabulary tab: in-page section links, counts on collapsed sections, and
+   the closing "Compare models" radar section. */
+.vocab-sections { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 4px 0 18px; font-size: 13px; }
+.vocab-sections a { color: var(--c-linkblue); }
+.vocab-count { margin-left: 6px; font-family: "Neutral Regular 3", sans-serif; font-weight: normal; font-size: 13px; color: var(--c-grayblack); }
+.vocab-compare { margin-top: 28px; padding-top: 18px; border-top: 2px solid var(--c-nearblack); }
+.vocab-compare-heading { margin: 0 0 8px; font-size: 18px; }
+.overview-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; margin-top: auto; }
+[data-research-section] { scroll-margin-top: 16px; }

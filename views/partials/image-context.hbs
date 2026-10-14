@@ -1,7 +1,6 @@
-{{!-- Left column: the zoomable image stays in view while reading. Title,
-artist and date live in the main header, and the site navbar above
-carries the logo; this column keeps the image, the image picker and the
-museum's own record. --}}
+{{!-- Left column: the zoomable image stays in view while reading, with the
+picker for the object's other images. Title and the museum record live in the
+main header; the human image description is on the Overview. --}}
 <section class="object-view-panel image-research-viewer">
   {{#if display_image}}
   <div class="object-image-container">
@@ -12,31 +11,20 @@ museum's own record. --}}
           aria-hidden="true"></i></button><button type="button" id="zoom-home">Fit image</button></div>
   </div>
   {{else}}<p>No image available for this object.</p>{{/if}}
+  {{!-- Other images of the object: plain links, so they work without
+        JavaScript and open in new tabs. research-workspace.js keeps each
+        link's hash on the current tab, so switching images keeps the view. --}}
   {{#if multiple_images}}
-  <label class="research-image-picker" for="research-image-select">Images of this object<select
-      id="research-image-select">{{#each object_images}}<option value="/object/{{../object_info.id}}/image/{{imageid}}"
-        {{#if selected}}selected{{/if}}>Image {{imageid}}{{#if description}} — {{description}}{{/if}}</option>
-      {{/each}}</select></label>
+  <nav class="research-image-strip" aria-label="Images of this object">
+    <ol>
+      {{#each image_choices}}
+      <li>
+        <a href="{{url}}" title="{{label}}"{{#if selected}} aria-current="page"{{/if}}>
+          {{#if thumbnail}}<img src="{{thumbnail}}" alt="{{label}}">{{else}}<span class="research-image-strip-fallback">{{label}}</span>{{/if}}
+        </a>
+      </li>
+      {{/each}}
+    </ol>
+  </nav>
   {{/if}}
-  <div class="research-object-context"><span class="research-label">Museum record · object {{object_info.id}}</span>
-    <details>
-      <summary>Record &amp; object wall label</summary>
-      <dl>
-        <dt>Object number</dt>
-        <dd>{{object_info.objectnumber}}</dd>
-        <dt>Classification</dt>
-        <dd>{{object_info.classification}}</dd>
-        <dt>Credit line</dt>
-        <dd>{{object_info.creditline}}</dd>{{#if object_info.copyright}}<dt>Copyright</dt>
-        <dd>{{object_info.copyright}}</dd>{{/if}}
-      </dl>{{#if object_info.labeltext}}<h4>Object wall label</h4>
-      <p>{{object_info.labeltext}}</p>
-      <p class="research-note">Museum-authored text about the object.</p>{{/if}}<a href="{{object_info.url}}">Full
-        museum record <i class="fa fa-external-link" aria-hidden="true"></i></a>
-    </details>{{#if display_image.description}}<details>
-      <summary>Human description of this image</summary>
-      <p>{{display_image.description}}</p>
-      <p class="research-note">About image {{display_image.imageid}}.</p>
-    </details>{{/if}}
-  </div>
 </section>

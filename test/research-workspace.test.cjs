@@ -49,10 +49,22 @@ test('workspace and comparison partials render sparse records and parse their em
   hbs.registerPartial('outputs_index', fs.readFileSync(path.join(__dirname, '../views/partials/outputs-index.hbs'), 'utf8'));
   const render = hbs.handlebars.compile(fs.readFileSync(path.join(__dirname, '../views/object.hbs'), 'utf8'));
   const html = render({ object_info: { id: 1, title: 'A title < & >' }, display_image: { imageid: 2 }, workspace_stats: { descriptions: 0, detections: 1 }, selected_annotation: {id: 3, source: 'Test', model: 'raw-model-id', type: 'tag', body: '<script>unsafe()</script>'}, ai_sorted: { tagsect: [{ source: 'Test', tags: [{ body: 'red/blue?', confidence: 50 }] }] } });
-  assert.ok(html.includes('AI analysis · image 2'));
-  for (const view of ['overview', 'outputs', 'vocabulary', 'compare', 'detections', 'data']) {
+  // The heading frames the artwork as the subject of AI's account (escaped).
+  assert.ok(html.includes('<h1>How AI describes <cite>A title &lt; &amp; &gt;</cite></h1>'));
+  for (const view of ['overview', 'descriptions', 'vocabulary', 'compare', 'detections', 'data']) {
     assert.ok(html.includes(`data-research-panel="${view}"`), view + ' panel renders');
   }
+  // The line under it sizes the data and names the image, in every case.
+  assert.match(html, /No AI descriptions of image 2\s/);
+  const one = render({ object_info: { id: 1, title: 'T' }, display_image: { imageid: 2 }, workspace_stats: { descriptions: 1, providers: 1, years: '2026' } });
+  assert.match(one, /1 description from 1 provider of image 2, generated 2026\s/);
+  const many = render({ object_info: { id: 1, title: 'T' }, display_image: { imageid: 2 }, multiple_images: true, image_position: 1, object_images: [{}, {}, {}], workspace_stats: { descriptions: 42, providers: 11, years: '2018–2026' } });
+  assert.match(many, /42 descriptions from 11 providers of image 2 \(1 of 3\), generated 2018–2026/);
+  // The museum record's label shows artist, date and medium; details open beneath.
+  const record = render({ object_info: { id: 1, title: 'T', people: [{ name: 'Alfred Kubin' }], dated: 'c. 1910', medium: 'Ink', labeltext: 'Label.' }, display_image: { imageid: 2 }, workspace_stats: {} });
+  assert.match(record, /<summary>Museum record: Alfred Kubin · c\. 1910 · Ink<\/summary>/);
+  assert.ok(record.includes('Object wall label'));
+  assert.match(render({ object_info: { id: 1, title: 'T' }, display_image: { imageid: 2 }, workspace_stats: {} }), /<summary>Museum record<\/summary>/);
   assert.ok(html.includes('No model descriptions are available for this image.'));
   assert.ok(html.includes('No descriptions available for this image.'));
   assert.ok(html.includes('A title &lt; &amp; &gt;'));
@@ -134,7 +146,12 @@ test('object routes bind analysis to the requested image, reject mismatches, and
     assert.equal(valid.context.output_rows.length, 1, 'human references stay out of the index');
     assert.equal(valid.context.output_rows[0].words, 2);
     assert.equal(valid.context.image_position, 2);
-    // A link to a description opens it in the All outputs reader rather than
+    // Image strip: one link per image, labelled without IDs, current one marked.
+    assert.deepEqual(valid.context.image_choices.map(c => [c.url, c.label, c.selected, c.thumbnail]), [
+      ['/object/1/image/10', 'Image 1 of 2', false, null],
+      ['/object/1/image/20', 'Image 2 of 2: Image interpretation.', true, null],
+    ]);
+    // A link to a description opens it in the Descriptions reader rather than
     // as a separate source record.
     const linked = await invoke(routePath, { object_id: '1', image: 'image', image_id: '20' }, {annotation: '77'});
     assert.equal(linked.context.selected_output_id, 77);
