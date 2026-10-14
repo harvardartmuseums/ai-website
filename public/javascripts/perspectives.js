@@ -16,7 +16,16 @@ var overview = require('./overview');
 // Use a major version for the radar schema and AI-only normalization contract.
 // 4.1 adds the additive `overview` block (see overview.js); no existing field changes.
 // 4.2 adds overview.colour_words and attribution-pattern name detection.
-const ALGORITHM_VERSION = 'ace-v4.2.0';
+// 4.3 lists every observed phrase (no 25-per-dimension cap); excerpts only
+//     for the top 25 per dimension.
+// 4.4 widens Action into "Pose & Action", adds a ninth "Condition & State"
+//     dimension, and lists their words as phrases when found in the text.
+// 4.5 categorises phrases by whole phrase, then head word, then any word,
+//     singularising and splitting hyphens (fewer phrases fall into Other).
+// 4.5.1 adds reviewed vocabulary to six dimensions (body and bearing,
+//     clothing, text and marks, landscape, colour, mark-making); see
+//     .plans/vocabulary-additions-draft.md.
+const ALGORITHM_VERSION = 'ace-v4.5.1';
 
 const CONFIG = {
   min_services:                2,
@@ -38,7 +47,10 @@ const CONFIG = {
   thematic_top_N:              15,
   thematic_S_cap:              9,   // distinct LLM providers in the dataset
   // Observations (what the AIs noticed)
-  observations_max_per_category: 25,
+  // Every observed phrase is listed; only the top phrases per dimension (by
+  // provider count) carry excerpts, which are most of the JSON's weight.
+  // Phrases below this rank keep their counts and annotation_ids.
+  observations_snippet_entries: 25,
   observations_max_phrase_tokens: 5,
   // Mood palette
   mood_max: 20,
@@ -77,10 +89,16 @@ const PEOPLE_LEXICON = new Set([
   'portrait','self-portrait','group portrait','figure study',
   'saint','apostle','angel','angels','madonna','christ','deity','goddess',
   'buddha','bodhisattva','prophet','martyr','evangelist','god',
+  'facial expression',
   // Body-part terms from region detection (Clarifai)
   'human face','human arm','human eye','human nose','human head',
   'human hair','human leg','human mouth','human hand','human ear',
   'human foot','human beard',
+  // Body-part general terms
+  'face','arm','eye','nose','head','hair','leg','mouth','hand','ear','foot',
+  'neck','beard','torso','shoulder','chest','back','stomach','waist','hip',
+  'chin','cheek','forehead','eyebrow','eyelash','eyelid','lip','teeth','tongue',
+  'moustache','mustache','wrist','complexion','thigh',
   // Age/gender terms from region detection (AWS)
   'adult','male','female','baby','teen','bride',
 ]);
@@ -174,7 +192,7 @@ const CONCEPT_FAMILIES = {
   // Textiles and drapery
   'drapery':      ['drape', 'curtain', 'cloth', 'fabric', 'textile', 'garment', 'robe', 'cloak', 'mantle', 'veil'],
   // Headwear
-  'headwear':          ['hat', 'tricorn', 'tricorne', 'cap', 'bonnet', 'helmet', 'headdress', 'crown', 'turban', 'hood'],
+  'headwear':     ['hat', 'tricorn', 'tricorne', 'cap', 'bonnet', 'helmet', 'headdress', 'crown', 'turban', 'hood'],
   // Weapons
   'weapon':       ['sword', 'spear', 'lance', 'dagger', 'knife', 'bow', 'arrow', 'shield', 'axe', 'mace'],
   // Religious halo
@@ -186,9 +204,9 @@ const CONCEPT_FAMILIES = {
   // Group of people
   'group':        ['crowd', 'gathering', 'assembly', 'multitude', 'congregation', 'procession', 'throng'],
   // Landscape features
-  'vegetation':         ['tree', 'trees', 'foliage', 'branches', 'trunk', 'shrub', 'bush', 'grove', 'forest', 'woodland'],
-  'water':        ['river', 'stream', 'lake', 'pond', 'pool', 'sea', 'ocean', 'waves', 'waterway'],
-  'landforms':     ['mountain', 'hill', 'hills', 'mountains', 'peak', 'cliff', 'rock', 'rocks', 'rocky', 'terrain'],
+  'vegetation':   ['tree', 'trees', 'foliage', 'branches', 'trunk', 'shrub', 'bush', 'grove', 'forest', 'woodland', 'grass'],
+  'water':        ['river', 'stream', 'lake', 'pond', 'pool', 'sea', 'ocean', 'waves', 'waterway', 'waterfall', 'fountain'],
+  'landforms':    ['mountain', 'hill', 'hills', 'mountains', 'peak', 'cliff', 'rock', 'rocks', 'rocky', 'terrain'],
   'sky':          ['clouds', 'cloud', 'heavens', 'firmament'],
   // Architectural elements
   'arch':         ['arches', 'arcade', 'archway', 'vault', 'vaulting'],
@@ -204,7 +222,7 @@ const CONCEPT_FAMILIES = {
   'flower':       ['flowers', 'floral', 'bloom', 'blossom', 'bouquet', 'wreath', 'garland'],
   'fruit':        ['fruits', 'grapes', 'apple', 'pear', 'pomegranate', 'lemon', 'orange'],
   // Book / writing
-  'writing':         ['book', 'books', 'manuscript', 'scroll', 'text', 'inscription', 'tablet'],
+  'writing':      ['book', 'books', 'manuscript', 'scroll', 'text', 'inscription', 'tablet'],
   // Cross / crucifix
   'cross':        ['crucifix', 'cruciform'],
   // Light source
@@ -267,14 +285,32 @@ const OBSERVATION_CATEGORIES = [
     ]),
   },
   {
+    // How figures are posed and what they are doing. Mostly verbs and
+    // participles, so these words are also matched directly in the text
+    // (see VOCABULARY_PHRASE_CATEGORIES), not only inside noun phrases.
     key:   'action',
-    label: 'Action & Gesture',
+    label: 'Pose & Action',
     seeds: new Set([
       'holding','carrying','standing','seated','sitting','kneeling','lying',
       'reaching','pointing','gesturing','gazing','looking','watching','walking',
-      'running','riding','fighting','praying','embracing','raising','extending',
-      'turning','bowing','leaning','reclining','enthroned','blessing','offering',
-      'striking','falling','fleeing','ascending','descending','draped','veiled',
+      'riding','fighting','praying','embracing','raising',
+      'turning','bowing','leaning','reclining','enthroned','blessing',
+      'falling','fleeing','ascending','descending','draped','veiled',
+      // Left out after a 92-object survey, as mostly figurative in
+      // descriptions: striking ("a striking contrast"), extending ("extending
+      // across"), offering ("offering a glimpse"), running ("running along the
+      // edge"), reading ("an inscription reading"), working ("working process").
+      // Pose and orientation
+      'in profile','three-quarter view','frontal','facing left','facing right',
+      'facing forward','looking over','turned','tilted','crouching','squatting',
+      'perched','resting','slumped','hunched','upright','posed','pose','posture',
+      'gesture','profile','gaze','stance',
+      // Hands and arms
+      'clasped','folded','crossed arms','arms crossed','outstretched','raised hand',
+      'raised arm','hand raised','arm raised','hands together','hand on hip',
+      // Activities
+      'dancing','playing','writing','sleeping','eating','drinking',
+      'smoking','smiling','laughing','weeping','frowning',
     ]),
   },
   {
@@ -303,6 +339,11 @@ const OBSERVATION_CATEGORIES = [
       'musical instrument','guitar','piano','violin','drum','harp',
       'umbrella','glasses','sunglasses','camera','pen',
       'rug','furniture','shelf','desk','couch','stool','pillow','chain',
+      'calligraphy','watermark','monogram','label','caption','signature','text','script','stamp',
+      'garment','attire','robe','cloak','mantle','veil','shawl','tunic','kimono','sari','sash',
+      'staff','ribbon','headgear','gown','collar','sleeve','costume','jewelry','jewellery',
+      'shawl','cravat','uniform','pendant','cane','button','sandal','wig','trousers','cape','vest','bodice',
+      'waistcoat','apron','boot','brooch','epaulette','medal','ruff','carriage','wagon',
     ]),
   },
   {
@@ -313,7 +354,10 @@ const OBSERVATION_CATEGORIES = [
       'church','cathedral','chapel','temple','palace','castle','tower','hall',
       'room','chamber','alcove','niche','loggia','portico','arcade',
       'forest','woodland','grove','meadow','field','hillside','valley','plain',
-      'river','lake','sea','ocean','shore','coast','harbour','bridge',
+      'river','lake','sea','ocean','shore','coast','harbour','bridge', 'water',
+      'city','town','village','mountain','hill','waterfall','pond','leaf',
+      'cliff','cave','canyon','desert','beach','island','volcano',
+      'ruins','snow','ice','sand','rock','sunset','sunrise','dawn','dusk',
       'street','road','path','staircase','archway','gate','wall',
       'sky','cloud','horizon','distance','background','architectural',
       'urban','rural','domestic','sacred','secular','night','day',
@@ -321,7 +365,8 @@ const OBSERVATION_CATEGORIES = [
       'house','building','skyscraper','office building','lighthouse','porch',
       'fireplace','fountain','swimming pool','stairs',
       // Vegetation (spatially grounded)
-      'tree','plant','flower','houseplant','palm tree','flowerpot',
+      'tree','plant','flower','houseplant','palm tree','flowerpot','vine','hedge',
+      'bush','shrub','grass','lawn','orchard','vineyard',
     ]),
   },
   {
@@ -334,6 +379,7 @@ const OBSERVATION_CATEGORIES = [
       'gilded','gilt','aureate','monochrome',
       'light','shadow','shade','highlight','glow','radiance','illumination',
       'sunlight','candlelight','reflected light','chiaroscuro',
+      'contrast','lighting','palette','hue','gradient','tint','spectrum',
     ]),
   },
   {
@@ -344,11 +390,39 @@ const OBSERVATION_CATEGORIES = [
       'ink','charcoal','pencil','chalk','engraving','etching','woodcut','lithograph',
       'bronze','marble','terracotta','ceramic','porcelain','ivory','wood','stone',
       'silk','linen','canvas','panel','parchment','vellum','paper','metal',
-      'gilding','glaze','impasto','wash','hatching','crosshatching',
+      'gilding','glaze','impasto','wash','hatching','crosshatching','gold leaf',
       'carved','cast','modelled','painted','drawn','printed','woven','embroidered',
+      'texture','linework','brushwork','brushstroke','layer','stipple','inlay','mosaic',
+    ]),
+  },
+  {
+    // The physical state of the object as photographed. Ambiguous words are
+    // left out or used only in longer phrases: "worn" usually means wearing
+    // ("worn by the sitter"), "faint" a faint smile, "tears" crying. Also left
+    // out after a 92-object survey: restoration (the historical period), rust
+    // ("rust-coloured"), stained/staining (stained glass, lab staining),
+    // fading (colour gradients) and erosion (used as a theme).
+    key:   'condition',
+    label: 'Condition & State',
+    seeds: new Set([
+      'unfinished','incomplete','fragment','fragmentary','damaged','damage',
+      'faded','discolored','discoloured','discoloration','discolouration',
+      'yellowed','stains','water stains','water damage','foxing','foxed',
+      'cracked','cracks','craquelure','frayed','tattered','abraded','abrasion',
+      'flaking','peeling','chipped','dented','scratched','scratches','creased',
+      'creases','crumpled','restored','repaired','repairs','patina','tarnished',
+      'corroded','corrosion','weathered','eroded','rusted',
+      'signs of wear','signs of age','signs of aging','wear and tear','worn edges',
+      'worn surface','heavily worn','well-worn','losses','paint loss',
     ]),
   },
 ];
+
+// Categories whose words are matched directly in description text and listed
+// as phrases themselves (like the mood palette), because they are mostly
+// verbs, participles and adjectives that noun-phrase extraction misses.
+const VOCABULARY_PHRASE_CATEGORIES = ['action', 'condition'];
+const categorySeeds = key => OBSERVATION_CATEGORIES.find(cat => cat.key === key).seeds;
 
 // ---------------------------------------------------------------------------
 // Normalization helpers
@@ -908,13 +982,45 @@ function extractMoodPalette(descAnnotations, context) {
 // Observations — what the AIs noticed, categorized
 // ---------------------------------------------------------------------------
 
+// Singular form of one word, cached: "trees" → "tree", "leaves" → "leaf".
+// The leading "the" gives compromise enough context to treat a lone word as
+// a noun. Words it cannot singularise are returned unchanged.
+const singularCache = new Map();
+function singularWord(word) {
+  if (!singularCache.has(word)) {
+    const singular = nlp('the ' + word).nouns().toSingular().text().toLowerCase().replace(/^the\s+/, '');
+    singularCache.set(word, singular || word);
+  }
+  return singularCache.get(word);
+}
+
+// Is this word, or its singular, in the vocabulary?
+function seedsHaveWord(seeds, word) {
+  return seeds.has(word) || seeds.has(singularWord(word));
+}
+
+// Which category does a noun phrase belong to? Tried in this order, each
+// across all categories, so the most specific evidence wins:
+//   1. the whole phrase           "palm tree", "signs of wear"
+//   2. its last word (the noun)   "horse-drawn carriage" → carriage
+//   3. any other word in it       "black tricorn hat" → black (if hat were unknown)
+// Words are singularised ("palm trees" → tree) and hyphenated words split
+// ("horse-drawn" → horse, drawn). Pose & Action takes whole-phrase matches
+// only: its words are verbs and participles that also occur inside unrelated
+// noun phrases ("social standing", "striking feature"), and they are already
+// listed as phrases of their own from the text.
 function categorizePhrase(phrase) {
-  const tokens = phrase.split(/\s+/);
   for (const cat of OBSERVATION_CATEGORIES) {
     if (cat.seeds.has(phrase)) return cat.key;
-    for (const token of tokens) {
-      if (cat.seeds.has(token)) return cat.key;
-    }
+  }
+  const words = phrase.split(/[\s-]+/).filter(Boolean);
+  const head = words[words.length - 1];
+  const wordCategories = OBSERVATION_CATEGORIES.filter(cat => cat.key !== 'action');
+  for (const cat of wordCategories) {
+    if (seedsHaveWord(cat.seeds, head)) return cat.key;
+  }
+  for (const cat of wordCategories) {
+    if (words.some(word => seedsHaveWord(cat.seeds, word))) return cat.key;
   }
   return 'other';
 }
@@ -1005,13 +1111,33 @@ function extractObservations(descAnnotations, regionAnnotations, context) {
     }
   }
 
+  // --- Vocabulary words for pose and condition, matched in the text ---
+  // Noun-phrase extraction misses "clasped", "seated" or "faded"; list each
+  // word found as a phrase of its own, with an excerpt for context.
+  for (const ann of descAnnotations) {
+    const clean = stripMarkdown(ann.body || '');
+    if (!clean.trim()) continue;
+    for (const key of VOCABULARY_PHRASE_CATEGORIES) {
+      for (const [term, hits] of matchVocabulary(clean, categorySeeds(key))) {
+        const entry = ensureEntry(term);
+        entry.category = key;
+        entry.sources.add(ann.source);
+        if (entry.description_ids.has(ann.id)) continue;
+        entry.annotation_ids.add(ann.id); entry.description_ids.add(ann.id);
+        entry.count += hits.length;
+        const snippet = supportingSnippet(clean, [term]);
+        if (snippet) entry.snippets.push({ ...annotationEvidence(ann, snippet, context), text: snippet });
+      }
+    }
+  }
+
   // Bucket into categories, sort by source count then total count
   const buckets = {};
   for (const cat of OBSERVATION_CATEGORIES) buckets[cat.key] = [];
   buckets['other'] = [];
 
   for (const [phrase, data] of phraseMap) {
-    const cat = categorizePhrase(phrase);
+    const cat = data.category || categorizePhrase(phrase);
     const obs = {
       phrase,
       sources:       Array.from(data.sources),
@@ -1048,7 +1174,7 @@ function extractObservations(descAnnotations, regionAnnotations, context) {
   for (const cat of [...OBSERVATION_CATEGORIES, { key: 'other', label: 'Other' }]) {
     const entries = (buckets[cat.key] || [])
       .sort((a, b) => b.sources_count - a.sources_count || b.count - a.count)
-      .slice(0, CONFIG.observations_max_per_category);
+      .map((entry, rank) => rank < CONFIG.observations_snippet_entries ? entry : { ...entry, snippets: [] });
     if (entries.length > 0) {
       result[cat.key] = {
         label:   cat.label || 'Other',
@@ -1065,14 +1191,15 @@ function extractObservations(descAnnotations, regionAnnotations, context) {
 // ---------------------------------------------------------------------------
 
 const RADAR_DIMENSIONS = [
-  { key: 'people',             label: 'People & Figures',     seeds: OBSERVATION_CATEGORIES[0].seeds },
-  { key: 'objects',            label: 'Objects & Artefacts',  seeds: OBSERVATION_CATEGORIES[3].seeds },
-  { key: 'setting',            label: 'Setting & Space',      seeds: OBSERVATION_CATEGORIES[4].seeds },
-  { key: 'colour_light',      label: 'Colour & Light',       seeds: OBSERVATION_CATEGORIES[5].seeds },
-  { key: 'action',            label: 'Action & Gesture',     seeds: OBSERVATION_CATEGORIES[2].seeds },
-  { key: 'animals',           label: 'Animals & Creatures',  seeds: OBSERVATION_CATEGORIES[1].seeds },
-  { key: 'material_technique', label: 'Material & Technique', seeds: OBSERVATION_CATEGORIES[6].seeds },
-  { key: 'mood',              label: 'Mood & Atmosphere',    seeds: MOOD_SEEDS },
+  { key: 'people',             label: 'People & Figures',     seeds: categorySeeds('people') },
+  { key: 'objects',            label: 'Objects & Artefacts',  seeds: categorySeeds('objects') },
+  { key: 'setting',            label: 'Setting & Space',      seeds: categorySeeds('setting') },
+  { key: 'colour_light',       label: 'Colour & Light',       seeds: categorySeeds('colour_light') },
+  { key: 'action',             label: 'Pose & Action',        seeds: categorySeeds('action') },
+  { key: 'animals',            label: 'Animals & Creatures',  seeds: categorySeeds('animals') },
+  { key: 'material_technique', label: 'Material & Technique', seeds: categorySeeds('material_technique') },
+  { key: 'condition',          label: 'Condition & State',    seeds: categorySeeds('condition') },
+  { key: 'mood',               label: 'Mood & Atmosphere',    seeds: MOOD_SEEDS },
 ];
 
 function extractCoverageRadar(descAnnotations, object_info, context) {

@@ -122,5 +122,5 @@ test('perspectives.compute includes an overview whose ids are real description a
   const ids = new Set([1, 2]);
   for (const term of overview.agreement) assert.ok(term.annotation_ids.every(id => ids.has(id)));
   assert.ok(overview.agreement.some(term => term.term === 'hat'));
-  assert.equal(overview.attention.length, 8);
+  assert.equal(overview.attention.length, 9);
 });

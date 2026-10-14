@@ -153,9 +153,8 @@
       tile.setAttribute('aria-label', d.label + ': ' + d.descriptions_count + ' of ' + total + ' descriptions');
       tiles.appendChild(tile);
     });
-    var links = el('p', 'overview-links');
-    links.append(vocabularyLink('Phrases by dimension →', 'noticed'), vocabularyLink('Compare models on the radar →', 'radar'));
-    target.replaceChildren(tiles, note('Descriptions that use words from each dimension.'), links);
+    target.replaceChildren(tiles, note('Descriptions that use words from each dimension.'),
+      vocabularyLink('Coverage by dimension and model →', 'coverage'));
   }
 
   function renderMood(target, overview) {
@@ -172,7 +171,7 @@
       word.setAttribute('aria-label', m.phrase + ': ' + plural(m.descriptions_count, 'description') + '. Show them.');
       words.appendChild(word);
     });
-    target.replaceChildren(words, vocabularyLink('Mood palette and thematic terms →', 'mood'));
+    target.replaceChildren(words, vocabularyLink('Mood words with excerpts →', 'coverage-mood'));
   }
 
   // CSS colours for the dot beside each colour word. Only names CSS doesn't

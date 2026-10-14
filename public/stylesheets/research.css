@@ -72,21 +72,11 @@ html:has(.research-page) body { background: var(--c-white); }
 .image-research-workspace .compare-sidebar { width: 220px; padding-left: 16px; }
 .header-scope { display: block; font-size: 12px; color: var(--c-grayblack); }
 .radar-method { margin: 10px 0; font-size: 12px; color: var(--c-grayblack); }
-.image-research-workspace .radar-layout { display: grid; grid-template-columns: minmax(0, 1fr) 170px; gap: 16px; align-items: center; }
-#perspectives-radar-chart { min-width: 0; }
-#perspectives-radar-chart svg { width: 100%; display: block; }
-.radar-source-control { display: flex; align-items: center; gap: 6px; padding: 6px 0; font-size: 12px; }
-.radar-source-control .radar-legend-swatch { flex: 0 0 12px; }
-#radar-dimension { width: auto; max-width: 100%; margin: 6px 0 16px; }
-.radar-evidence-row { border-bottom: 1px solid var(--c-lightgray); padding: 12px 0; font-size: 13px; }
-.radar-evidence-row details { margin: 10px 0 10px 12px; }
-.radar-evidence-row blockquote { border-left: 2px solid var(--c-lightgray); margin: 12px 0; padding-left: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
-#radar-evidence > button { margin-top: 14px; }
 .research-perspective-detail { border-bottom: 1px solid var(--c-lightgray); padding: 14px 0; margin-top: 14px; }
 .research-perspective-detail > summary { font-size: 14px; font-weight: bold; }
 .research-perspective-detail .perspectives-block { margin-top: 12px; }
 .image-research-workspace button:focus-visible, .image-research-workspace a:focus-visible, .image-research-viewer button:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 3px; }
-@media (max-width: 1200px) { .image-research-workspace .compare-sidebar { width: 100%; padding-left: 0; position: static; } .image-research-workspace .radar-layout { grid-template-columns: 1fr; } .image-research-workspace .radar-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; } }
+@media (max-width: 1200px) { .image-research-workspace .compare-sidebar { width: 100%; padding-left: 0; position: static; } }
 @media (max-width: 700px) { .image-research-viewer { position: static; width: 100%; height: auto; overflow: visible; padding: 20px; } .image-research-workspace { width: 100%; margin-left: 0; padding: 22px 20px; } .image-research-viewer .object-image-container { height: 320px; } .research-heading h1 { font-size: 24px; } .research-tabs { gap: 4px; } .research-tabs a { padding: 8px; } .image-research-workspace .compare-layout { grid-template-columns: 1fr; } }
 
 .image-research-viewer .toolbar-button { float: none; }
@@ -99,15 +89,6 @@ html:has(.research-page) body { background: var(--c-white); }
 .research-family-evidence { margin: .65rem 0; }
 
 /* Individual output metadata stays readable alongside the chart. */
-.radar-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 16px 0; font-size: 13px; }
-.radar-controls select, .radar-controls input { max-width: 100%; min-width: 0; padding: 8px; box-sizing: border-box; }
-.image-research-workspace .radar-layout { grid-template-columns: minmax(0, 1fr) minmax(180px, 280px); }
-.radar-source-control { overflow-wrap: anywhere; }
-.radar-comparison-choices { margin: 18px 0; border: 1px solid var(--c-lightgray); padding: 12px; }
-.radar-comparison-choices label { display: flex; gap: 8px; margin: 8px 0; font-size: 12px; overflow-wrap: anywhere; }
-.radar-comparison-choices input { flex: 0 0 auto; }
-.radar-evidence-row a, .radar-evidence-row button { display: inline-block; margin: 6px 12px 6px 0; }
-@media (max-width: 1200px) { .image-research-workspace .radar-layout { grid-template-columns: 1fr; } }
 
 /* ==========================================================================
    Overview + All outputs layout
@@ -276,7 +257,105 @@ html:has(.research-page) body { background: var(--c-white); }
 .vocab-sections { display: flex; flex-wrap: wrap; gap: 6px 18px; margin: 4px 0 18px; font-size: 13px; }
 .vocab-sections a { color: var(--c-linkblue); }
 .vocab-count { margin-left: 6px; font-family: "Neutral Regular 3", sans-serif; font-weight: normal; font-size: 13px; color: var(--c-grayblack); }
-.vocab-compare { margin-top: 28px; padding-top: 18px; border-top: 2px solid var(--c-nearblack); }
-.vocab-compare-heading { margin: 0 0 8px; font-size: 18px; }
-.overview-links { display: flex; flex-wrap: wrap; gap: 4px 16px; margin: 0; margin-top: auto; }
 [data-research-section] { scroll-margin-top: 16px; }
+
+/* "What the models cover" (coverage-panel.js): controls, radar, coverage grid
+   and one collapsible row per dimension, in the "What the AIs noticed" style. */
+.vocab-coverage { margin: 22px 0; padding-top: 16px; border-top: 2px solid var(--c-nearblack); }
+.vocab-coverage-heading { margin: 0 0 6px; font-size: 18px; }
+.coverage-subhead { margin: 22px 0 4px; font-size: 15px; }
+
+.coverage-controls { display: flex; flex-direction: column; gap: 10px; padding: 14px 16px; background: var(--c-lightgray); }
+.coverage-controls .research-note { margin: 0; }
+.coverage-controls-top { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; }
+.coverage-modes { display: inline-flex; border: 1px solid var(--c-nearblack); }
+.coverage-mode { background: #fff; border: 0; padding: 7px 14px; font: inherit; font-size: 13px; cursor: pointer; }
+.coverage-mode[aria-pressed="true"] { background: var(--c-nearblack); color: #fff; }
+.coverage-status { font-size: 13px; color: var(--c-grayblack); }
+.coverage-actions { margin-left: auto; display: flex; align-items: center; gap: 14px; font-size: 13px; }
+.coverage-chips { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.coverage-chip { display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 2px solid var(--c-hovergray); border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 13px; cursor: pointer; }
+.coverage-chip[aria-pressed="true"] { font-family: "Neutral Medium 3", sans-serif; }
+.coverage-chip:disabled { opacity: .45; cursor: not-allowed; }
+.coverage-chip-dot { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .25); }
+.coverage-chip-count { color: var(--c-gray); font-family: "Neutral Regular 3", sans-serif; }
+.coverage-chip-remove { margin-left: 2px; color: var(--c-gray); }
+
+/* Model picker: a disclosure with search, quick picks and a grouped list. */
+.coverage-picker { position: relative; }
+.coverage-picker-toggle { list-style: none; cursor: pointer; border: 1px dashed var(--c-gray); border-radius: 999px; padding: 5px 12px; font-size: 13px; background: #fff; }
+.coverage-picker-toggle::-webkit-details-marker { display: none; }
+.coverage-picker-body { position: absolute; z-index: 5; top: calc(100% + 6px); left: 0; width: min(380px, 80vw); background: #fff; border: 1px solid var(--c-table-border); box-shadow: 0 12px 30px rgba(0, 0, 0, .12); padding: 12px; display: flex; flex-direction: column; gap: 10px; }
+.coverage-picker-search { font: inherit; font-size: 14px; padding: 7px 10px; border: 1px solid var(--c-table-border); }
+.coverage-picker-quick { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; }
+.coverage-quick { background: var(--c-lightgray); border: 0; padding: 4px 8px; font: inherit; font-size: 12px; cursor: pointer; }
+.coverage-picker-list { max-height: 300px; overflow: auto; font-size: 13px; }
+.coverage-picker-heading { display: block; padding: 8px 0 4px; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--c-gray); }
+.coverage-picker-option { display: flex; align-items: baseline; gap: 8px; padding: 4px 0; cursor: pointer; }
+.coverage-picker-name { flex: 1; }
+.coverage-picker-meta { color: var(--c-gray); font-size: 12px; white-space: nowrap; }
+
+/* Radar. */
+.coverage-chart { margin: 14px auto 0; max-width: 560px; }
+.coverage-chart svg { width: 100%; display: block; }
+.coverage-axis-label { cursor: pointer; }
+.coverage-chart a:hover .coverage-axis-label, .coverage-chart a:focus .coverage-axis-label { text-decoration: underline; }
+.coverage-chart-note { text-align: center; margin-top: 0; }
+
+/* Coverage grid: dimensions × providers. */
+.coverage-grid-wrap { overflow-x: auto; }
+.coverage-grid { border-collapse: separate; border-spacing: 3px; font-size: 13px; min-width: 640px; }
+/* Reset the site-wide table borders and header fills (style.css). */
+.coverage-grid th, .coverage-grid td { border: 0; padding: 0; font-weight: normal; text-align: left; }
+.coverage-grid th { background: none; }
+.coverage-grid tbody th { padding-right: 10px; white-space: nowrap; }
+.coverage-grid-corner { vertical-align: bottom; color: var(--c-gray); font-size: 12px; }
+.coverage-grid-provider { writing-mode: vertical-rl; transform: rotate(180deg); background: none; border: 0; padding: 4px 2px; font: inherit; font-size: 12px; color: var(--c-grayblack); cursor: pointer; max-height: 120px; }
+.coverage-grid-provider:hover { color: var(--c-nearblack); text-decoration: underline; }
+.coverage-cell { height: 24px; min-width: 26px; }
+.coverage-cell--0 { background: var(--c-lightgray); }
+.coverage-cell--1 { background: #cfcfcc; }
+.coverage-cell--2 { background: #8a8a86; }
+.coverage-cell--3 { background: var(--c-nearblack); }
+.coverage-legend { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-top: 6px; font-size: 12px; color: var(--c-grayblack); }
+.coverage-legend i { display: inline-block; width: 12px; height: 12px; margin-right: 4px; vertical-align: -2px; }
+
+/* Dimension rows. */
+.coverage-rows-head, .coverage-row-summary { display: grid; grid-template-columns: minmax(0, 1.6fr) 90px minmax(0, 1.5fr) minmax(0, 1.4fr); gap: 12px; align-items: center; }
+.coverage-rows-head { padding: 8px 0; font-size: 12px; color: var(--c-gray); border-bottom: 2px solid var(--c-nearblack); }
+.coverage-row { border-bottom: 1px solid var(--c-lightgray); }
+.coverage-row[open] { background: #fbfbfa; }
+.coverage-row-summary { padding: 11px 0; cursor: pointer; font-size: 15px; list-style: none; }
+.coverage-row-summary::-webkit-details-marker { display: none; }
+.coverage-row-name::before { content: "▸ "; color: var(--c-gray); }
+.coverage-row[open] .coverage-row-name::before { content: "▾ "; }
+.coverage-row[open] .coverage-row-name { font-family: "Neutral Medium 3", sans-serif; }
+.coverage-row-phrases { font-size: 13px; color: var(--c-grayblack); }
+.coverage-row-bar { display: flex; align-items: center; gap: 8px; }
+.coverage-row-track { flex: 1; height: 8px; background: var(--c-lightgray); }
+.coverage-row-fill { display: block; height: 100%; background: var(--c-nearblack); }
+.coverage-row-share, .coverage-series-max { font-size: 12px; color: var(--c-grayblack); font-variant-numeric: tabular-nums; }
+.coverage-row-series { display: flex; flex-wrap: wrap; gap: 4px 10px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.coverage-row-body { padding: 0 0 12px 20px; }
+.coverage-row-actions { display: flex; flex-wrap: wrap; gap: 6px 16px; margin: 8px 0 0; }
+.coverage-phrases, .coverage-snippets { list-style: none; margin: 0; padding: 0; }
+.coverage-phrase > summary { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 16px; padding: 8px 0; border-top: 1px solid #efefec; font-size: 14px; cursor: pointer; list-style: none; }
+.coverage-phrase > summary::-webkit-details-marker { display: none; }
+/* The flex layout hides the native <details> arrow, so draw the same ▸/▾
+   marker the dimension rows use; it shows each phrase can be opened. */
+.coverage-phrase-text::before { content: "▸ "; color: var(--c-gray); }
+.coverage-phrase[open] .coverage-phrase-text::before { content: "▾ "; }
+.coverage-phrase > summary:hover .coverage-phrase-text { text-decoration: underline; }
+.coverage-phrase > summary:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
+.coverage-phrase-meta { display: flex; flex-wrap: wrap; gap: 6px; font-size: 12px; color: var(--c-grayblack); }
+.coverage-badge { background: var(--c-lightgray); padding: 1px 8px; }
+.coverage-snippets li { display: flex; flex-direction: column; gap: 2px; padding: 6px 0 6px 14px; border-left: 2px solid var(--c-lightgray); margin: 4px 0; font-size: 13px; line-height: 1.5; }
+.coverage-snippet-source { font-size: 12px; color: var(--c-gray); }
+.coverage-axis-label:focus-visible, .coverage-chip:focus-visible, .coverage-mode:focus-visible, .coverage-grid-provider:focus-visible, .coverage-row-summary:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
+
+@media (max-width: 700px) {
+  .coverage-rows-head { display: none; }
+  .coverage-row-summary { grid-template-columns: minmax(0, 1fr) auto; }
+  .coverage-row-bar, .coverage-row-series { grid-column: 1 / -1; }
+  .coverage-actions { margin-left: 0; }
+}

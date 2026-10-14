@@ -135,13 +135,11 @@
       below from the perspectives JSON; section counts fill in once it loads. --}}
 <div id="research-vocabulary" data-research-panel="vocabulary"><section class="ai-section attention-section" id="attention-section">
           <h2>Vocabulary</h2>
-          <p class="attention-intro">The words behind the Overview, with the excerpts they came from. The radar at the end compares how much each model covers.</p>
+          <p class="attention-intro">The words behind the Overview, with the excerpts they came from.</p>
           <nav class="vocab-sections" aria-label="Vocabulary sections">
             <a href="#vocabulary/shared">Shared vocabulary</a>
-            <a href="#vocabulary/noticed">What the AIs noticed</a>
-            <a href="#vocabulary/mood">Mood and themes</a>
+            <a href="#vocabulary/coverage">What the models cover</a>
             <a href="#vocabulary/relate">How descriptions relate</a>
-            <a href="#vocabulary/radar">Compare models</a>
           </nav>
 
           <div class="attention-card attention-card--ai" id="ai-perspectives-section">
@@ -158,55 +156,33 @@
                   <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
                 </div></details>
 
-                {{!-- 2. Detail for "What they pay attention to". --}}
-                <details class="research-perspective-detail" data-research-section="noticed"><summary>What the AIs noticed <span class="vocab-count" data-vocab-count="noticed"></span></summary><div id="ai-observations-section" class="perspectives-block">
-                  <p class="perspectives-divergence-intro">Phrases extracted from AI-generated descriptions, grouped by dimension. No agreement threshold — everything the models mentioned, organised for browsing.</p>
-                  <div id="observations-categories"></div>
-                </div></details>
-
-                {{!-- 3. Detail for "Mood words": feeling, then themes. --}}
-                <details class="research-perspective-detail" data-research-section="mood"><summary>Mood and themes <span class="vocab-count" data-vocab-count="mood"></span></summary>
-                  <div id="perspectives-mood" class="perspectives-block" style="display:none;">
-                    <h3 class="perspectives-block-heading">Mood palette</h3>
-                    <p class="perspectives-divergence-intro">Expressive and interpretive language drawn from AI descriptions — how the models characterize atmosphere, feeling, and tone rather than what they identify.</p>
-                    <div id="perspectives-mood-list" class="perspectives-mood-list"></div>
+                {{!-- 2. What the models cover: the radar, a coverage grid and one row
+                      per dimension with its phrases (detail for "What they pay
+                      attention to"). Built by coverage-panel.js. --}}
+                <section class="vocab-coverage" data-research-section="coverage" aria-labelledby="coverage-heading">
+                  <h3 class="vocab-coverage-heading" id="coverage-heading">What the models cover <span class="vocab-count" data-vocab-count="coverage"></span></h3>
+                  <p class="perspectives-divergence-intro">Nine dimensions of description. The chart and grid show how much distinct vocabulary each provider or description used in each; the rows below list the phrases themselves.</p>
+                  <div id="coverage-panel" hidden>
+                    <div id="coverage-controls" class="coverage-controls"></div>
+                    <figure id="coverage-chart" class="coverage-chart"></figure>
+                    <p class="research-note coverage-chart-note">Select a dimension name to open its phrases. Larger shapes mean more distinct words, not better descriptions.</p>
+                    <details class="radar-method"><summary>How this is calculated</summary><p>Providers pools the vocabulary of all of a provider’s descriptions; Individual models shows one description per shape. Every shape and grid cell uses the same scale: the largest provider’s vocabulary in each dimension. Hiding or adding series never rescales. Word counts indicate opportunities to match vocabulary; larger shapes do not indicate accuracy or quality.</p><p>The optional object wall label never sets the scale. Where it exceeds the AI maximum it is marked “!” at the chart edge.</p></details>
+                    <h4 class="coverage-subhead">Coverage grid</h4>
+                    <p class="research-note">Every provider in every dimension. Darker cells mean more distinct words; select a provider’s name to add it to the chart.</p>
+                    <div id="coverage-grid" class="coverage-grid-wrap"></div>
+                    <div class="coverage-legend" aria-hidden="true"><span><i class="coverage-cell--0"></i>none</span><span><i class="coverage-cell--1"></i>up to a third</span><span><i class="coverage-cell--2"></i>up to two thirds</span><span><i class="coverage-cell--3"></i>more</span><span>of the most-covering provider</span></div>
+                    <h4 class="coverage-subhead">By dimension</h4>
+                    <div class="coverage-rows-head" aria-hidden="true"><span>Dimension</span><span>Phrases</span><span>Descriptions that use it</span><span>Distinct words, selected</span></div>
+                    <div id="coverage-rows" class="coverage-rows"></div>
                   </div>
-                  <div id="perspectives-thematic" class="perspectives-block" style="display:none;">
-                    <h3 class="perspectives-block-heading">Thematic terms</h3>
-                    <p class="perspectives-divergence-intro">Words that appear consistently across multiple AI-generated descriptions, weighted by how distinctive they are to this image. These reflect conceptual and thematic content rather than observed features. Treat them as prompts for inquiry, not confirmed readings.</p>
-                    <div id="perspectives-thematic-list" class="perspectives-thematic-list"></div>
-                  </div>
-                </details>
+                </section>
 
-                {{!-- 4. Curated concept families. --}}
+                {{!-- 3. Curated concept families. --}}
                 <details class="research-perspective-detail" data-research-section="relate"><summary>How descriptions relate <span class="vocab-count" data-vocab-count="relate"></span></summary><div id="perspectives-relationships" class="perspectives-block" style="display:none;">
                   <p class="perspectives-divergence-intro">Explore exact terms within curated concept families. Shared family membership does not imply the same meaning or agreement. Excerpts preserve the context of each mention.</p>
                   <div id="perspectives-relationships-list" class="perspectives-relationships-list"></div>
                 </div></details>
 
-                {{!-- 5. Compare models: topic coverage across the eight dimensions. --}}
-                <section class="vocab-compare" data-research-section="radar" aria-labelledby="radar-section-heading">
-                <h3 class="vocab-compare-heading" id="radar-section-heading">Compare models</h3>
-                <div id="perspectives-radar" class="perspectives-block" style="display:none;">
-                  <h4 id="radar-heading" class="perspectives-block-heading">What models describe</h4>
-                  <p class="perspectives-divergence-intro">Breadth of descriptive vocabulary across eight dimensions</p>
-                  <div class="radar-controls">
-                    <label for="radar-view">Compare by</label>
-                    <select id="radar-view" class="compare-select"><option value="outputs">Models · individual outputs</option><option value="providers">Providers · pooled vocabulary</option></select>
-                    <label for="radar-search">Find a model or provider</label>
-                    <input id="radar-search" type="search" placeholder="Model, provider, date, or annotation ID">
-                    <label for="radar-add">Add a series</label><select id="radar-add" class="compare-select"></select>
-                  </div>
-                  <p id="radar-view-note" class="research-note"></p>
-                  <details class="radar-method"><summary>How this is calculated</summary><p>Models shows one description per series, identified by its annotation ID. Providers shows the union of vocabulary across each provider’s descriptions. Both views use the largest provider union per dimension from all AI outputs for this image. Hiding series keeps the scale fixed. Word counts indicate opportunities to match vocabulary; larger shapes do not indicate accuracy or quality.</p><p>The optional object wall label never sets the AI scale. Reference values above the AI maximum are marked at the chart edge; raw counts remain available below. A dimension with no matched AI vocabulary has no relative scale.</p></details>
-                  <div class="radar-layout">
-                    <div id="perspectives-radar-chart"></div>
-                    <div id="perspectives-radar-legend" class="radar-legend"></div>
-                  </div>
-                  <label for="radar-dimension">Explore a dimension</label><select id="radar-dimension" class="compare-select"></select>
-                  <div id="radar-evidence" aria-live="polite"></div>
-                </div>
-                </section>
               </div>
             </div>
           </div>
@@ -563,11 +539,8 @@
   }
 
   function renderPerspectives(data) {
-    renderObservations(data);
-    renderMoodPalette(data);
-    renderCoverageRadar(data);
+    renderCoverageSection(data);
     renderConcepts(data);
-    renderThematic(data);
     renderRelationships(data);
     renderSectionCounts(data);
     if (window.syncResearchSection) window.syncResearchSection();
@@ -594,8 +567,7 @@
     var phrases = observations.reduce(function(n, c) { return n + c.entries.length; }, 0);
     var counts = {
       shared: plural((data.concepts || []).length, 'phrase'),
-      noticed: plural(phrases, 'phrase') + ' in ' + plural(observations.length, 'dimension'),
-      mood: plural((data.mood_palette || []).length, 'mood word') + ' · ' + plural((data.thematic_concepts || []).length, 'theme'),
+      coverage: plural((data.coverage_radar && data.coverage_radar.dimensions || []).length, 'dimension') + ' · ' + plural(phrases, 'phrase'),
       relate: plural((data.concept_relationships || []).length, 'concept family').replace('familys', 'families'),
     };
     Object.keys(counts).forEach(function(key) {
@@ -657,30 +629,6 @@
     el.classList.toggle('perspectives-concept--open', !open);
   }
 
-  function renderThematic(data) {
-    var block   = document.getElementById('perspectives-thematic');
-    var list    = document.getElementById('perspectives-thematic-list');
-    var concepts = data.thematic_concepts || [];
-    if (concepts.length === 0) {
-      block.style.display = 'none';
-      return;
-    }
-    block.style.display = '';
-    var html = '';
-    for (var i = 0; i < concepts.length; i++) {
-      var t = concepts[i];
-      var hasSnippet = !!t.snippet;
-      html += '<div class="perspectives-concept' + (hasSnippet ? ' perspectives-concept--expandable' : '') + '"' + (hasSnippet ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
-            +   '<div class="perspectives-concept-summary">'
-            +     '<span class="perspectives-concept-text">' + escHtml(t.term) + '</span>'
-            +     '<span class="perspectives-badge perspectives-badge--thematic">Thematic</span>'
-            +     '<span class="perspectives-agreement">' + t.sources_count + ' source' + (t.sources_count === 1 ? '' : 's') + ', ' + t.descriptions_count + ' description' + (t.descriptions_count === 1 ? '' : 's') + '</span>'
-            +   '</div>'
-            +   (hasSnippet ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets">' + (t.example_annotations || []).map(evidenceHTML).join('') + '</div></div>' : '')
-            + '</div>';
-    }
-    list.innerHTML = html;
-  }
 
   function renderRelationships(data) {
     var block = document.getElementById('perspectives-relationships');
@@ -709,154 +657,17 @@
     }).join('');
   }
 
-  function renderObservations(data) {
-    var section = document.getElementById('ai-observations-section');
-    var container = document.getElementById('observations-categories');
-    var obs = data.observations || {};
-    var cats = Object.keys(obs);
-    if (!section || cats.length === 0) {
-      if (section) section.style.display = 'none';
-      return;
-    }
-    section.style.display = '';
 
-    var html = '';
-    for (var i = 0; i < cats.length; i++) {
-      var catKey = cats[i];
-      var cat = obs[catKey];
-      var catId = 'obs-cat-' + catKey;
-      html += '<div class="obs-category">'
-            +   '<div class="obs-category-toggle" onclick="toggleObsCategory(\'' + catKey + '\')">'
-            +     '<span class="obs-category-label">' + escHtml(cat.label) + '</span>'
-            +     '<span class="obs-category-count">' + cat.entries.length + ' phrase' + (cat.entries.length === 1 ? '' : 's') + '</span>'
-            +   '</div>'
-            +   '<div class="obs-category-body" id="' + catId + '" style="display:none;">'
-            +     '<div class="obs-entries">';
 
-      for (var j = 0; j < cat.entries.length; j++) {
-        var e = cat.entries[j];
-        var snippets = e.snippets || [];
-        var hasDetail = snippets.length > 0;
-        var srcBadges = e.sources.map(function(s) {
-          return '<span class="obs-source-badge">' + escHtml(s) + '</span>';
-        }).join('');
-        var spatialBadge = '';
-        if (e.spatially_detected) {
-          var sd = e.spatially_detected;
-          var spatialDetail = sd.per_service.map(function(ps) {
-            return escHtml(ps.source) + ' ' + ps.instances + 'x';
-          }).join(', ');
-          spatialBadge = '<span class="obs-spatial-badge" title="Spatially detected: ' + escHtml(spatialDetail) + '">'
-                       + '&#9635; ' + sd.total_instances + ' region' + (sd.total_instances !== 1 ? 's' : '')
-                       + '</span>';
-        }
-        html += '<div class="obs-entry' + (hasDetail ? ' obs-entry--expandable' : '') + '"' + (hasDetail ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
-              +   '<div class="perspectives-concept-summary">'
-              +     '<span class="obs-phrase">' + escHtml(e.phrase) + '</span>'
-              +     '<span class="obs-entry-meta">'
-              +       spatialBadge
-              +       srcBadges
-              +       '<span class="obs-count" title="' + e.occurrences_count + ' occurrences or region detections">' + e.annotations_count + ' annotation' + (e.annotations_count === 1 ? '' : 's') + '</span>'
-              +     '</span>'
-              +   '</div>'
-              +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets mood-snippets">'
-              +     snippets.slice(0, 5).map(function(s) {
-                      var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
-                      return '<div class="mood-snippet">'
-                           + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
-                           + '</div>';
-                    }).join('')
-              +     (snippets.length > 5 ? '<div class="mood-snippets-overflow" style="display:none;">' + snippets.slice(5).map(function(s) {
-                      var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
-                      return '<div class="mood-snippet">'
-                           + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                           + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
-                           + '</div>';
-                    }).join('') + '</div><button class="mood-snippets-more" onclick="toggleMoodOverflow(event, this)">Show all ' + snippets.length + ' references</button>' : '')
-              +   '</div></div>' : '')
-              + '</div>';
-      }
-
-      html += '    </div>'  // .obs-entries
-            + '  </div>'    // .obs-category-body
-            + '</div>';     // .obs-category
-    }
-    container.innerHTML = html;
-  }
-
-  function renderMoodPalette(data) {
-    var block = document.getElementById('perspectives-mood');
-    var list = document.getElementById('perspectives-mood-list');
-    var palette = data.mood_palette || [];
-    if (palette.length === 0) {
-      block.style.display = 'none';
-      return;
-    }
-    block.style.display = '';
-    var html = '<div class="mood-palette">';
-    for (var i = 0; i < palette.length; i++) {
-      var m = palette[i];
-      var snippets = m.snippets || [];
-      var hasDetail = snippets.length > 0;
-      var sourceBadges = (m.sources || []).map(function(s) {
-        return '<span class="obs-source-badge">' + escHtml(s) + '</span>';
-      }).join('');
-      html += '<div class="mood-term' + (hasDetail ? ' mood-term--expandable' : '') + '"' + (hasDetail ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
-            +   '<div class="perspectives-concept-summary">'
-            +     '<span class="mood-term-text">' + escHtml(m.phrase) + '</span>'
-            +     '<span class="mood-term-sources">' + sourceBadges + '</span>'
-            +   '</div>'
-            +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;"><div class="perspectives-snippets mood-snippets">'
-            +     snippets.slice(0, 5).map(function(s) {
-                    var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
-                    return '<div class="mood-snippet">'
-                         + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
-                         + '</div>';
-                  }).join('')
-            +     (snippets.length > 5 ? '<div class="mood-snippets-overflow" style="display:none;">' + snippets.slice(5).map(function(s) {
-                    var label = s.display_model && s.display_model !== s.source ? s.source + ' — ' + s.display_model : s.source;
-                    return '<div class="mood-snippet">'
-                         + '<span class="mood-snippet-source">' + escHtml(label) + '</span>'
-                         + '<span class="mood-snippet-text">' + escHtml(s.text) + '</span>' + evidenceLink(s)
-                         + '</div>';
-                  }).join('') + '</div><button class="mood-snippets-more" onclick="toggleMoodOverflow(event, this)">Show all ' + snippets.length + ' references</button>' : '')
-            +   '</div></div>' : '')
-            + '</div>';
-    }
-    html += '</div>';
-    list.innerHTML = html;
-  }
-
-  function toggleMoodOverflow(event, btn) {
-    event.stopPropagation();
-    var overflow = btn.previousElementSibling;
-    if (!overflow) return;
-    var showing = overflow.style.display !== 'none';
-    overflow.style.display = showing ? 'none' : '';
-    if (showing) {
-      btn.textContent = btn.dataset.showLabel;
-    } else {
-      btn.dataset.showLabel = btn.textContent;
-      btn.textContent = 'Hide additional references';
-    }
-  }
-
-  function toggleObsCategory(catKey) {
-    var body = document.getElementById('obs-cat-' + catKey);
-    if (!body) return;
-    var category = body.parentElement;
-    var open = body.style.display !== 'none';
-    body.style.display = open ? 'none' : '';
-    category.classList.toggle('obs-category--open', !open);
-  }
 
   // -------------------------------------------------------------------------
   // Coverage Radar Chart (D3)
   // -------------------------------------------------------------------------
-  function renderCoverageRadar(data) {
-    window.renderResearchRadar(data);
+  // "What the models cover": radar, coverage grid and dimension rows.
+  // (Not named renderCoverage: top-level functions here are globals, and
+  // that name belongs to coverage-panel.js.)
+  function renderCoverageSection(data) {
+    if (window.renderCoverage) window.renderCoverage(data);
   }
 
   function escHtml(str) {
@@ -877,6 +688,7 @@
 <script src="/javascripts/research-workspace.js"></script>
 <script src="/javascripts/outputs-index.js"></script>
 <script src="/javascripts/overview-panel.js"></script>
+<script src="/javascripts/coverage-panel.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
 <script src="/vocabularies/stopwords.js"></script>
 <script src="/javascripts/textanalysis.js"></script>

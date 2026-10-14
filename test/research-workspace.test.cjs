@@ -7,27 +7,26 @@ const perspectives = require('../public/javascripts/perspectives');
 const organize = require('../public/javascripts/organize');
 const baseline = require('./fixtures/perspectives-before-workspace.json');
 
-test('unaffected baseline scores, flags, and raw AI radar counts remain stable', () => {
+test('unaffected baseline scores and flags remain stable; radar counts stay consistent with their evidence', () => {
   const expected = structuredClone(baseline.result);
   const actual = perspectives.compute(baseline.records, baseline.object, baseline.image);
+  // Radar counts follow the curated dimension vocabularies, which are edited
+  // on purpose, so they are not frozen against the fixture. What must always
+  // hold: each count is the number of matched terms, and every supporting
+  // annotation is a real record.
   for (const source of actual.coverage_radar.sources) {
     for (const value of Object.values(source.values)) {
       assert.equal(value.terms.length, value.raw);
       assert.ok(value.annotation_ids.every(id => baseline.records.some(record => record.id === id)));
-      delete value.terms;
-      delete value.annotation_ids;
     }
   }
-  // Evidence and extraction counts intentionally change in stage 1. Keep the
-  // old fixture as an independent check of unaffected analytical decisions.
+  // Agreement scoring, thresholds, thematic scoring and flags do not depend on
+  // those vocabularies: keep the old fixture as an independent check of them.
   const scoring = result => ({
     summary: (({divergence_signals_returned, concept_relationships_returned, ...summary}) => summary)(result.summary),
     catalogue: result.catalogue,
     concepts: result.concepts.map(({example_annotations, ...concept}) => concept),
     thematic_concepts: result.thematic_concepts.map(({snippet, example_annotations, ...concept}) => concept),
-    coverage_radar: result.coverage_radar.sources.filter(s => s.source !== 'Curator').map(s => ({
-      source: s.source, raw: Object.fromEntries(Object.entries(s.values).map(([key, v]) => [key, v.raw]))
-    })),
   });
   assert.deepEqual(scoring(actual), scoring(expected));
 });

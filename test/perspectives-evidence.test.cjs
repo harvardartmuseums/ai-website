@@ -118,7 +118,7 @@ test('agreement weights, inclusion thresholds, and level thresholds remain uncha
   const strong = run([...records, tag(4, 'Mistral', 'bridge')]).concepts[0];
   assert.equal(strong.agreement_level, 'stronger');
   // 4.x versions only add the overview block; scoring is unchanged (asserted above).
-  assert.equal(ALGORITHM_VERSION, 'ace-v4.2.0');
+  assert.equal(ALGORITHM_VERSION, 'ace-v4.5.1');
 });
 
 const family = (result, name) => result.concept_relationships.find(group => group.family === name);
@@ -235,4 +235,15 @@ test('output metadata retains unknown models and missing dates without pooling o
   assert.deepEqual(radar.outputs[0].values.animals.terms, ['horse']);
   assert.equal(radar.outputs[0].word_count, 2);
   assert.equal(radar.reference, null);
+});
+
+test('phrases are categorised by whole phrase, then head word, with plurals and hyphens handled', () => {
+  const result = run([
+    description(1, 'Anthropic', 'A beach with palm trees and two white horses beside a horse-drawn cart.'),
+    description(2, 'OpenAI', 'Palm trees line the shore; the horse-drawn cart waits.'),
+  ]);
+  const categoryOf = phrase => Object.keys(result.observations).find(key => result.observations[key].entries.some(e => e.phrase === phrase));
+  assert.equal(categoryOf('palm trees'), 'setting', 'plural of a listed phrase');
+  assert.equal(categoryOf('horse-drawn cart'), 'objects', 'the head noun (cart) wins over a word inside a hyphenated modifier (horse)');
+  assert.equal(categoryOf('white horses'), 'animals', 'plural head word');
 });
