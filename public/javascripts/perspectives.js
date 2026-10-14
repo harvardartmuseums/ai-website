@@ -25,7 +25,9 @@ var overview = require('./overview');
 // 4.5.1 adds reviewed vocabulary to six dimensions (body and bearing,
 //     clothing, text and marks, landscape, colour, mark-making); see
 //     .plans/vocabulary-additions-draft.md.
-const ALGORITHM_VERSION = 'ace-v4.5.1';
+// 4.6 vocabulary matching (radar, grid, pose/condition phrases, concept
+//     families, excerpts) also matches plurals of listed nouns.
+const ALGORITHM_VERSION = 'ace-v4.6.0';
 
 const CONFIG = {
   min_services:                2,
@@ -449,17 +451,58 @@ function normalizeText(str) {
   return str.toLowerCase().trim().replace(/\s+/g, ' ').replace(/^[^a-z0-9]+|[^a-z0-9]+$/g, '');
 }
 
+const escapeRegExp = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 function termPattern(term) {
-  return '\\b' + term.split(/\s+/).map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('\\s+') + '\\b';
+  return '\\b' + term.split(/\s+/).map(escapeRegExp).join('\\s+') + '\\b';
+}
+
+// Plural of a vocabulary word, or null when it should match only as written.
+// Only nouns get a plural: compromise must read the word as a noun after
+// "the" ("the tree"), and the word must not be an adjective on its own
+// ("red", "gold", "calm"), which keeps verbs and adjectives from matching
+// new forms. Cached; this runs once per vocabulary word.
+//   - NO_PLURAL lists nouns whose plural is mostly a verb in descriptions,
+//     checked in context on 20 survey objects: "casts a shadow", "does
+//     not", "bears an inscription", "a band crosses the forehead", "which
+//     highlights the texture".
+//   - When compromise returns the word unchanged ("mark"), add "s"; for
+//     invariant plurals ("sheep") the extra form simply never matches.
+const NO_PLURAL = new Set(['cast', 'doe', 'bear', 'cross', 'highlight']);
+const pluralCache = new Map();
+function pluralOf(word) {
+  if (!pluralCache.has(word)) {
+    let plural = null;
+    const inContext = nlp('the ' + word).terms().last();
+    const alone = nlp(word).terms().last();
+    if (!NO_PLURAL.has(word) && inContext.has('#Noun') && !inContext.has('#Verb') && !inContext.has('#Adjective') && !alone.has('#Adjective')) {
+      plural = nlp('the ' + word).nouns().toPlural().text().toLowerCase().replace(/^the\s+/, '');
+      if (!plural || plural === word) plural = /s$/.test(word) ? null : word + 's';
+    }
+    pluralCache.set(word, plural);
+  }
+  return pluralCache.get(word);
+}
+
+// Like termPattern, but a vocabulary noun also matches its plural on the last
+// word: "tree" matches "trees", "palm tree" matches "palm trees", "man"
+// matches "men". Used wherever text is matched against vocabulary lists.
+function vocabularyPattern(term) {
+  const parts = term.split(/\s+/);
+  const last = parts.pop();
+  const plural = pluralOf(last);
+  const lastPattern = plural ? '(?:' + escapeRegExp(last) + '|' + escapeRegExp(plural) + ')' : escapeRegExp(last);
+  return '\\b' + parts.map(part => escapeRegExp(part) + '\\s+').join('') + lastPattern + '\\b';
 }
 
 // Stage 1: match whole vocabulary entries, including multi-word seeds.
 // Testing entries independently preserves overlapping terms without matching
 // "man" inside "woman" or stitching a compound across sentence punctuation.
+// A match is reported under the listed term, so "trees" counts as "tree".
 const vocabularyPatterns = new WeakMap();
 function matchVocabulary(text, seeds) {
   if (!vocabularyPatterns.has(seeds)) {
-    vocabularyPatterns.set(seeds, Array.from(seeds, term => [term, new RegExp(termPattern(term), 'gi')]));
+    vocabularyPatterns.set(seeds, Array.from(seeds, term => [term, new RegExp(vocabularyPattern(term), 'gi')]));
   }
   const matches = new Map();
   for (const [term, re] of vocabularyPatterns.get(seeds)) {
@@ -475,7 +518,8 @@ function matchVocabulary(text, seeds) {
 // that sentence is too long. A missing match yields no fabricated evidence.
 function supportingSnippet(body, forms, limit = 160) {
   const clean = stripMarkdown(body || '');
-  const hits = forms.map(form => new RegExp(termPattern(form), 'i').exec(clean)).filter(Boolean);
+  // Plural-aware, so an excerpt is found for a vocabulary match on "trees".
+  const hits = forms.map(form => new RegExp(vocabularyPattern(form), 'i').exec(clean)).filter(Boolean);
   if (!hits.length) return null;
   const match = hits.sort((a, b) => a.index - b.index)[0];
   const before = clean.slice(0, match.index);

@@ -118,7 +118,7 @@ test('agreement weights, inclusion thresholds, and level thresholds remain uncha
   const strong = run([...records, tag(4, 'Mistral', 'bridge')]).concepts[0];
   assert.equal(strong.agreement_level, 'stronger');
   // 4.x versions only add the overview block; scoring is unchanged (asserted above).
-  assert.equal(ALGORITHM_VERSION, 'ace-v4.5.1');
+  assert.equal(ALGORITHM_VERSION, 'ace-v4.6.0');
 });
 
 const family = (result, name) => result.concept_relationships.find(group => group.family === name);
@@ -246,4 +246,15 @@ test('phrases are categorised by whole phrase, then head word, with plurals and 
   assert.equal(categoryOf('palm trees'), 'setting', 'plural of a listed phrase');
   assert.equal(categoryOf('horse-drawn cart'), 'objects', 'the head noun (cart) wins over a word inside a hyphenated modifier (horse)');
   assert.equal(categoryOf('white horses'), 'animals', 'plural head word');
+});
+
+test('vocabulary matching counts plurals of listed nouns, but not of verbs or adjectives', () => {
+  const result = run([
+    description(1, 'Anthropic', 'Two men stand under palm trees. The lamp casts reds and golds across the scene.'),
+  ]);
+  const output = result.coverage_radar.outputs[0];
+  assert.ok(output.values.people.terms.includes('man'), 'irregular plural: men → man');
+  assert.ok(output.values.setting.terms.includes('palm tree'), 'plural on the last word of a compound');
+  assert.ok(!output.values.material_technique.terms.includes('cast'), '"casts" is a verb here, not the noun "cast"');
+  assert.ok(!output.values.colour_light.terms.includes('red'), 'adjectives do not gain a plural form');
 });
