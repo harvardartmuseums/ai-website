@@ -1,8 +1,29 @@
+/* Page frame: the site navbar on top, then two columns. The image pane is
+   sticky rather than fixed, so it sits below the navbar and stays in view
+   once the navbar has scrolled away. */
+.research-page { display: flex; align-items: flex-start; }
+.research-page > .image-research-viewer { position: sticky; top: 0; flex: 0 0 30%; width: 30%; height: 100vh; }
+.research-page > .image-research-workspace { flex: 1 1 auto; width: auto; min-width: 0; margin-left: 0; }
+/* Tabs differ in height; keep the scrollbar's space reserved so a short tab
+   (no scrollbar) doesn't make the workspace wider than the others. */
+html:has(.research-page) { scrollbar-gutter: stable; }
+/* The site sets no page background; be explicit so the workspace is white
+   rather than whatever the browser's default canvas colour is. */
+html:has(.research-page) body { background: var(--c-white); }
+/* Narrow screens: stack the image above the workspace. This overrides the
+   fixed 35vh image strip that style.css sets for the older object layout. */
+@media (max-width: 800px) {
+  .research-page { display: block; }
+  .research-page > .image-research-viewer { position: static; width: 100%; height: auto; overflow: visible; border: 0; }
+  .research-page > .image-research-workspace { width: 100%; height: auto; margin-top: 0; }
+  .research-page .object-image-container { flex: 0 0 auto; height: 60vh; }
+}
+
 /* The selected image is the unit of analysis; catalog metadata stays secondary. */
 .image-research-viewer { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; overflow-y: auto; padding: 24px; box-sizing: border-box; }
-.image-research-viewer .object-nav-header { position: static; display: block; margin-bottom: 20px; }
-.image-research-viewer .object-image-container { flex: 0 0 auto; width: 100%; height: clamp(220px, 38vh, 480px); }
-.image-research-viewer #openseadragon1 { height: calc(100% - 40px) !important; }
+/* The image takes all the height the picker and record leave free. */
+.image-research-viewer .object-image-container { flex: 1 1 auto; display: flex; flex-direction: column; width: 100%; height: auto; min-height: 320px; }
+.image-research-viewer #openseadragon1 { flex: 1 1 auto; height: auto !important; min-height: 0; }
 .image-research-viewer #image-toolbar { position: static !important; padding: 0 !important; width: 100% !important; float: none !important; background: transparent; display: flex; justify-content: center; align-items: center; gap: 10px; margin: 8px 0; font-size: 13px; }
 .image-research-viewer #image-toolbar button { background: transparent; border: 0; font: inherit; color: var(--c-grayblack); padding: 6px; white-space: nowrap; cursor: pointer; }
 .research-label { display: block; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--c-grayblack); }
@@ -80,3 +101,144 @@
 .radar-comparison-choices input { flex: 0 0 auto; }
 .radar-evidence-row a, .radar-evidence-row button { display: inline-block; margin: 6px 12px 6px 0; }
 @media (max-width: 1200px) { .image-research-workspace .radar-layout { grid-template-columns: 1fr; } }
+
+/* ==========================================================================
+   Overview + All outputs layout
+   The header sizes the data; Overview answers "what's interesting here?";
+   All outputs is an index of every description beside a reader.
+   ========================================================================== */
+
+/* Header: title once, then four stat tiles. */
+.research-heading-meta { font-size: 15px; color: var(--c-grayblack); }
+.research-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; max-width: 560px; margin: 18px 0 0; }
+.research-stats div { background: var(--c-lightgray); padding: 10px 12px; }
+.research-stats dt { font-size: 12px; color: var(--c-grayblack); }
+.research-stats dd { margin: 0; font-family: "Neutral Bold 3", sans-serif; font-size: 24px; }
+.research-tab-count { color: inherit; opacity: .7; margin-left: 2px; }
+.research-tabs a[aria-current] .research-tab-count { opacity: .85; }
+
+/* A text-styled button or link used for "go to the evidence" actions. */
+.overview-link { display: inline-block; background: none; border: 0; padding: 0; font: inherit; font-size: 13px; color: var(--c-linkblue); cursor: pointer; text-align: left; }
+.overview-link:hover { text-decoration: underline; }
+
+/* --- Overview cards ------------------------------------------------------ */
+.overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+.overview-card { border: 1px solid var(--c-lightgray); padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+/* A trailing "go to…" link sits at the bottom of its card. */
+.overview-card > .overview-link:last-child { margin-top: auto; }
+.overview-card-title { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-grayblack); font-weight: normal; }
+.overview-lede { margin: 0; font-family: "Neutral Medium 3", sans-serif; font-size: 19px; line-height: 1.3; }
+.overview-quote { margin: 0; font-size: 15px; line-height: 1.55; }
+.overview-quote--clamped { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
+.overview-facts { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.7; }
+.overview-fact-detail { display: block; font-size: 12px; line-height: 1.45; color: var(--c-grayblack); margin-bottom: 4px; }
+
+/* Agreement bars: each row is a button that filters All outputs. */
+.overview-bars { display: flex; flex-direction: column; }
+.overview-bar { display: grid; grid-template-columns: minmax(80px, 140px) 1fr 52px; gap: 10px; align-items: center; background: none; border: 0; padding: 6px 0; font: inherit; font-size: 14px; color: inherit; text-align: left; cursor: pointer; }
+.overview-bar:hover .overview-bar-label { text-decoration: underline; }
+.overview-bar-track { height: 8px; background: var(--c-lightgray); }
+.overview-bar-fill { display: block; height: 100%; background: var(--c-nearblack); }
+.overview-bar-count { text-align: right; color: var(--c-grayblack); font-variant-numeric: tabular-nums; }
+
+/* Divergence list: each item opens one description. */
+.overview-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.overview-list li { border-bottom: 1px solid var(--c-lightgray); }
+.overview-list li:last-child { border-bottom: 0; }
+.overview-item { display: block; width: 100%; background: none; border: 0; padding: 10px 0; font: inherit; font-size: 14px; line-height: 1.45; color: inherit; text-align: left; cursor: pointer; }
+.overview-item:hover strong { text-decoration: underline; }
+
+/* Attention tiles: four steps of emphasis, each with readable contrast. */
+.overview-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+.overview-tile { display: flex; flex-direction: column; gap: 2px; min-height: 58px; padding: 8px; border: 0; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+.overview-tile:disabled { cursor: default; }
+.overview-tile-count { font-size: 18px; }
+.overview-tile--4 { background: var(--c-nearblack); color: #fff; }
+.overview-tile--3 { background: var(--c-gray); color: #fff; }
+.overview-tile--2 { background: var(--c-hovergray); color: var(--c-nearblack); }
+.overview-tile--1 { background: var(--c-lightgray); color: var(--c-nearblack); }
+
+/* Mood words. */
+.overview-words { display: flex; flex-wrap: wrap; gap: 8px; }
+.overview-word { background: var(--c-lightgray); border: 0; padding: 6px 10px; font: inherit; font-size: 15px; color: inherit; cursor: pointer; }
+.overview-word:hover { background: var(--c-hovergray); }
+.overview-word-count { font-size: 12px; color: var(--c-grayblack); }
+
+/* --- All outputs: toolbar ---------------------------------------------------- */
+.outputs-toolbar { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; padding-bottom: 14px; border-bottom: 1px solid var(--c-lightgray); font-size: 13px; }
+.outputs-terms { display: flex; flex-wrap: wrap; gap: 6px; }
+.outputs-term { border: 1px solid var(--c-hovergray); background: #fff; color: var(--c-nearblack); border-radius: 999px; padding: 6px 12px; font: inherit; cursor: pointer; }
+.outputs-term[aria-pressed="true"] { background: var(--c-nearblack); border-color: var(--c-nearblack); color: #fff; }
+.outputs-find, .outputs-sort { display: flex; align-items: center; gap: 6px; }
+.outputs-find { flex: 1 1 220px; min-width: 0; }
+.outputs-find input { flex: 1; min-width: 0; font: inherit; padding: 7px 10px; border: 1px solid var(--c-hovergray); }
+.outputs-sort select { font: inherit; padding: 6px; }
+.outputs-count { color: var(--c-grayblack); }
+
+/* --- All outputs: index and reader side by side ------------------------------ */
+.outputs-layout { display: flex; flex-wrap: wrap; align-items: flex-start; }
+/* Bases sized so both fit side by side in the ~900px workspace column. */
+.outputs-index { flex: 1 1 460px; min-width: 0; max-height: 80vh; overflow: auto; border-right: 1px solid var(--c-lightgray); }
+.outputs-reader { flex: 1 1 360px; min-width: 0; padding: 20px 0 20px 24px; box-sizing: border-box; }
+.outputs-list { list-style: none; margin: 0; padding: 0; }
+
+/* Index rows: pair checkbox, model, date, words, notable phrases. */
+.outputs-row { display: grid; grid-template-columns: 24px minmax(0, 1.5fr) 82px 84px minmax(0, 1.2fr); gap: 0 8px; align-items: center; padding: 0 8px; border-bottom: 1px solid var(--c-lightgray); font-size: 13px; }
+.outputs-row--head { position: sticky; top: 0; z-index: 1; background: #fff; padding-top: 10px; padding-bottom: 10px; font-size: 12px; color: var(--c-grayblack); }
+.outputs-row.is-selected { background: #fdf1ef; box-shadow: inset 3px 0 0 var(--c-orangered); }
+.outputs-row.is-paired { background: var(--c-lightgray); }
+/* Why a row is flagged, shown first in its Notable column. */
+.outputs-flag-label { display: block; margin-bottom: 2px; color: #b3241b; font-family: "Neutral Medium 3", sans-serif; }
+.outputs-term--flagged { border-color: #e7b3ae; color: #b3241b; }
+.outputs-term--flagged[aria-pressed="true"] { background: #b3241b; border-color: #b3241b; color: #fff; }
+.outputs-group { padding: 8px; background: var(--c-lightgray); font-size: 11px; letter-spacing: .06em; text-transform: uppercase; font-family: "Neutral Medium 3", sans-serif; }
+.outputs-select { display: flex; flex-direction: column; background: none; border: 0; padding: 10px 0; font: inherit; color: inherit; text-align: left; cursor: pointer; min-width: 0; }
+.outputs-model { font-family: "Neutral Medium 3", sans-serif; font-size: 14px; overflow-wrap: anywhere; }
+.outputs-select:hover .outputs-model { text-decoration: underline; }
+.outputs-provider, .outputs-date, .outputs-notable { color: var(--c-grayblack); }
+.outputs-notable { font-size: 12px; overflow-wrap: anywhere; }
+.outputs-words { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+/* Bar length tracks word count, capped so a 500-word outlier fits. */
+.outputs-bar { display: inline-block; height: 6px; background: var(--c-nearblack); width: min(calc(var(--words) * 0.12px), 60px); min-width: 2px; }
+.outputs-empty { padding: 20px 8px; color: var(--c-grayblack); }
+
+/* Reader. */
+.outputs-entry, .outputs-pair { display: flex; flex-direction: column; gap: 10px; }
+.outputs-entry-title { margin: 0; font-size: 22px; }
+.outputs-flag { margin: 0; align-self: flex-start; padding: 4px 10px; background: var(--c-nearblack); color: #fff; font-size: 12px; }
+.outputs-body { font-size: 16px; line-height: 1.7; max-width: 68ch; overflow-wrap: anywhere; }
+.outputs-body mark { background: var(--c-yellow); color: inherit; }
+.outputs-details { border-top: 1px solid var(--c-lightgray); padding-top: 10px; font-size: 13px; }
+.outputs-details summary { cursor: pointer; font-family: "Neutral Medium 3", sans-serif; }
+.outputs-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px 16px; margin: 10px 0 0; }
+.outputs-facts dt { font-size: 11px; color: var(--c-grayblack); }
+.outputs-facts dd { margin: 0; overflow-wrap: anywhere; }
+.outputs-pair-head { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.outputs-pair-head .outputs-entry-title { margin-right: auto; }
+.outputs-pair-columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.outputs-pair-column { display: flex; flex-direction: column; gap: 8px; border-top: 3px solid var(--c-nearblack); padding-top: 10px; min-width: 0; }
+.outputs-pair-column .outputs-entry-title { font-size: 17px; }
+.outputs-pair-column .outputs-body { font-size: 14px; }
+
+/* Data & method. */
+.research-method-list { font-size: 14px; line-height: 1.6; max-width: 72ch; }
+
+.overview-link:focus-visible, .overview-bar:focus-visible, .overview-item:focus-visible, .overview-tile:focus-visible,
+.overview-word:focus-visible, .outputs-term:focus-visible, .outputs-select:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
+
+@media (max-width: 900px) {
+  .outputs-index { max-height: none; border-right: 0; }
+  .outputs-reader { padding: 20px 0; }
+  .outputs-row { grid-template-columns: 28px minmax(0, 1fr) 80px; }
+  .outputs-row > .outputs-words, .outputs-row > .outputs-notable, .outputs-row--head > :nth-child(n+4) { display: none; }
+  .outputs-pair-columns { grid-template-columns: 1fr; }
+  .research-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Image color palette (Tags & detections): one strip, each swatch as wide as
+   its share of the image. Hover shows hex, hue and share. */
+.image-palette { display: flex; list-style: none; margin: 10px 0 0; padding: 0; height: 32px; max-width: 640px; border: 1px solid var(--c-lightgray); }
+.image-palette-swatch { flex-basis: 0; min-width: 4px; }
+
+/* Text for screen readers only. */
+.visually-hidden { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

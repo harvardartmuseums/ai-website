@@ -46,9 +46,13 @@ test('workspace and comparison partials render sparse records and parse their em
   hbs.registerHelper('urlencode', value => encodeURIComponent(value == null ? '' : String(value)));
   hbs.registerPartial('image_context', fs.readFileSync(path.join(__dirname, '../views/partials/image-context.hbs'), 'utf8'));
   hbs.registerPartial('compare_workspace', fs.readFileSync(path.join(__dirname, '../views/partials/compare-workspace.hbs'), 'utf8'));
+  hbs.registerPartial('outputs_index', fs.readFileSync(path.join(__dirname, '../views/partials/outputs-index.hbs'), 'utf8'));
   const render = hbs.handlebars.compile(fs.readFileSync(path.join(__dirname, '../views/object.hbs'), 'utf8'));
-  const html = render({ object_info: { id: 1, title: 'A title < & >' }, display_image: { imageid: 2 }, selected_annotation: {id: 3, source: 'Test', model: 'raw-model-id', type: 'description', body: '<script>unsafe()</script>'}, ai_sorted: { tagsect: [{ source: 'Test', tags: [{ body: 'red/blue?', confidence: 50 }] }] } });
-  assert.ok(html.includes('AI analysis of image 2'));
+  const html = render({ object_info: { id: 1, title: 'A title < & >' }, display_image: { imageid: 2 }, workspace_stats: { descriptions: 0, detections: 1 }, selected_annotation: {id: 3, source: 'Test', model: 'raw-model-id', type: 'tag', body: '<script>unsafe()</script>'}, ai_sorted: { tagsect: [{ source: 'Test', tags: [{ body: 'red/blue?', confidence: 50 }] }] } });
+  assert.ok(html.includes('AI analysis · image 2'));
+  for (const view of ['overview', 'outputs', 'vocabulary', 'compare', 'detections', 'data']) {
+    assert.ok(html.includes(`data-research-panel="${view}"`), view + ' panel renders');
+  }
   assert.ok(html.includes('No model descriptions are available for this image.'));
   assert.ok(html.includes('No descriptions available for this image.'));
   assert.ok(html.includes('A title &lt; &amp; &gt;'));
@@ -63,6 +67,22 @@ test('workspace and comparison partials render sparse records and parse their em
   assert.ok(repeatedRuns.includes('same-model · 2026-06-01 · Annotation 101'));
   assert.ok(repeatedRuns.includes('same-model · 2026-07-01 · Annotation 104'));
   for (const match of html.matchAll(/<script[^>]*>([\s\S]*?)<\/script>/g)) if (match[1].trim()) new vm.Script(match[1]);
+});
+
+test('the outputs index renders one row and one reader entry per AI description, escaping text', () => {
+  const hbs = require('hbs');
+  require('handlebars-helpers')({ handlebars: hbs });
+  const render = hbs.handlebars.compile(fs.readFileSync(path.join(__dirname, '../views/partials/outputs-index.hbs'), 'utf8'));
+  const html = render({ selected_output_id: 102, output_rows: [
+    { key: 'annotation_101', annotation_id: 101, source: 'Amazon Nova', source_raw: 'Amazon', model: 'nova-id', display_model: 'Nova <Pro>', createdate: '2026-06-01', words: 3, body: 'A **hat**.' },
+    { key: 'annotation_102', annotation_id: 102, source: 'OpenAI GPT', source_raw: 'OpenAI', model: '', display_model: 'Unspecified model', createdate: '', words: 2, body: 'A coat.', stats: { lexicalDensity: 50, ttr: 100, hapaxRatio: 100, avgSentLen: 2 } },
+  ] });
+  assert.equal((html.match(/class="outputs-row" /g) || []).length, 2);
+  assert.equal((html.match(/class="outputs-entry"/g) || []).length, 2);
+  assert.ok(html.includes('data-initial-selection="102"'));
+  assert.ok(html.includes('Nova &lt;Pro&gt;'));
+  assert.ok(html.includes('<strong>hat</strong>'), 'description Markdown renders');
+  assert.ok(html.includes('not recorded'), 'a missing model identifier is stated, not left blank');
 });
 
 test('object routes bind analysis to the requested image, reject mismatches, and retain legacy comparison links', async () => {
@@ -84,21 +104,41 @@ test('object routes bind analysis to the requested image, reject mismatches, and
   try {
     global.fetch = async url => {
       requested.push(url.includes('image=20'));
-      return { ok: true, json: async () => url.includes('/object/') ? structuredClone(object) : { records: [{ id: 77, source: 'Amazon', type: 'description', confidence: 1, body: 'A man.', createdate: '2026-01-01T12:34:56Z' }] } };
+      // The full image record; image 10's request fails to show the fallback.
+      if (url.includes('/image/')) return url.includes('/image/20?')
+        ? { ok: true, json: async () => ({ imageid: 20, colors: [{ color: '#e1c8af', hue: 'Orange', percent: 0.34 }] }) }
+        : { ok: false, json: async () => ({ error: 'Not found' }) };
+      return { ok: true, json: async () => url.includes('/object/') ? structuredClone(object) : { records: [
+        { id: 77, source: 'Amazon', type: 'description', confidence: 1, body: 'A man.', createdate: '2026-01-01T12:34:56Z' },
+        // The same word read twice (line and word level) is one reading.
+        { id: 78, source: 'AWS Rekognition', type: 'text', feature: 'region', body: 'thuli', createdate: '2026-01-01', target: 'https://x/full/full/0/default.jpg', selectors: [{ value: 'xywh=1,1,10,10' }] },
+        { id: 79, source: 'AWS Rekognition', type: 'text', feature: 'region', body: 'thuli', createdate: '2026-01-01', target: 'https://x/full/full/0/default.jpg', selectors: [{ value: 'xywh=1,1,10,9' }] },
+      ] } };
     };
     const routePath = '/object/:object_id/:image?/:image_id?';
     const valid = await invoke(routePath, { object_id: '1', image: 'image', image_id: '20' });
     assert.equal(valid.view, 'object');
     assert.equal(valid.context.display_image.imageid, 20);
+    // Colours come from the image record; embedded fields survive the merge.
+    assert.equal(valid.context.display_image.colors[0].color, '#e1c8af');
+    assert.equal(valid.context.display_image.description, 'Image interpretation.');
+    const withoutImageRecord = await invoke(routePath, { object_id: '1', image: 'image', image_id: '10' });
+    assert.equal(withoutImageRecord.view, 'object', 'a failed image request still renders the page');
+    assert.equal(withoutImageRecord.context.display_image.colors, undefined);
     assert.ok(valid.context.image_summary.descriptions.includes('Jan 2026'));
     assert.ok(requested.includes(true));
     assert.equal(valid.context.object_images[1].selected, true);
     assert.equal(valid.context.descriptions_list.find(d => d.key === 'labeltext').scope, 'Object wall label');
     assert.equal(valid.context.descriptions_list.find(d => d.annotation_id === 77).scope, 'Image 20');
+    assert.deepEqual(valid.context.workspace_stats, { descriptions: 1, providers: 1, tags: 0, regions: 0, faces: 0, categories: 0, text: 1, years: '2026', detections: 1 });
+    assert.equal(valid.context.output_rows.length, 1, 'human references stay out of the index');
+    assert.equal(valid.context.output_rows[0].words, 2);
+    assert.equal(valid.context.image_position, 2);
+    // A link to a description opens it in the All outputs reader rather than
+    // as a separate source record.
     const linked = await invoke(routePath, { object_id: '1', image: 'image', image_id: '20' }, {annotation: '77'});
-    assert.equal(linked.context.selected_annotation.id, 77);
-    assert.equal(linked.context.selected_annotation.createdate, '2026-01-01T12:34:56Z');
-    assert.equal(linked.context.selected_annotation.body, 'A man.');
+    assert.equal(linked.context.selected_output_id, 77);
+    assert.equal(linked.context.selected_annotation, null);
     const invalid = await invoke(routePath, { object_id: '1', image: 'image', image_id: '999' });
     assert.equal(invalid.error.status, 404);
     const old = await invoke('/object/:object_id/:image?/:image_id?/compare', { object_id: '1', image: 'image', image_id: '20' });

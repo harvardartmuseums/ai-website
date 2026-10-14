@@ -3,8 +3,11 @@
   var root = document.querySelector('.image-research-workspace');
   if (!root) return;
   var panels = Array.from(root.querySelectorAll('[data-research-panel]'));
+  // Hashes from the previous layout, kept so bookmarks and evidence links work.
+  var LEGACY_VIEWS = { perspectives: 'vocabulary', descriptions: 'outputs', tags: 'detections', other: 'detections' };
   function showView(name) {
-    if (!panels.some(function (p) { return p.dataset.researchPanel === name; })) name = 'perspectives';
+    name = LEGACY_VIEWS[name] || name;
+    if (!panels.some(function (p) { return p.dataset.researchPanel === name; })) name = 'overview';
     panels.forEach(function (p) { p.hidden = p.dataset.researchPanel !== name; });
     root.querySelectorAll('[data-research-tab]').forEach(function (link) {
       if (link.dataset.researchTab === name) link.setAttribute('aria-current', 'page');
@@ -28,34 +31,13 @@
     location.hash = 'compare';
     showView('compare');
   };
-  root.querySelectorAll('.research-compare-output').forEach(function (button) {
-    button.addEventListener('click', function () { window.compareResearchAnnotations([button.dataset.annotationId]); });
-  });
-  function updateResults() {
-    var cards = Array.from(root.querySelectorAll('.desc-card'));
-    var count = cards.filter(function (c) { return c.style.display !== 'none'; }).length;
-    var status = document.getElementById('desc-results-count');
-    if (status) status.textContent = count + ' of ' + cards.length + ' descriptions shown';
-    var empty = document.getElementById('desc-filter-empty');
-    if (empty) empty.hidden = count !== 0;
-    if (window.applyHighlight) window.applyHighlight();
-  }
-  ['desc-source-select', 'desc-model-select', 'desc-length-select'].forEach(function (id) {
-    var select = document.getElementById(id);
-    // The template registers its filtering handlers at DOMContentLoaded.
-    // Count the results after those handlers have applied visibility.
-    if (select) select.addEventListener('change', function () { queueMicrotask(updateResults); });
-  });
-  var reset = document.getElementById('desc-reset');
-  if (reset) reset.addEventListener('click', function () {
-    document.getElementById('desc-source-select').value = 'all';
-    document.getElementById('desc-model-select').value = 'all';
-    document.getElementById('desc-length-select').value = 'any';
-    document.getElementById('desc-highlight-input').value = '';
-    document.getElementById('desc-sort-select').value = 'source-asc';
-    window.applyDescFilter(); window.applySort(); updateResults();
-  });
-  document.addEventListener('DOMContentLoaded', updateResults);
+  // Open Compare with a human reference ("imagedesc" or "labeltext") on one
+  // side and the first AI description on the other.
+  window.compareWithHumanReference = function (key) {
+    var firstAI = document.querySelector('.desc-data[data-annotation-id]:not([data-annotation-id=""])');
+    if (window.researchCompare) window.researchCompare(key, firstAI && firstAI.dataset.key);
+    location.hash = 'compare';
+  };
   document.addEventListener('DOMContentLoaded', function () {
     var record = document.getElementById('research-source-record');
     // Evidence URLs can target a view hash. Bring the complete source into view

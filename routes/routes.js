@@ -688,6 +688,45 @@ router.get('/category/:category/:page?', function(req, res, next) {
   })
 });
 
+// Counts for the research page header and the Overview's detections card.
+// Counted from the raw annotation records so every number matches the data
+// a researcher can download, independent of how organize.divide groups them.
+function buildWorkspaceStats(ai_data) {
+  const count = (type, feature) => ai_data.filter(r => r.type === type && (!feature || r.feature === feature)).length;
+  const descriptions = ai_data.filter(r => r.type === 'description' && (r.body || '').trim());
+  const years = ai_data.map(r => Number(String(r.createdate || '').slice(0, 4))).filter(Number.isFinite).filter(y => y > 0);
+  const first = years.length ? Math.min(...years) : null, last = years.length ? Math.max(...years) : null;
+  const stats = {
+    descriptions: descriptions.length,
+    providers: new Set(descriptions.map(r => r.source)).size,
+    tags: count('tag', 'full'),
+    regions: count('tag', 'region'),
+    faces: count('face'),
+    categories: count('category'),
+    // AWS Rekognition reports text as both a line and a word, so a one-word
+    // inscription arrives twice. Count distinct readings per service, the
+    // same way organize.divide lists them on the Tags & detections tab.
+    text: new Set(ai_data.filter(r => r.type === 'text').map(r => r.source + '\0' + r.body)).size,
+    // "2018–26" reads faster than "2018–2026" in a stat tile.
+    years: first === null ? null : first === last ? String(first) : `${first}–${String(last).slice(2)}`,
+  };
+  stats.detections = stats.tags + stats.regions + stats.faces + stats.categories + stats.text;
+  return stats;
+}
+
+// One row per AI description for the All outputs index. Human-authored
+// references stay out of the index; they appear on the Overview and in Compare.
+function buildOutputRows(descriptions_list) {
+  // Older services record no model ("unknown"); name the provider instead so
+  // the row still says whose output it is.
+  const hasModelName = d => d.display_model && d.display_model !== 'unknown';
+  return descriptions_list.filter(d => !d.isHuman).map(d => ({
+    ...d,
+    display_model: hasModelName(d) ? d.display_model : d.source + ' (model not recorded)',
+    words: d.stats ? d.stats.total : d.body.split(/\s+/).filter(Boolean).length,
+  }));
+}
+
 function buildResearchDescriptions(ai_sorted, object_info, display_image) {
   let descriptions_list = [];
 
@@ -744,8 +783,16 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
     const imageid = selected.imageid;
 
     const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
-    fetch(ai_url).then(response => response.json())
-    .then(ai_info => {
+    // The full image record carries data the summary embedded in the object
+    // record lacks, notably this image's own colour palette. It is optional:
+    // if the request fails, the page renders without those fields.
+    const image_url = `https://api.harvardartmuseums.org/image/` + imageid + `?apikey=` + API_KEY;
+    const image_record = fetch(image_url)
+      .then(response => response.ok ? response.json() : null)
+      .catch(() => null);
+
+    Promise.all([fetch(ai_url).then(response => response.json()), image_record])
+    .then(([ai_info, image_info]) => {
       // Evidence links retain the complete, original annotation body and model
       // identifier before organize.divide enriches/mutates the display records.
       const selected_annotation = req.query && req.query.annotation
@@ -755,15 +802,27 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
       let ai_sorted = organize.divide(ai_data)
       const image_summary = _buildImageSummary(ai_sorted);
 
-      let display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+      // The embedded summary keeps fields only it has (displayorder,
+      // publiccaption); the full image record adds colors, fingerprints, etc.
+      const embedded_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+      const display_image = image_info && image_info.imageid === embedded_image.imageid
+        ? { ...embedded_image, ...image_info } : embedded_image;
+      const descriptions_list = buildResearchDescriptions(ai_sorted, object_info, display_image);
+      // An evidence link to a description opens it in the All outputs reader;
+      // any other annotation (tags, faces, regions) is shown as a source record.
+      const linksToDescription = selected_annotation && selected_annotation.type === 'description';
 
       res.render('object', { title: 'Image ' + imageid + ' — ' + object_info.title,
-                             selected_annotation,
-                             descriptions_list: buildResearchDescriptions(ai_sorted, object_info, display_image),
-                             has_other_analysis: Boolean(object_info.colors && object_info.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
+                             selected_annotation: linksToDescription ? null : selected_annotation,
+                             selected_output_id: linksToDescription ? selected_annotation.id : null,
+                             descriptions_list,
+                             output_rows: buildOutputRows(descriptions_list),
+                             workspace_stats: buildWorkspaceStats(ai_info.records || []),
+                             image_position: object_info.images.findIndex(image => image.imageid === Number(imageid)) + 1,
+                             has_other_analysis: Boolean(display_image.colors && display_image.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
                              multiple_images: object_info.images.length > 1,
                              object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
-                             navbar: false,
+                             navbar: true,
                              year: new Date().getFullYear(),
                              ai_data: ai_data,
                              ai_sorted: ai_sorted,

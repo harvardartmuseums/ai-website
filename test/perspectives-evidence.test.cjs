@@ -117,7 +117,8 @@ test('agreement weights, inclusion thresholds, and level thresholds remain uncha
   assert.equal(weak.agreement_level, 'weaker');
   const strong = run([...records, tag(4, 'Mistral', 'bridge')]).concepts[0];
   assert.equal(strong.agreement_level, 'stronger');
-  assert.equal(ALGORITHM_VERSION, 'ace-v4.0.0');
+  // 4.1 only adds the overview block; scoring is unchanged (asserted above).
+  assert.equal(ALGORITHM_VERSION, 'ace-v4.1.0');
 });
 
 const family = (result, name) => result.concept_relationships.find(group => group.family === name);

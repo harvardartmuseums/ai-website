@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "build-vocab": "node vocab.js",
-    "test:research": "node --test test/research-workspace.test.cjs test/perspectives-evidence.test.cjs"
+    "test:research": "node --test test/research-workspace.test.cjs test/perspectives-evidence.test.cjs test/overview.test.cjs"
   },
   "dependencies": {
     "compromise": "^14.10.0",

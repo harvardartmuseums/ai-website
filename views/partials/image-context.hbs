@@ -1,11 +1,42 @@
+{{!-- Left column: the zoomable image stays in view while reading. Title,
+artist and date live in the main header, and the site navbar above
+carries the logo; this column keeps the image, the image picker and the
+museum's own record. --}}
 <section class="object-view-panel image-research-viewer">
-  <a class="object-nav-header" href="/" aria-label="AI Explorer home"><img class="nav-logo" src="/images/artmuseumslogo.png" alt="Harvard Art Museums"></a>
-  <div class="research-image-identity"><span class="research-label">Selected image</span><h2>Image {{display_image.imageid}}</h2><p>Image of <a href="{{object_info.url}}">{{object_info.title}}</a></p></div>
   {{#if display_image}}
-  <div class="object-image-container"><div id="openseadragon1" aria-label="Zoomable image {{display_image.imageid}}"></div><div id="image-toolbar"><button type="button" id="zoom-in" title="Zoom in" aria-label="Zoom in"><i class="fa fa-search-plus toolbar-button" aria-hidden="true"></i></button><button type="button" id="zoom-out" title="Zoom out" aria-label="Zoom out"><i class="fa fa-search-minus toolbar-button" aria-hidden="true"></i></button><button type="button" id="zoom-home">Fit image</button></div></div>
+  <div class="object-image-container">
+    <div id="openseadragon1" aria-label="Zoomable image {{display_image.imageid}}"></div>
+    <div id="image-toolbar"><button type="button" id="zoom-in" title="Zoom in" aria-label="Zoom in"><i
+          class="fa fa-search-plus toolbar-button" aria-hidden="true"></i></button><button type="button" id="zoom-out"
+        title="Zoom out" aria-label="Zoom out"><i class="fa fa-search-minus toolbar-button"
+          aria-hidden="true"></i></button><button type="button" id="zoom-home">Fit image</button></div>
+  </div>
   {{else}}<p>No image available for this object.</p>{{/if}}
   {{#if multiple_images}}
-  <label class="research-image-picker" for="research-image-select">Images of this object<select id="research-image-select">{{#each object_images}}<option value="/object/{{../object_info.id}}/image/{{imageid}}" {{#if selected}}selected{{/if}}>Image {{imageid}}{{#if description}} — {{description}}{{/if}}</option>{{/each}}</select></label>
+  <label class="research-image-picker" for="research-image-select">Images of this object<select
+      id="research-image-select">{{#each object_images}}<option value="/object/{{../object_info.id}}/image/{{imageid}}"
+        {{#if selected}}selected{{/if}}>Image {{imageid}}{{#if description}} — {{description}}{{/if}}</option>
+      {{/each}}</select></label>
   {{/if}}
-  <div class="research-object-context"><span class="research-label">Associated object · {{object_info.id}}</span><h3>{{object_info.title}}</h3>{{#each object_info.people}}<p>{{role}}: {{name}}</p>{{/each}}<p>{{object_info.dated}}{{#if object_info.medium}} · {{object_info.medium}}{{/if}}</p><details><summary>Museum record &amp; object wall label</summary><dl><dt>Object number</dt><dd>{{object_info.objectnumber}}</dd><dt>Classification</dt><dd>{{object_info.classification}}</dd><dt>Credit line</dt><dd>{{object_info.creditline}}</dd>{{#if object_info.copyright}}<dt>Copyright</dt><dd>{{object_info.copyright}}</dd>{{/if}}</dl>{{#if object_info.labeltext}}<h4>Object wall label</h4><p>{{object_info.labeltext}}</p><p class="research-note">Museum-authored text about the object.</p>{{/if}}<a href="{{object_info.url}}">Full museum record <i class="fa fa-external-link" aria-hidden="true"></i></a></details>{{#if display_image.description}}<details><summary>Human description of this image</summary><p>{{display_image.description}}</p><p class="research-note">About image {{display_image.imageid}}.</p></details>{{/if}}</div>
+  <div class="research-object-context"><span class="research-label">Museum record · object {{object_info.id}}</span>
+    <details>
+      <summary>Record &amp; object wall label</summary>
+      <dl>
+        <dt>Object number</dt>
+        <dd>{{object_info.objectnumber}}</dd>
+        <dt>Classification</dt>
+        <dd>{{object_info.classification}}</dd>
+        <dt>Credit line</dt>
+        <dd>{{object_info.creditline}}</dd>{{#if object_info.copyright}}<dt>Copyright</dt>
+        <dd>{{object_info.copyright}}</dd>{{/if}}
+      </dl>{{#if object_info.labeltext}}<h4>Object wall label</h4>
+      <p>{{object_info.labeltext}}</p>
+      <p class="research-note">Museum-authored text about the object.</p>{{/if}}<a href="{{object_info.url}}">Full
+        museum record <i class="fa fa-external-link" aria-hidden="true"></i></a>
+    </details>{{#if display_image.description}}<details>
+      <summary>Human description of this image</summary>
+      <p>{{display_image.description}}</p>
+      <p class="research-note">About image {{display_image.imageid}}.</p>
+    </details>{{/if}}
+  </div>
 </section>

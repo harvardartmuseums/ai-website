@@ -4,6 +4,7 @@ var nlp = require('compromise');
 var _ = require('lodash');
 var stopwords = require('../vocabularies/stopwords');
 var MODELS = require('../../models');
+var overview = require('./overview');
 
 // ---------------------------------------------------------------------------
 // Versioned config — bump algorithm_version on any change (see semver rules
@@ -13,7 +14,8 @@ var MODELS = require('../../models');
 
 // Stage 3 adds individual output series and separates the object reference.
 // Use a major version for the radar schema and AI-only normalization contract.
-const ALGORITHM_VERSION = 'ace-v4.0.0';
+// 4.1 adds the additive `overview` block (see overview.js); no existing field changes.
+const ALGORITHM_VERSION = 'ace-v4.1.0';
 
 const CONFIG = {
   min_services:                2,
@@ -1294,6 +1296,28 @@ function compute(ai_data, object_info, display_image) {
   const depictsPeopleExamples = peopleConcepts.slice(0, 3).map(p => p.concept);
 
   // -------------------------------------------------------------------------
+  // Overview block — summary facts for the Overview tab (see overview.js)
+  // -------------------------------------------------------------------------
+  // Noun phrases already extracted above, regrouped per description so the
+  // overview can find phrases that only one description uses.
+  const phrasesByDescription = new Map();
+  for (const occ of occurrences) {
+    if (occ.type !== 'description') continue;
+    if (!phrasesByDescription.has(occ.annotation_id)) phrasesByDescription.set(occ.annotation_id, new Set());
+    phrasesByDescription.get(occ.annotation_id).add(occ.original_text || occ.concept_text);
+  }
+  const overviewBlock = overview.computeOverview({
+    descriptions: descAnnotations
+      .map(ann => ({ id: ann.id, source: ann.source, body: stripMarkdown(ann.body || '').trim() }))
+      .filter(d => d.body),
+    observations,
+    moodPalette,
+    coverageRadar,
+    phrasesByDescription,
+    objectInfo: object_info,
+  });
+
+  // -------------------------------------------------------------------------
   // Catalogue block
   // -------------------------------------------------------------------------
   const catalogue = buildCatalogue(object_info, display_image);
@@ -1327,6 +1351,7 @@ function compute(ai_data, object_info, display_image) {
     observations:        observations,
     mood_palette:        moodPalette,
     coverage_radar:      coverageRadar,
+    overview:            overviewBlock,
   };
 }
 

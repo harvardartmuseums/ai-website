@@ -1,8 +1,85 @@
+{{!-- Two columns under the site navbar: the image pane sticks while the
+      workspace scrolls. See .research-page in research.css. --}}
+<div class="research-page">
 {{> image_context}}
 <section class="object-info-panel image-research-workspace">
-  <header class="research-heading"><span class="research-label">Image research</span><h1>AI analysis of image {{display_image.imageid}}</h1><p>Image of {{object_info.title}} · Associated object {{object_info.id}}</p>{{#if image_summary.descriptions}}<p class="image-summary">{{{image_summary.descriptions}}}</p>{{/if}}</header>
-  <nav class="research-tabs" aria-label="Image analysis views"><a href="#perspectives" data-research-tab="perspectives">Perspectives <span class="beta-badge">Beta</span></a><a href="#descriptions" data-research-tab="descriptions">Descriptions</a><a href="#compare" data-research-tab="compare">Compare</a><a href="#tags" data-research-tab="tags">Tags</a><a href="#other" data-research-tab="other">Other analyses</a></nav>
+  {{!-- Header: who/what/when once, then the four numbers that size the data. --}}
+  <header class="research-heading">
+    <span class="research-label">AI analysis · image {{display_image.imageid}}{{#if multiple_images}} ({{image_position}} of {{object_images.length}}){{/if}}</span>
+    <h1>{{object_info.title}}</h1>
+    <p class="research-heading-meta">{{#each object_info.people}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}{{#if object_info.dated}} · {{object_info.dated}}{{/if}}{{#if object_info.medium}} · {{object_info.medium}}{{/if}}</p>
+    <dl class="research-stats">
+      <div><dt>Descriptions</dt><dd>{{workspace_stats.descriptions}}</dd></div>
+      <div><dt>Providers</dt><dd>{{workspace_stats.providers}}</dd></div>
+      <div><dt>Tags</dt><dd>{{workspace_stats.tags}}</dd></div>
+      <div><dt>Years</dt><dd>{{#if workspace_stats.years}}{{workspace_stats.years}}{{else}}—{{/if}}</dd></div>
+    </dl>
+  </header>
+
+  {{!-- Tabs. Compare has no tab: it opens from the All outputs index.
+        research-workspace.js maps the old hashes (#perspectives, #descriptions,
+        #tags, #other) onto these so existing links keep working. --}}
+  <nav class="research-tabs" aria-label="Image analysis views">
+    <a href="#overview" data-research-tab="overview">Overview</a>
+    <a href="#outputs" data-research-tab="outputs">All outputs <span class="research-tab-count">{{workspace_stats.descriptions}}</span></a>
+    <a href="#vocabulary" data-research-tab="vocabulary">Vocabulary <span class="beta-badge">Beta</span></a>
+    <a href="#detections" data-research-tab="detections">Tags &amp; detections <span class="research-tab-count">{{workspace_stats.detections}}</span></a>
+    <a href="#data" data-research-tab="data">Data &amp; method</a>
+  </nav>
   <div class="content">
+    {{!-- Overview: one card per question. Cards marked data-overview-slot are
+          filled by overview-panel.js once the perspectives JSON has loaded. --}}
+    <section id="research-overview" data-research-panel="overview" aria-label="Overview">
+      <div class="overview-grid">
+        <article class="overview-card">
+          <h2 class="overview-card-title">What they agree on</h2>
+          <div data-overview-slot="agreement"><p class="research-note">Loading…</p></div>
+        </article>
+        <article class="overview-card">
+          <h2 class="overview-card-title">Where they diverge</h2>
+          <div data-overview-slot="divergence"><p class="research-note">Loading…</p></div>
+        </article>
+        {{#if display_image.description}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">A person’s description</h2>
+          <blockquote class="overview-quote">{{display_image.description}}</blockquote>
+          <p class="research-note">Written by museum staff about this image.</p>
+          <button type="button" class="overview-link" data-compare-human="imagedesc">Compare with an AI description →</button>
+        </article>
+        {{else if object_info.labeltext}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">The museum’s wall label</h2>
+          <blockquote class="overview-quote overview-quote--clamped">{{object_info.labeltext}}</blockquote>
+          <p class="research-note">Written by museum staff about the object.</p>
+          <button type="button" class="overview-link" data-compare-human="labeltext">Compare with an AI description →</button>
+        </article>
+        {{/if}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">What they pay attention to</h2>
+          <div data-overview-slot="attention"><p class="research-note">Loading…</p></div>
+        </article>
+        <article class="overview-card">
+          <h2 class="overview-card-title">Mood words</h2>
+          <div data-overview-slot="mood"><p class="research-note">Loading…</p></div>
+        </article>
+        <article class="overview-card">
+          <h2 class="overview-card-title">Detections</h2>
+          <ul class="overview-facts">
+            <li>{{workspace_stats.tags}} tags</li>
+            {{!-- Faces: replaced by overview-panel.js with a per-face summary from
+                  summary.face_stats. The raw count below (one record per face
+                  per service) is only the fallback if the analysis fails. --}}
+            <li data-overview-faces>{{workspace_stats.faces}} face detection records</li>
+            <li>{{workspace_stats.regions}} region tags</li>
+            <li>{{workspace_stats.categories}} categories · {{#if workspace_stats.text}}{{workspace_stats.text}} text reading{{#unless (eq workspace_stats.text 1)}}s{{/unless}}{{else}}no text found{{/if}}</li>
+          </ul>
+          <a class="overview-link" href="#detections">Tags, faces and regions →</a>
+        </article>
+      </div>
+    </section>
+
+    {{> outputs_index}}
+
     {{#if selected_annotation}}
     <section class="research-source-record" id="research-source-record">
       <h2>Complete source annotation</h2>
@@ -11,12 +88,14 @@
       <div class="research-source-body">{{selected_annotation.body}}</div>
     </section>
     {{/if}}
-<div id="research-perspectives" data-research-panel="perspectives"><section class="ai-section attention-section" id="attention-section">
-          <h2>AI perspectives on this image</h2>
+{{!-- Vocabulary: the detailed perspectives analysis (radar, shared terms,
+      observations, mood, themes, concept families). Rendered by the inline
+      script below from the perspectives JSON. --}}
+<div id="research-vocabulary" data-research-panel="vocabulary"><section class="ai-section attention-section" id="attention-section">
+          <h2>Vocabulary</h2>
           <p class="attention-intro">Explore patterns across providers, then inspect the descriptions behind them.</p>
 
           <div class="attention-card attention-card--ai" id="ai-perspectives-section">
-            <div class="attention-card-heading"></div>
             <div id="perspectives-panel">
               <div id="perspectives-loading"><p class="perspectives-status">Loading…</p></div>
               <div id="perspectives-error" style="display:none;"><p class="perspectives-status perspectives-status--error"></p></div>
@@ -80,99 +159,12 @@
             </div>
           </div>
         </section></div>
-<div id="research-descriptions" data-research-panel="descriptions">{{#unless ai_sorted.descriptions}}<p>No model descriptions are available for this image.</p>{{/unless}}<section class="ai-section" id="descriptions">
-              <h3>Descriptions <a class="compare-link" href="#compare"><i class="fa fa-columns"></i> Compare</a></h3>
-              <div class="desc-toolbar">
-                <div class="desc-toolbar-section">
-                  <div class="desc-toolbar-controls">
-                    <div class="desc-toolbar-control-group">
-                      <label class="desc-toolbar-label" for="desc-source-select">Provider</label>
-                      <select id="desc-source-select" class="compare-select desc-sort-select"></select>
-                      <label class="desc-toolbar-label" for="desc-model-select">Model</label><select id="desc-model-select" class="compare-select desc-sort-select"></select>
-                      <label class="desc-toolbar-label" for="desc-length-select">Length</label>
-                      <select id="desc-length-select" class="compare-select desc-sort-select"></select>
-                      <label class="desc-toolbar-label" for="desc-sort-select">Sort</label>
-                      <select id="desc-sort-select" class="compare-select desc-sort-select">
-                        <option value="source-asc">source A–Z</option>
-                        <option value="words-desc">most words</option>
-                        <option value="words-asc">fewest words</option>
-                        <option value="date-desc">newest generated</option>
-                        <option value="date-asc">oldest generated</option>
-                        <option value="model-desc">newest model</option>
-                        <option value="model-asc">oldest model</option>
-                        <option value="tokens-desc">most tokens</option>
-                        <option value="tokens-asc">fewest tokens</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div class="desc-toolbar-section">
-                  <div class="desc-toolbar-controls">
-                    <div class="desc-toolbar-control-group">
-                      <label class="desc-toolbar-label" for="desc-highlight-input">Highlight</label>
-                      <input type="search" id="desc-highlight-input" class="desc-highlight-input" placeholder="Search text…">
-                      <span id="desc-highlight-count" class="desc-highlight-count"></span>
-                    </div>
-                    <div class="desc-toolbar-control-group">
-                      <button class="quickbar-btn" id="desc-density-toggle">Show language statistics</button>
-                      <button class="quickbar-btn" id="desc-cost-toggle">Show tokens</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <p id="desc-results-count" role="status"></p><p id="desc-filter-empty" hidden>No descriptions match these filters.</p><button type="button" class="quickbar-btn" id="desc-reset">Reset filters</button><div id="desc-cards-container">
-              {{#each ai_sorted.descriptions}}
-                {{#each descriptions}}
-                  <div class="desc-card" data-annotation-id="{{id}}" data-model="{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}" data-source-raw="{{source}}" data-wordcount="{{stats.total}}" data-source="{{../source}}" data-date="{{createdate}}" data-model-released="{{model_released}}" data-total-tokens="{{#if cost}}{{cost.total}}{{/if}}" data-default-index="{{@../index}}-{{@index}}">
-                    <div class="desc-card-header"><button type="button" class="quickbar-btn research-compare-output" data-annotation-id="{{id}}">Compare with…</button>
-                      <span class="desc-card-title">{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}<span class="desc-card-source">{{../source}}</span></span>
-                    </div>
-                    <div class="desc-card-body">
-                      <div class="desc-card-date-col">
-                        {{#if age}}<span class="header-age desc-card-age">Generated {{age}}</span>{{/if}}
-                        <span class="desc-card-date">({{createdate}})</span>
-                      </div>
-                      <div class="desc-card-text">
-                        {{#if body}}
-                          {{{markdown body}}}
-                        {{else}}
-                          <p class="desc-empty">No description written</p>
-                        {{/if}}
-                      </div>
-                      {{#if stats}}
-                      <div class="panel-stats-section panel-stats-section--density desc-card-density">
-                        <span class="sidebar-group-label panel-stats-label">Information Density</span>
-                        <div class="panel-stats">
-                          <span class="panel-stat" title="Content words / total words">Lexical density <strong>{{stats.lexicalDensity}}%</strong></span>
-                          <span class="panel-stat" title="Unique words / total words">Vocab diversity <strong>{{stats.ttr}}%</strong></span>
-                          <span class="panel-stat" title="Words appearing once / total words">Specificity <strong>{{stats.hapaxRatio}}%</strong></span>
-                          <span class="panel-stat" title="Average words per sentence">Avg sentence <strong>{{stats.avgSentLen}} words</strong></span>
-                          <span class="panel-stat" title="Total word count">Length <strong>{{stats.total}} words</strong></span>
-                        </div>
-                      </div>
-                      {{/if}}
-                      <div class="panel-stats-section panel-stats-section--cost desc-card-cost">
-                        <span class="sidebar-group-label panel-stats-label">Token usage</span>
-                        <div class="panel-stats panel-stats--tokens">
-                        {{#if cost}}
-                          <span class="panel-stat" title="Tokens sent to the model">Input tokens <strong>{{cost.input}}</strong></span>
-                          <span class="panel-stat" title="Tokens generated by the model">Output tokens <strong>{{cost.output}}</strong></span>
-                          {{#if cost.total}}<span class="panel-stat" title="Total tokens used">Total tokens <strong>{{cost.total}}</strong></span>{{/if}}
-                        {{else}}
-                          <span class="panel-stat" title="Tokens sent to the model">Input tokens <strong>?</strong></span>
-                          <span class="panel-stat" title="Tokens generated by the model">Output tokens <strong>?</strong></span>
-                          <span class="panel-stat" title="Total tokens used">Total tokens <strong>?</strong></span>
-                        {{/if}}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                {{/each}}
-              {{/each}}
-              </div>{{! /#desc-cards-container }}
-          </section></div>
-<section id="research-compare" data-research-panel="compare"><h2>Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
-<div id="research-tags" data-research-panel="tags">{{#unless ai_sorted.tagsect}}<p>No tags are available for this image.</p>{{/unless}}<section class="ai-section">
+{{!-- Compare: no tab of its own. Opened from the All outputs index
+      ("Open full comparison"), the Overview, or radar evidence. --}}
+<section id="research-compare" data-research-panel="compare"><a class="overview-link" href="#outputs">← All outputs</a><h2>Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
+{{!-- Tags & detections: full-image tags, then faces, features, categories,
+      captions, text and colours. --}}
+<div id="research-detections" data-research-panel="detections">{{#unless ai_sorted.tagsect}}<p>No tags are available for this image.</p>{{/unless}}<section class="ai-section">
           <h3>Tags</h3>
           <div class="tag-box">
             {{#each ai_sorted.tagsect}}
@@ -200,8 +192,8 @@
               </div>
             {{/each}}
           </div>
-        </section></div>
-<div id="research-other" data-research-panel="other">{{#unless has_other_analysis}}<p>No other analyses are available for this image.</p>{{/unless}}{{#if ai_sorted.facesect}}<section class="ai-section">
+        </section>
+<div id="research-other">{{#unless has_other_analysis}}<p>No other analyses are available for this image.</p>{{/unless}}{{#if ai_sorted.facesect}}<section class="ai-section">
             <h3>Face analysis</h3>
             <div class="faces-box">
               <div class="faces-toggle">
@@ -378,17 +370,40 @@
                   </div>
                 {{/each}}
             </div>
-          </section>{{/if}}{{#if object_info.colors}}<section class="ai-section">
-          <h3>Object color palette</h3><p class="research-note">Colors from the museum object record; not a model annotation of the selected image.</p>
-          <div class="content-box captions-colors-box">
-            <div class="captions-colors-box-content" style="height:25px;">
-           {{#each object_info.colors}}
-              <div style="float:left;background:{{color}};height:25px;width:25px;"></div>
-           {{/each}}
-           </div>
-           </div>
-        </section>{{/if}}</div>
+          </section>{{/if}}{{#if display_image.colors}}
+          {{!-- Palette of the selected image, from its /image record. Each
+                swatch is as wide as its share of the image. --}}
+          <section class="ai-section">
+            <h3>Image color palette</h3>
+            <p class="research-note">Colors measured from image {{display_image.imageid}} by the museum’s image service; not a model annotation.</p>
+            <ul class="image-palette" aria-label="Colors in image {{display_image.imageid}}, largest share first">
+              {{#each display_image.colors}}
+              <li class="image-palette-swatch" style="background: {{color}}; flex-grow: {{percent}};" title="{{color}} · {{hue}} · {{round (multiply percent 100)}}%">
+                <span class="visually-hidden">{{color}}, {{hue}}, {{round (multiply percent 100)}}%</span>
+              </li>
+              {{/each}}
+            </ul>
+          </section>{{/if}}</div>{{! /#research-other }}
+</div>{{! /#research-detections }}
+
+{{!-- Data & method: where the numbers come from, and the raw download. --}}
+<section id="research-data" data-research-panel="data" aria-label="Data and method">
+  <h2>Data &amp; method</h2>
+  {{#if image_summary.full}}<p class="image-summary">{{{image_summary.full}}}</p>{{/if}}
+  <p><a class="quickbar-btn" href="/object/{{object_info.id}}/image/{{display_image.imageid}}/perspectives" download="image-{{display_image.imageid}}-ai-perspectives.json">Download analysis JSON</a></p>
+  <h3>How the overview is built</h3>
+  <ul class="research-method-list">
+    <li>Counts are of descriptions, not mentions: a description that says “hat” five times counts once.</li>
+    <li>Shared terms count every phrasing of a noun together (“hat”, “black hat”, “tricorn hats”). Generic words such as “painting” or “figure”, and the object’s own classification, are left out.</li>
+    <li>Divergence lists people a description names who are not in the museum record, paint media the record does not mention, and the shortest and longest descriptions. Names that many descriptions share are treated as text visible in the image.</li>
+    <li>Notable phrases are ones that no other description of this image uses.</li>
+    <li>Agreement between models is not evidence that a description is accurate.</li>
+    <li>This tool currently processes English-language AI annotations only.</li>
+  </ul>
+  <p class="research-note" id="research-algorithm-version"></p>
+</section>
 </div></section>
+</div>{{! /.research-page }}
 <script src="/javascripts/openseadragon/openseadragon.min.js"></script>
 
 <script type="text/javascript">
@@ -407,191 +422,14 @@
       ]
   });
 
-  var descDensityVisible = false;
-  var descCostVisible = false;
-  var originalCardHTML = new Map();
-
-  function allCards() {
-    return Array.from(document.querySelectorAll('#desc-cards-container .desc-card'));
-  }
-
-  function applyDescVisibility() {
-    var section = document.getElementById('descriptions');
-    if (!section) return;
-    section.querySelectorAll('.panel-stats-section--density').forEach(function(el) {
-      el.style.display = descDensityVisible ? '' : 'none';
-    });
-    section.querySelectorAll('.panel-stats-section--cost').forEach(function(el) {
-      el.style.display = descCostVisible ? '' : 'none';
-    });
-  }
-
-  function applyDescFilter() {
-    var lengthSel = document.getElementById('desc-length-select');
-    var sourceSel = document.getElementById('desc-source-select');
-    var lengthVal = lengthSel ? lengthSel.value : 'any';
-    var sourceVal = sourceSel ? sourceSel.value : 'all';
-    var modelSel = document.getElementById('desc-model-select');
-    var modelVal = modelSel ? modelSel.value : 'all';
-    var ranges = { short: [0, 100], medium: [101, 300], long: [301, Infinity] };
-    var minVal = lengthVal !== 'any' ? ranges[lengthVal][0] : 0;
-    var maxVal = lengthVal !== 'any' ? ranges[lengthVal][1] : Infinity;
-    allCards().forEach(function(card) {
-      var words = parseInt(card.dataset.wordcount, 10) || 0;
-      var srcMatch = (sourceVal === 'all' || card.dataset.source === sourceVal) && (modelVal === 'all' || card.dataset.model === modelVal);
-      card.style.display = (srcMatch && words >= minVal && words <= maxVal) ? '' : 'none';
-    });
-  }
-
-  function applySort() {
-    var select = document.getElementById('desc-sort-select');
-    var container = document.getElementById('desc-cards-container');
-    if (!select || !container) return;
-    var cards = allCards();
-    var val = select.value;
-    cards.sort(function(a, b) {
-      var numeric = {words: 'wordcount', tokens: 'totalTokens'};
-      var parts = val.split('-'), field = numeric[parts[0]], direction = parts[1] === 'desc' ? -1 : 1;
-      var av, bv;
-      if (field) {
-        av = a.dataset[field] === '' ? NaN : Number(a.dataset[field]);
-        bv = b.dataset[field] === '' ? NaN : Number(b.dataset[field]);
-      } else if (parts[0] === 'date' || parts[0] === 'model') {
-        field = parts[0] === 'date' ? 'date' : 'modelReleased';
-        av = Date.parse(a.dataset[field]); bv = Date.parse(b.dataset[field]);
-      } else return (a.dataset.source || '').localeCompare(b.dataset.source || '');
-      if (!Number.isFinite(av)) return Number.isFinite(bv) ? 1 : 0;
-      if (!Number.isFinite(bv)) return -1;
-      return (av - bv) * direction;
-    });
-    cards.forEach(function(c) { container.appendChild(c); });
-  }
-
-  function applyHighlight() {
-    var query = (document.getElementById('desc-highlight-input') || {}).value || '';
-    var countEl = document.getElementById('desc-highlight-count');
-    query = query.trim();
-    var totalHits = 0;
-    allCards().forEach(function(card) {
-      var textEl = card.querySelector('.desc-card-text');
-      if (!textEl) return;
-      if (!originalCardHTML.has(card)) originalCardHTML.set(card, textEl.innerHTML);
-      textEl.innerHTML = originalCardHTML.get(card);
-      if (!query || card.style.display === 'none') return;
-      var re;
-      try { re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); }
-      catch(e) { return; }
-      var walker = document.createTreeWalker(textEl, NodeFilter.SHOW_TEXT, null, false);
-      var nodes = [];
-      var node;
-      while ((node = walker.nextNode())) nodes.push(node);
-      nodes.forEach(function(tn) {
-        var matches = tn.nodeValue.match(re);
-        if (!matches) return;
-        totalHits += matches.length;
-        var fragment = document.createDocumentFragment();
-        var cursor = 0, match;
-        re.lastIndex = 0;
-        while ((match = re.exec(tn.nodeValue))) {
-          fragment.appendChild(document.createTextNode(tn.nodeValue.slice(cursor, match.index)));
-          var mark = document.createElement('mark'); mark.className = 'desc-highlight'; mark.textContent = match[0];
-          fragment.appendChild(mark); cursor = match.index + match[0].length;
-        }
-        fragment.appendChild(document.createTextNode(tn.nodeValue.slice(cursor)));
-        tn.parentNode.replaceChild(fragment, tn);
-      });
-    });
-    if (countEl) countEl.textContent = query ? totalHits + (totalHits === 1 ? ' match' : ' matches') : '';
-  }
-
-  function buildFilterSelects() {
-    // Length select — compute actual min/max per band from card data
-    var counts = allCards().map(function(c) { return parseInt(c.dataset.wordcount, 10) || 0; });
-    var inBand = function(min, max) { return counts.filter(function(w) { return w >= min && (max === Infinity || w <= max); }); };
-    var shortCounts  = inBand(0,   100);
-    var mediumCounts = inBand(101, 300);
-    var longCounts   = inBand(301, Infinity);
-    var bandLabel = function(label, bCounts) {
-      if (!bCounts.length) return null;
-      var lo = Math.min.apply(null, bCounts);
-      var hi = Math.max.apply(null, bCounts);
-      return label + ' (' + lo + (lo !== hi ? '–' + hi : '') + ' words)';
-    };
-    var lengthSel = document.getElementById('desc-length-select');
-    if (lengthSel) {
-      var anyOpt = document.createElement('option');
-      anyOpt.value = 'any'; anyOpt.textContent = 'any length'; lengthSel.appendChild(anyOpt);
-      [['short', shortCounts], ['medium', mediumCounts], ['long', longCounts]].forEach(function(pair) {
-        var lbl = bandLabel(pair[0].charAt(0).toUpperCase() + pair[0].slice(1), pair[1]);
-        if (!lbl) return;
-        var opt = document.createElement('option'); opt.value = pair[0]; opt.textContent = lbl;
-        lengthSel.appendChild(opt);
-      });
-      lengthSel.addEventListener('change', applyDescFilter);
-    }
-
-    var modelSel = document.getElementById('desc-model-select');
-    if (modelSel) {
-      var allModels = document.createElement('option'); allModels.value = 'all'; allModels.textContent = 'any model'; modelSel.appendChild(allModels);
-      Array.from(new Set(allCards().map(function(card) { return card.dataset.model; }).filter(Boolean))).sort().forEach(function(model) {
-        var option = document.createElement('option'); option.value = model; option.textContent = model; modelSel.appendChild(option);
-      });
-      modelSel.addEventListener('change', applyDescFilter);
-    }
-
-    // Source select — single pick
-    var sourceSel = document.getElementById('desc-source-select');
-    if (sourceSel) {
-      var allOpt = document.createElement('option'); allOpt.value = 'all'; allOpt.textContent = 'any source';
-      sourceSel.appendChild(allOpt);
-      var sources = [];
-      allCards().forEach(function(card) {
-        var s = card.dataset.source;
-        if (s && sources.indexOf(s) === -1) sources.push(s);
-      });
-      sources.sort().forEach(function(src) {
-        var opt = document.createElement('option'); opt.value = src; opt.textContent = src;
-        sourceSel.appendChild(opt);
-      });
-      sourceSel.addEventListener('change', applyDescFilter);
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
     loadPerspectives();
 
+    // Open the first detected face and feature so their panels aren't empty.
     var firstFace = document.querySelector('button[id$="face-button"]');
     if (firstFace) firstFace.click();
     var firstFeature = document.querySelector('button[id$="feature-button"]');
     if (firstFeature) firstFeature.click();
-
-    buildFilterSelects();
-    applyDescVisibility();
-    applyDescFilter();
-
-    var sortSelect = document.getElementById('desc-sort-select');
-    if (sortSelect) sortSelect.addEventListener('change', applySort);
-
-    var highlightInput = document.getElementById('desc-highlight-input');
-    if (highlightInput) highlightInput.addEventListener('input', applyHighlight);
-
-    var densityToggle = document.getElementById('desc-density-toggle');
-    if (densityToggle) {
-      densityToggle.addEventListener('click', function() {
-        descDensityVisible = !descDensityVisible;
-        this.textContent = descDensityVisible ? 'Hide language statistics' : 'Show language statistics';
-        applyDescVisibility();
-      });
-    }
-
-    var costToggle = document.getElementById('desc-cost-toggle');
-    if (costToggle) {
-      costToggle.addEventListener('click', function() {
-        descCostVisible = !descCostVisible;
-        this.textContent = descCostVisible ? 'Hide tokens' : 'Show tokens';
-        applyDescVisibility();
-      });
-    }
   }, false);
 
   function toggleface(id) {
@@ -646,6 +484,7 @@
         _perspectivesData   = data;
         _perspectivesLoaded = true;
         loading.style.display = 'none';
+        shareWithWorkspace(data);
         if (data.status === 'no_annotations') {
           error.querySelector('p').textContent = 'No AI annotations are available for this image.';
           error.style.display = '';
@@ -663,7 +502,18 @@
         loading.style.display = 'none';
         error.querySelector('p').textContent = 'AI Perspectives could not be loaded.';
         error.style.display = '';
+        shareWithWorkspace(null);
       });
+  }
+
+  // The same JSON feeds the Overview cards (overview-panel.js) and the
+  // shared-term filters and notable phrases in All outputs (outputs-index.js).
+  // `data` is null when the request failed.
+  function shareWithWorkspace(data) {
+    if (window.renderResearchOverview) window.renderResearchOverview(data);
+    if (data && data.overview && window.researchOutputs) window.researchOutputs.setOverview(data.overview);
+    var version = document.getElementById('research-algorithm-version');
+    if (version && data && data.algorithm_version) version.textContent = 'Algorithm ' + data.algorithm_version + ' · generated ' + data.generated_at;
   }
 
   function renderPerspectives(data) {
@@ -674,7 +524,6 @@
     renderConcepts(data);
     renderThematic(data);
     renderRelationships(data);
-    renderDownloadBtn(data);
     document.querySelectorAll('.research-perspective-detail').forEach(function(detail) {
       var block = detail.querySelector('.perspectives-block');
       detail.hidden = block && block.style.display === 'none';
@@ -991,18 +840,6 @@
     window.renderResearchRadar(data);
   }
 
-  function renderDownloadBtn(data) {
-    var heading = document.querySelector('#ai-perspectives-section .attention-card-heading');
-    if (!heading || document.getElementById('perspectives-download-btn')) return;
-    var btn = document.createElement('a');
-    btn.id        = 'perspectives-download-btn';
-    btn.className = 'quickbar-btn perspectives-download-btn';
-    btn.textContent = 'Download JSON';
-    btn.href      = _perspectivesUrl;
-    btn.download  = 'image-' + (data.imageid || '') + '-ai-perspectives.json';
-    heading.appendChild(btn);
-  }
-
   function escHtml(str) {
     return String(str || '')
       .replace(/&/g,'&amp;')
@@ -1019,6 +856,8 @@
 </script>
 
 <script src="/javascripts/research-workspace.js"></script>
+<script src="/javascripts/outputs-index.js"></script>
+<script src="/javascripts/overview-panel.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
 <script src="/vocabularies/stopwords.js"></script>
 <script src="/javascripts/textanalysis.js"></script>
