@@ -53,7 +53,11 @@ var positions = require('./positions');
 //     subject or hedges) and date (centuries, decades, and years after a
 //     dating phrase, within 25 years of the record). See
 //     .plans/culture-date-match.md.
-const ALGORITHM_VERSION = 'ace-v4.11.0';
+// 4.12 record_match dates include named periods ("Edo period", "Tang
+//     dynasty", "late Ming or early Qing dynasty", "the Baroque era"), not
+//     styles, subjects or open ends ("Edo-period style", "a scene from the
+//     Heian period", "Tang dynasty or later").
+const ALGORITHM_VERSION = 'ace-v4.12.0';
 
 const CONFIG = {
   min_services:                2,

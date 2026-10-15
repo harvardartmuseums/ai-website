@@ -291,3 +291,29 @@ test('record match: a record dated only in text ("20th century", "X/XI c.") stil
   assert.deepEqual(roman.annotation_ids, [1]);
   assert.deepEqual(roman.others.map(o => o.annotation_id), [2]);
 });
+
+test('record match: named periods count as dates, not styles, subjects or open ends', () => {
+  const rows = recordOf([
+    d(1, 'A lacquer box from the Edo period.'),
+    d(2, 'Likely late Ming or early Qing dynasty.'),
+    d(8, 'A Song or Yuan dynasty work.'),
+    d(3, 'Possibly from the Heian period.'),
+    d(4, 'Decorated in an Edo-period style.'),
+    d(5, 'A scene from the Heian period.'),
+    d(6, 'Probably Tang dynasty or later.'),
+    d(7, 'A Baroque ornament.'),
+  ], { title: 'Letter Box', dated: 'circa 1700', datebegin: 1690, dateend: 1710 });
+  const date = rowOf(rows, 'date');
+  // Late Ming or early Qing (1534–1751) overlaps circa 1700.
+  assert.deepEqual(date.annotation_ids, [1, 2]);
+  assert.deepEqual(date.others, [
+    { annotation_id: 8, phrases: ['Song or Yuan dynasty'] },
+    { annotation_id: 3, phrases: ['Heian period'] },
+  ]);
+});
+
+test('record match: a record dated only by its period gets a date row', () => {
+  const rows = recordOf([d(1, 'A Japanese hanging scroll from the Muromachi period.')],
+    { title: 'Scroll', period: 'Muromachi period, 1392-1568', datebegin: 0, dateend: 0 });
+  assert.deepEqual(rowOf(rows, 'date').annotation_ids, [1]);
+});

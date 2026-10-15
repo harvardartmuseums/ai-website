@@ -792,12 +792,75 @@ function datesIn(text, ocrText) {
     const to = m[2] ? (m[2].length === 2 ? Math.floor(from / 100) * 100 + +m[2] : +m[2]) : from;
     found.push({ from, to, phrase: m[0] });
   }
+  return found.concat(periodsIn(text));
+}
+
+// --- Named periods ------------------------------------------------------------
+// "the Edo period", "Tang dynasty", "the Baroque era", "late Ming or early Qing
+// dynasty". A name counts only with a period word after it (period, era,
+// dynasty), so a style ("Baroque ornament", "Renaissance art"), a city
+// ("Edo") or a word ("song") doesn't. Nor does a period that is a style or a
+// subject: "Edo-period style", "evokes the Heian period", "a scene from the
+// Heian period" in a later illustration of a Heian story.
+//
+// Ranges are the usual textbook spans. Ottoman (1299–1922) and Byzantine
+// (330–1453) are left out: they span so many centuries that agreeing says
+// little, and the Culture row already covers them.
+const NAMED_PERIODS = {
+  // Japan
+  Heian: [794, 1185], Kamakura: [1185, 1333], Muromachi: [1336, 1573], Momoyama: [1573, 1615],
+  Edo: [1615, 1868], Meiji: [1868, 1912], Taisho: [1912, 1926], Showa: [1926, 1989],
+  // China
+  Shang: [-1600, -1046], Zhou: [-1046, -256], Han: [-206, 220], Tang: [618, 907], Song: [960, 1279],
+  Yuan: [1271, 1368], Ming: [1368, 1644], Qing: [1644, 1911],
+  // Korea
+  Goryeo: [918, 1392], Koryo: [918, 1392], Joseon: [1392, 1910], Choson: [1392, 1910],
+  // Iran, Central Asia and India
+  Timurid: [1370, 1507], Safavid: [1501, 1736], Qajar: [1789, 1925], Mughal: [1526, 1857],
+  // Greece ("Archaic" and "Classical" are left out: descriptions use them loosely)
+  Hellenistic: [-323, -31],
+  // Europe
+  Medieval: [500, 1500], Romanesque: [1000, 1200], Gothic: [1150, 1500], Renaissance: [1400, 1600], Baroque: [1600, 1750],
+  Rococo: [1720, 1780], Georgian: [1714, 1837], Neoclassical: [1750, 1850], Victorian: [1837, 1901],
+  Edwardian: [1901, 1910],
+};
+const PERIOD_NAME = '(?:(early|mid|middle|late)[\\s-]+)?(' + Object.keys(NAMED_PERIODS).join('|') + ')';
+// One or more names ("Ming or Qing", "Momoyama to Edo") before the period word.
+const PERIOD_CLAIM = new RegExp('\\b' + PERIOD_NAME + '(?:\\s*(?:,|or|and|to|/|[-–])\\s*' + PERIOD_NAME.replace(/\(([^?])/g, '(?:$1') + ')*[\\s-]+(?:period|era|dynast(?:y|ies)|periods)\\b', 'gi');
+// After the period: a style or subject ("Heian period clothing"), or an open
+// end ("Tang dynasty or later", "and beyond"), which gives no range.
+const PERIOD_STYLE_AFTER = /^[\s-]*(?:style|styled|inspired|revival|aesthetics?|tradition|manner|influences?|court|courtly|costume|dress|attire|clothing|clothes|garments?|outfits?|fashion|portraiture|architecture|furniture|silverware|design|parlou?r|scenes?|literature|tales?|stor(?:y|ies)|poetry|or\s+(?:later|earlier|after)|and\s+(?:later|earlier|beyond|after)|onwards?)\b/i;
+// Before it: a subject, a comparison, a span ("through the Han Dynasty") or a
+// practice ("widely used during the Han Dynasty").
+const PERIOD_SUBJECT_BEFORE = /(?:\b(?:depict\w*|portray\w*|illustrat(?:es|ing)|scenes?\s+(?:from|of)|set\s+in|stor(?:y|ies)|tales?|legends?|evok\w+|recall\w*|reminiscent\s+of|inspired\s+by|influenced\s+by|in\s+the\s+(?:style|manner|tradition)\s+of|like|imitat\w+|revival\s+of|masters?\s+of|artists?\s+of|through|until|used|popular|common)\s+(?:[\w'’-]+\s+){0,4}|\bneo-?)$/i;
+
+// A part of a period: "early" and "late" are its first or last 40%, "mid" the middle.
+function periodPart([from, to], qualifier) {
+  const part = Math.round((to - from) * 0.4);
+  if (/early/i.test(qualifier || '')) return [from, from + part];
+  if (/late/i.test(qualifier || '')) return [to - part, to];
+  if (/mid/i.test(qualifier || '')) return [from + part, to - part];
+  return [from, to];
+}
+
+function periodsIn(text) {
+  // Fold diacritics so "Shōwa" and "Chosŏn" match the table.
+  const folded = text.normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const found = [];
+  for (const m of folded.matchAll(PERIOD_CLAIM)) {
+    if (PERIOD_STYLE_AFTER.test(folded.slice(m.index + m[0].length, m.index + m[0].length + 30))) continue;
+    if (PERIOD_SUBJECT_BEFORE.test(folded.slice(Math.max(0, m.index - 60), m.index))) continue;
+    const ranges = [...m[0].matchAll(new RegExp(PERIOD_NAME, 'gi'))]
+      .map(n => periodPart(NAMED_PERIODS[Object.keys(NAMED_PERIODS).find(k => k.toLowerCase() === n[2].toLowerCase())], n[1]));
+    found.push({ from: Math.min(...ranges.map(r => r[0])), to: Math.max(...ranges.map(r => r[1])), phrase: m[0] });
+  }
   return found;
 }
 
 // The record's date range. Most records give datebegin/dateend; about a
 // third of the survey's give only text ("20th century", "19th-20th
-// century", "X/XI c."), which is parsed like a description's dates.
+// century", "X/XI c.") or a period ("Edo period"), which is parsed like a
+// description's dates.
 const ROMAN_NUMERALS = { I: 1, V: 5, X: 10 };
 function romanNumber(text) {
   let total = 0;
@@ -809,7 +872,7 @@ function romanNumber(text) {
 }
 function recordDateRange(info) {
   if (info.datebegin || info.dateend) return [info.datebegin || info.dateend, info.dateend || info.datebegin];
-  for (const text of [info.dated, info.century].filter(Boolean)) {
+  for (const text of [info.dated, info.century, info.period].filter(Boolean)) {
     const roman = /\b([IVX]+)(?:\s*[\/-]\s*([IVX]+))?\s*c\./.exec(text);
     if (roman) {
       const a = centuryRange(romanNumber(roman[1])), b = roman[2] ? centuryRange(romanNumber(roman[2])) : a;

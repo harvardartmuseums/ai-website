@@ -191,7 +191,10 @@
       } else if (row.field === 'date') {
         ids = row.annotation_ids;
         if (row.others.length) {
-          var phrases = [].concat.apply([], row.others.map(function (o) { return o.phrases; }));
+          // Each phrase once, whatever its case ("Tang Dynasty", "Tang dynasty").
+          var seen = {};
+          var phrases = [].concat.apply([], row.others.map(function (o) { return o.phrases; }))
+            .filter(function (p) { var key = p.toLowerCase(); return seen[key] ? false : (seen[key] = true); });
           dissent.push(plural(row.others.length, 'gives another date', 'give other dates') + ': ' + phrases.slice(0, 3).join(', '));
         }
       } else if (row.field === 'artist') {
