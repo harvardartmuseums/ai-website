@@ -141,6 +141,10 @@ html:has(.research-page) body { background: var(--c-white); }
 .overview-card { border: 1px solid var(--c-lightgray); padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 /* A trailing "go to…" link sits at the bottom of its card. */
 .overview-card > .overview-link:last-child { margin-top: auto; }
+/* A link inside a card's content: 12px above it, like the card's own spacing.
+   After a note line (whose margin already spaces it), nothing extra. */
+[data-overview-slot] > :not(p) + .overview-link,
+[data-positions-card] > :not(p) + .overview-link { margin-top: 12px; }
 /* Card titles are headings: sentence case in the bold weight, the first
    thing read in each card. The lede under them is quieter (dark grey), so
    the title outranks it by weight rather than size. */

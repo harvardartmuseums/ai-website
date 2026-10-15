@@ -82,6 +82,12 @@
           <p class="research-note">Written by museum staff about the object.</p>
           <button type="button" class="overview-link" data-compare-human="labeltext">Compare with an AI description →</button>
         </article>
+        {{else}}
+        {{!-- Always a card in this slot, so the cards after it keep their places. --}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">A person’s description</h2>
+          <p class="research-note">Museum staff haven’t written a description of this image, and the object has no wall label.</p>
+        </article>
         {{/if}}
         <article class="overview-card">
           <h2 class="overview-card-title">What they pay attention to</h2>
@@ -442,11 +448,15 @@
   <h3>How the overview is built</h3>
   <ul class="research-method-list">
     <li>Counts are of descriptions, not mentions: a description that says “hat” five times counts once.</li>
-    <li>Shared terms count every phrasing of a noun together (“hat”, “black hat”, “tricorn hats”). Generic words such as “painting” or “figure”, and the object’s own classification, are left out.</li>
-    <li>Divergence lists people a description names who are not in the museum record, paint media the record does not mention, and the shortest and longest descriptions. Names that many descriptions share are treated as text visible in the image.</li>
-    <li>Notable phrases are ones that no other description of this image uses.</li>
+    <li><strong>What they agree on</strong> counts every phrasing of a noun together (“hat”, “black hat”, “tricorn hats”). Generic words such as “painting” or “figure”, the object’s own classification, and the names of people in the museum record are left out.</li>
+    <li><strong>Where they diverge</strong> lists titles a description gives that the record doesn’t have, people it names who aren’t in the record, and media the record doesn’t mention, then the shortest and longest descriptions. A medium counts only when a description says what the work is made with (“a charcoal drawing”, “oil on canvas”, “this engraving”), among oil, watercolor, gouache, pastel, tempera, fresco, acrylic, charcoal, graphite, chalk, engraving, woodcut and lithograph; hedges (“charcoal or graphite”) and comparisons (“reminiscent of frescoes”) don’t count. Titles and names that many descriptions share, or that the image’s own text detection read, are treated as text visible in the image.</li>
+    <li><strong>What they pay attention to</strong> counts the descriptions that use words from each of nine dimensions, such as People &amp; Figures or Color &amp; Light.</li>
+    <li><strong>Where they looked</strong> groups the places descriptions give (“in the lower right corner”) into claims about one subject. A claim needs at least three descriptions to appear on the card. ✓ means a box detected by a vision service sits in that place; nothing detected there is not a contradiction. Directions (“facing left”) and positions relative to something else (“to the right of the rabbit”) are set aside.</li>
+    <li><strong>Color</strong> sets the palette measured from the image’s pixels, which covers the whole photograph, including mounts and background, beside the color words the descriptions use.</li>
+    <li><strong>Mood words</strong> are single expressive words the descriptions use, excluding color and tone words.</li>
+    <li><strong>Notable phrases</strong> in the Descriptions list are ones no other description of this image uses.</li>
     <li>Agreement between models is not evidence that a description is accurate.</li>
-    <li>This tool currently processes English-language AI annotations only.</li>
+    <li>The analysis assumes English. Descriptions in other languages are shown, but terms, titles and positions in them are mostly not found.</li>
   </ul>
   <p class="research-note" id="research-algorithm-version"></p>
 </section>

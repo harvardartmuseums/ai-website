@@ -67,13 +67,47 @@ test('attribution wording catches names the people tagger does not know, but not
     [[1, ['Edvard Munch']], [2, ['Vincent van Gogh']]]);
 });
 
-test('paint media are compared with the record; drawing media and missing records are not flagged', () => {
-  const descriptions = [d(1, 'Likely a watercolor.'), d(2, 'Oil over a charcoal underdrawing.')];
+test('media are compared with the record; underdrawings, color words and missing records are not flagged', () => {
+  const descriptions = [
+    d(1, 'Likely a watercolor.'),
+    d(2, 'Oil over a charcoal underdrawing.'),
+    d(3, 'A man in a charcoal-gray coat.'),
+    d(4, 'A charcoal drawing of a man.'),
+  ];
   const flagged = overviewOf({ descriptions, objectInfo: { medium: 'Oil on canvas' } });
-  assert.deepEqual(flagged.divergence.filter(s => s.kind === 'unrecorded_medium'),
-    [{ kind: 'unrecorded_medium', annotation_id: 1, media: ['watercolor'], record_medium: 'Oil on canvas' }]);
+  assert.deepEqual(flagged.divergence.filter(s => s.kind === 'unrecorded_medium').map(s => [s.annotation_id, s.media]),
+    [[1, ['watercolor']], [4, ['charcoal']]]);
   const unknown = overviewOf({ descriptions, objectInfo: {} });
   assert.equal(unknown.divergence.some(s => s.kind === 'unrecorded_medium'), false);
+});
+
+test('hedges, comparisons, purposes and color uses of medium words are not claims', () => {
+  const descriptions = [
+    d(1, 'It is drawn in charcoal or graphite.'),
+    d(2, 'The style is reminiscent of Renaissance frescoes.'),
+    d(3, 'Likely a preparatory drawing for a ceiling fresco.'),
+    d(4, 'A light pastel bluish-gray background.'),
+    d(5, 'The figures are drawn in charcoal on paper.'),
+  ];
+  const result = overviewOf({ descriptions, objectInfo: { medium: 'Black chalk on paper' } });
+  assert.deepEqual(result.divergence.filter(s => s.kind === 'unrecorded_medium').map(s => [s.annotation_id, s.media]),
+    [[5, ['charcoal']]]);
+});
+
+test('record synonyms: opaque watercolor is gouache; print techniques only on prints', () => {
+  const gouache = overviewOf({ descriptions: [d(1, 'A gouache painting of a court.')], objectInfo: { medium: 'Opaque watercolor and gold on paper' } });
+  assert.equal(gouache.divergence.some(s => s.kind === 'unrecorded_medium'), false);
+  const silver = overviewOf({ descriptions: [d(1, 'The engraving on the lid shows a crest.')], objectInfo: { medium: 'Silver', classification: 'Vessels' } });
+  assert.equal(silver.divergence.some(s => s.kind === 'unrecorded_medium'), false);
+});
+
+test('print techniques are compared with the record', () => {
+  const descriptions = [d(1, 'This engraving shows a ship.'), d(2, 'A woodcut of a ship.')];
+  const result = overviewOf({ descriptions, objectInfo: { medium: 'Etching', technique: 'Etching' } });
+  assert.deepEqual(result.divergence.filter(s => s.kind === 'unrecorded_medium').map(s => [s.annotation_id, s.media]),
+    [[1, ['engraving']], [2, ['woodcut']]]);
+  const recorded = overviewOf({ descriptions, objectInfo: { medium: 'Engraving' } });
+  assert.deepEqual(recorded.divergence.filter(s => s.kind === 'unrecorded_medium').map(s => s.annotation_id), [2]);
 });
 
 test('the length range names the shortest and longest descriptions', () => {

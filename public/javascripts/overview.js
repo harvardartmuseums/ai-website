@@ -96,7 +96,23 @@ const MEDIUM_FAMILIES = {
   tempera: ['tempera'],
   fresco: ['fresco'],
   acrylic: ['acrylic'],
+  charcoal: ['charcoal'],
+  graphite: ['graphite'],
+  chalk: ['chalk'],
+  engraving: ['engraving'],
+  woodcut: ['woodcut'],
+  lithograph: ['lithograph', 'lithography', 'lithographic'],
 };
+
+// Uses of a medium word that don't claim the work's medium: a color ("a
+// charcoal-gray coat") or an underdrawing ("oil over a charcoal underdrawing").
+// Removed from a description before its media are read.
+const MEDIUM_WORDS_NOT_MEDIUM = new RegExp([
+  '\\bcharcoal[\\s-]+(?:gr[ae]y|black|colou?red|tones?|hues?)\\b',
+  '\\bchalk[\\s-]+white\\b',
+  '\\bpastel[\\s-]+(?:tones?|colou?rs?|hues?|shades?|palette|tints?|[a-z]+ish|(?:[a-z]+-)?(?:gr[ae]y|blue|green|pink|yellow|purple|violet|orange|red|brown|lavender|peach|mint|beige|cream)s?)\\b',
+  '\\b(?:charcoal|graphite|chalk)[\\s-]+under-?drawings?\\b',
+].join('|'), 'gi');
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -333,20 +349,93 @@ function unrecordedNames(text, recordedWords) {
   return [...new Set(unknown)];
 }
 
+// Record wording that names a family without its word: "opaque watercolor"
+// is gouache, "wood engraving" and "woodblock" are woodcut-like. Gouache is a
+// watercolor, so a gouache record also covers "watercolor".
+const RECORD_SYNONYMS = {
+  gouache: ['opaque watercolor', 'opaque watercolour', 'bodycolor', 'bodycolour', 'body color'],
+  woodcut: ['wood engraving', 'woodblock', 'wood block'],
+  // East Asian "ink and color" painting is a water-based color, like watercolor.
+  watercolor: ['ink and color', 'ink and light color', 'light color'],
+  fresco: ['pigment on plaster', 'on plaster'],
+};
+const RECORD_IMPLIES = { gouache: ['watercolor'] };
+
 // Media families the record mentions, from medium, technique and classification.
 function recordedMedia(objectInfo) {
   const text = [objectInfo && objectInfo.medium, objectInfo && objectInfo.technique,
     objectInfo && objectInfo.classification].filter(Boolean).join(' ');
-  return new Set(Object.keys(MEDIUM_FAMILIES)
-    .filter(family => MEDIUM_FAMILIES[family].some(word => mentions(text, word))));
+  const found = new Set(Object.keys(MEDIUM_FAMILIES).filter(family =>
+    MEDIUM_FAMILIES[family].concat(RECORD_SYNONYMS[family] || []).some(word => mentions(text, word))));
+  for (const family of [...found]) for (const implied of RECORD_IMPLIES[family] || []) found.add(implied);
+  return found;
 }
 
-// Media families a description asserts that the record does not mention.
-// Skipped entirely when the record has no medium information to compare with.
-function unrecordedMedia(text, recorded) {
-  if (!recorded.size) return [];
-  return Object.keys(MEDIUM_FAMILIES).filter(family => !recorded.has(family)
-    && MEDIUM_FAMILIES[family].some(word => mentions(text, word)));
+// A medium word only counts as a claim when the description says the work
+// *is* that medium. Tuned on 392 objects: most bare mentions were hedges
+// ("charcoal or graphite"), comparisons ("reminiscent of Renaissance
+// frescoes") or underdrawings, not claims.
+//
+// Claim shapes, around a medium word X:
+const WORK_NOUN = '(?:drawing|print|painting|sketch|study|studies|work|piece|image|artwork|portrait|landscape|composition|illustration|impression|rendering|plate|sheet|mural|panel|scene)';
+const MEDIUM_CLAIMS = [
+  // "a charcoal drawing", "this oil painting"
+  { before: /\b(?:a|an|this|the)\s+(?:[\w-]+\s+){0,2}$/i, after: new RegExp('^\\s+' + WORK_NOUN + '\\b', 'i') },
+  // "charcoal on paper", "oil on canvas"
+  { after: /^\s+(?:on|over)\s+(?:[\w-]+\s+){0,2}(?:paper|canvas|panel|board|vellum|parchment|silk|card|cardboard|wood|linen)\b/i },
+  // "drawn in charcoal", "rendered with black chalk", "printed using lithography"
+  { before: /\b(?:rendered|executed|drawn|painted|done|made|created|worked|printed|sketched|produced|applied)\s+(?:in|with|using)\s+(?:[\w-]+\s+){0,3}$/i },
+  // For media that are also kinds of work: "a woodcut of a ship", "this
+  // engraving", "appears to be a lithograph".
+  { before: /\b(?:a|an|this|the|is|was|appears\s+to\s+be|seems\s+to\s+be)\s+(?:[\w-]+\s+){0,2}$/i, nounOnly: true },
+  // "the medium is charcoal"
+  { before: /\bmedium\s*(?:is|:|appears\s+to\s+be)\s*(?:[\w-]+\s+){0,3}$/i },
+];
+// Families whose word is also a kind of work: "this engraving", "a watercolor".
+const MEDIUM_NOUNS = new Set(['watercolor', 'gouache', 'pastel', 'fresco', 'engraving', 'woodcut', 'lithograph']);
+// Not claims: comparisons and references before the word, "-like" after it,
+// and hedges with "or" on either side.
+// "for a ceiling fresco" says what a drawing was made for, not what it is.
+const MEDIUM_COMPARISON = /\b(?:like|reminiscent|resembl\w*|in\s+the\s+(?:manner|style|tradition)\s+of|similar\s+to|evok\w*|imitat\w*|mimic\w*|recall\w*|echo\w*|after|inspired\s+by|akin\s+to|as\s+in|for\s+(?:a|an|the))\b[^.;:]{0,40}$/i;
+const MEDIUM_SUFFIX = /^[\s-]*(?:like|esque|style|inspired)\b/i;
+const MEDIUM_HEDGE_BEFORE = /\bor\s+(?:[\w-]+\s+){0,2}$/i;
+const MEDIUM_HEDGE_AFTER = /^(?:[\s,]+[\w-]+){0,2}[\s,]+or\b/i;
+
+// The media families a description claims for the work.
+function claimedMedia(text) {
+  const body = String(text || '').replace(MEDIUM_WORDS_NOT_MEDIUM, ' ');
+  const claimed = new Set();
+  for (const [family, words] of Object.entries(MEDIUM_FAMILIES)) {
+    for (const word of words) {
+      for (const m of body.matchAll(new RegExp('\\b' + escapeRegExp(word) + '(?:s|es)?\\b', 'gi'))) {
+        const before = body.slice(Math.max(0, m.index - 60), m.index);
+        const after = body.slice(m.index + m[0].length, m.index + m[0].length + 50);
+        if (MEDIUM_COMPARISON.test(before) || MEDIUM_SUFFIX.test(after)) continue;
+        if (MEDIUM_HEDGE_BEFORE.test(before) || MEDIUM_HEDGE_AFTER.test(after)) continue;
+        const isClaim = MEDIUM_CLAIMS.some(shape =>
+          (!shape.nounOnly || MEDIUM_NOUNS.has(family)) &&
+          (!shape.before || shape.before.test(before)) &&
+          (!shape.after || shape.after.test(after)));
+        if (isClaim) claimed.add(family);
+      }
+    }
+  }
+  return claimed;
+}
+
+// Print techniques are only compared on prints: on silver or a coin,
+// "engraving" is how the object is decorated, not what kind of print it is.
+const PRINT_FAMILIES = new Set(['engraving', 'woodcut', 'lithograph']);
+const PRINT_RECORD = /\b(?:prints?|etching|engraving|woodcut|wood engraving|lithograph\w*|aquatint|mezzotint|drypoint|screenprint|intaglio|linocut|photomechanical)\b/i;
+
+// Media families a description claims that the record does not mention.
+// Skipped when the record has no medium information to compare with.
+function unrecordedMedia(text, recorded, objectInfo) {
+  const record = [objectInfo && objectInfo.medium, objectInfo && objectInfo.technique,
+    objectInfo && objectInfo.classification].filter(Boolean).join(' ');
+  if (!recorded.size && !(objectInfo && (objectInfo.medium || objectInfo.technique))) return [];
+  const isPrint = PRINT_RECORD.test(record);
+  return [...claimedMedia(text)].filter(family => !recorded.has(family) && (isPrint || !PRINT_FAMILIES.has(family)));
 }
 
 // ---------------------------------------------------------------------------
@@ -474,7 +563,7 @@ function computeDivergence(descriptions, objectInfo, ocrText) {
   for (const d of descriptions) {
     const names = namesById.get(d.id).filter(name => nameUsage.get(nameKey(name)) <= maxNameUsage);
     if (names.length) signals.push({ kind: 'unrecorded_names', annotation_id: d.id, names });
-    const claimed = unrecordedMedia(d.body, media);
+    const claimed = unrecordedMedia(d.body, media, objectInfo);
     if (claimed.length) signals.push({ kind: 'unrecorded_medium', annotation_id: d.id, media: claimed,
       record_medium: (objectInfo && objectInfo.medium) || null });
   }

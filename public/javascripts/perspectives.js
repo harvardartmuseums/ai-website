@@ -39,7 +39,13 @@ var positions = require('./positions');
 //     leaving out titles read off the image. Signals list titles first.
 // 4.8.1 American spellings in labels: "Color & Light", "Objects &
 //     Artifacts", "gray" for the grey/gray color word, "in the center".
-const ALGORITHM_VERSION = 'ace-v4.8.1';
+// 4.9 media divergence: adds charcoal, graphite, chalk, engraving, woodcut and
+//     lithograph, and counts a medium only when a description claims it for
+//     the work ("a charcoal drawing", "charcoal on paper", "this engraving"),
+//     not in hedges, comparisons, purposes or color words. Compared whenever
+//     the record has medium text; print techniques only on prints. See
+//     .plans/media-divergence.md.
+const ALGORITHM_VERSION = 'ace-v4.9.0';
 
 const CONFIG = {
   min_services:                2,
