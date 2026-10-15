@@ -241,13 +241,23 @@ html:has(.research-page) body { background: var(--c-white); }
 .outputs-find { flex: 1 1 220px; min-width: 0; }
 .outputs-find input { flex: 1; min-width: 0; font: inherit; padding: 7px 10px; border: 1px solid var(--c-hovergray); }
 .outputs-sort select { font: inherit; padding: 6px; }
-.outputs-count { color: var(--c-grayblack); }
+/* The count ("37 of 39 descriptions · collage") always has its own line under
+   the controls. Sharing their row, it wrapped only when the filter label made
+   it long, and the Find box stretched into the space it left. */
+.outputs-count { flex-basis: 100%; color: var(--c-grayblack); }
 
-/* --- All outputs: index and reader side by side ------------------------------ */
-.outputs-layout { display: flex; flex-wrap: wrap; align-items: flex-start; }
-/* Bases sized so both fit side by side in the ~900px workspace column. */
-.outputs-index { flex: 1 1 460px; min-width: 0; max-height: 80vh; overflow: auto; border-right: 1px solid var(--c-lightgray); }
-.outputs-reader { flex: 1 1 360px; min-width: 0; padding: 20px 0 20px 24px; box-sizing: border-box; }
+/* --- Descriptions: index and reader ------------------------------------------ */
+/* Stacked when narrow (index, then reader). When the layout has room for two
+   columns, the reader sits on the left, beside the image, and gets the larger
+   share; the index moves to the outer edge. The page order stays index then
+   reader, so keyboard and screen-reader users still choose, then read. */
+.outputs-layout { display: flex; flex-wrap: wrap; align-items: flex-start; container-type: inline-size; }
+.outputs-index { flex: 1 1 460px; min-width: 0; max-height: 80vh; overflow: auto; }
+.outputs-reader { flex: 1 1 360px; min-width: 0; padding: 20px 0; box-sizing: border-box; }
+@container (min-width: 820px) {
+  .outputs-reader { order: -1; flex: 0 0 55%; padding: 20px 24px 20px 0; }
+  .outputs-index { flex: 1 1 0; border-left: 1px solid var(--c-lightgray); }
+}
 .outputs-list { list-style: none; margin: 0; padding: 0; }
 
 /* Index rows: pair checkbox, model, date, words, notable phrases. */
@@ -266,6 +276,16 @@ html:has(.research-page) body { background: var(--c-white); }
 .outputs-provider, .outputs-date, .outputs-notable { color: var(--c-grayblack); }
 .outputs-notable { font-size: 12px; overflow-wrap: anywhere; }
 .outputs-words { display: flex; align-items: center; gap: 6px; font-variant-numeric: tabular-nums; }
+/* A narrow index (beside the reader on most screens) puts each row's notable
+   phrases and flags on a second line under the model, instead of a column
+   squeezed to a word per line. After the base row rules, which it overrides. */
+.outputs-index { container-type: inline-size; }
+@container (max-width: 560px) {
+  .outputs-row { grid-template-columns: 24px minmax(0, 1fr) 86px 64px; }
+  .outputs-row--head > :nth-child(5) { display: none; }
+  .outputs-row > .outputs-notable { grid-column: 2 / -1; padding: 0 0 8px; margin-top: -4px; color: var(--c-grayblack); }
+  .outputs-row > .outputs-notable:empty { display: none; }
+}
 /* Bar length tracks word count, capped so a 500-word outlier fits. */
 .outputs-bar { display: inline-block; height: 6px; background: var(--c-nearblack); width: min(calc(var(--words) * 0.12px), 60px); min-width: 2px; }
 .outputs-empty { padding: 20px 8px; color: var(--c-grayblack); }

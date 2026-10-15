@@ -39,7 +39,7 @@
   // The whole UI is a function of this state; render() redraws from it.
   var state = {
     filter: null,        // { label, ids: Set of annotation ids } or null
-    query: '',           // free text from the Find box
+    query: '',           // free text from the Find box, as typed (trimmed)
     sort: 'provider',
     selected: panel.dataset.initialSelection || (rows[0] && rows[0].dataset.annotationId),
     pair: [],            // up to two annotation ids, oldest first
@@ -59,9 +59,17 @@
     return [row, text.toLowerCase()];
   }));
 
+  // The Find text as a whole-word pattern: "ink" matches "ink" but not "pink"
+  // or "think". Word edges are any non-letter, non-digit, so "Höch" and
+  // dates ("2025" in "2025-01-04") work too. A phrase matches as typed.
+  function queryPattern(flags) {
+    var escaped = state.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    return new RegExp('(?<![\\p{L}\\p{N}])' + escaped + '(?![\\p{L}\\p{N}])', 'u' + (flags || ''));
+  }
+
   function isVisible(row) {
     if (state.filter && !state.filter.ids.has(row.dataset.annotationId)) return false;
-    if (state.query && searchText.get(row).indexOf(state.query) === -1) return false;
+    if (state.query && !queryPattern('i').test(searchText.get(row))) return false;
     return true;
   }
 
@@ -99,8 +107,10 @@
     renderTermButtons();
     // Name the active filter: it may come from an Overview card (a mood word,
     // a dimension) that has no button of its own in the toolbar.
+    // …and the Find text, so the count says everything that narrowed the list.
     controls.count.textContent = visible.length + ' of ' + rows.length + ' descriptions'
-      + (state.filter ? ' · ' + state.filter.label : '');
+      + (state.filter ? ' · ' + state.filter.label : '')
+      + (state.query ? ' · “' + state.query + '”' : '');
     controls.empty.hidden = visible.length > 0;
     renderReader();
   }
@@ -185,7 +195,7 @@
     if (!originalHTML.has(body)) originalHTML.set(body, body.innerHTML);
     body.innerHTML = originalHTML.get(body);
     if (!state.query) return;
-    var pattern = new RegExp(state.query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
+    var pattern = queryPattern('gi');
     var walker = document.createTreeWalker(body, NodeFilter.SHOW_TEXT);
     var nodes = [];
     while (walker.nextNode()) nodes.push(walker.currentNode);
@@ -326,7 +336,7 @@
     if (event.target.classList.contains('outputs-pair-toggle')) togglePair(event.target.closest('.outputs-row').dataset.annotationId);
   });
   controls.find.addEventListener('input', function () {
-    state.query = controls.find.value.trim().toLowerCase();
+    state.query = controls.find.value.trim();
     keepSelectionVisible();
     render();
   });
