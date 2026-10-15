@@ -13,7 +13,14 @@
             disclosure's label, because readers need them to judge claims like
             "names a person not in the record"; the rest opens beneath. --}}
   <header class="research-heading">
-    <h1>How AI describes <cite>{{object_info.title}}</cite></h1>
+    <div class="research-heading-top">
+      <h1>How AI describes <cite>{{object_info.title}}</cite></h1>
+      {{!-- Copies this page's address, including the open tab ("#positions"),
+            so a shared link opens the same view. research-workspace.js. --}}
+      <button type="button" class="research-share" data-research-share title="Copy a link to this page and tab">
+        <i class="fa fa-link" aria-hidden="true"></i> <span data-research-share-label>Share</span>
+      </button>
+    </div>
     <p class="research-heading-data">
       {{#if workspace_stats.descriptions}}{{workspace_stats.descriptions}} description{{#unless (eq workspace_stats.descriptions 1)}}s{{/unless}} from {{workspace_stats.providers}} provider{{#unless (eq workspace_stats.providers 1)}}s{{/unless}}{{else}}No AI descriptions{{/if}} of image {{display_image.imageid}}{{#if multiple_images}} ({{image_position}} of {{object_images.length}}){{/if}}{{#if workspace_stats.years}}, generated {{workspace_stats.years}}{{/if}}
     </p>

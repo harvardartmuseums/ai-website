@@ -52,6 +52,12 @@ html:has(.research-page) body { background: var(--c-white); }
 .image-research-workspace { padding: 30px 4%; box-sizing: border-box; margin-top: 0; height: auto; }
 .image-research-workspace > .content { width: 100%; padding: 0; margin: 0; }
 .research-heading h1 { font-size: 28px; margin: 8px 0; }
+/* Title row: the H1 with the share button at the right. */
+.research-heading-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+.research-share { flex: 0 0 auto; margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; background: #fff; border: 1px solid var(--c-lightgray); padding: 6px 12px; font: inherit; font-size: 13px; color: var(--c-nearblack); cursor: pointer; white-space: nowrap; }
+.research-share:hover { border-color: var(--c-grayblack); }
+.research-share.is-copied { border-color: #2f5582; color: #2f5582; }
+.research-share:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
 .research-heading p { margin: 6px 0; font-size: 13px; }
 .research-tabs { display: flex; gap: 8px; flex-wrap: wrap; border-bottom: 1px solid var(--c-lightgray); padding: 22px 0 14px; margin-bottom: 24px; }
 .research-tabs a { display: block; padding: 8px 12px; border-radius: 4px; color: var(--c-grayblack); font-size: 13px; }

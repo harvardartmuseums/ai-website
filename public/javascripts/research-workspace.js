@@ -43,6 +43,37 @@
   window.addEventListener('hashchange', syncImageLinks);
   syncImageLinks();
 
+  // Share: copy this page's address, open tab included, and say so briefly.
+  // Falls back to a selected text field where the clipboard API isn't allowed.
+  var share = document.querySelector('[data-research-share]');
+  if (share) {
+    var shareLabel = share.querySelector('[data-research-share-label]');
+    var resetShare;
+    var copied = function () {
+      shareLabel.textContent = 'Link copied';
+      share.classList.add('is-copied');
+      clearTimeout(resetShare);
+      resetShare = setTimeout(function () { shareLabel.textContent = 'Share'; share.classList.remove('is-copied'); }, 2000);
+    };
+    var copyByHand = function (url) {
+      var field = document.createElement('textarea');
+      field.value = url;
+      field.setAttribute('readonly', '');
+      field.style.position = 'fixed'; field.style.opacity = '0';
+      document.body.appendChild(field);
+      field.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      field.remove();
+      if (ok) copied(); else window.prompt('Copy this link:', url);
+    };
+    share.addEventListener('click', function () {
+      var url = location.href;
+      if (navigator.clipboard && window.isSecureContext) navigator.clipboard.writeText(url).then(copied, function () { copyByHand(url); });
+      else copyByHand(url);
+    });
+  }
+
   function descForAnnotation(id) {
     return Array.from(document.querySelectorAll('.desc-data')).find(function (d) { return d.dataset.annotationId === String(id); });
   }
