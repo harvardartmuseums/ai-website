@@ -248,3 +248,46 @@ test('names the image OCR read, or not written as names, are not divergence', ()
     objectInfo: { title: 'Print' }, ocrText: 'Gaspard Duchange sculp.' });
   assert.equal(result.divergence.some(s => s.kind === 'unrecorded_names'), false);
 });
+
+test('record match: culture counts origin claims, not script, subject, styles or hedges', () => {
+  const rows = recordOf([
+    d(1, 'A Japanese woodblock print of a tiger.'),
+    d(2, 'This is a traditional Chinese painting.'),
+    d(3, 'The text is written in Chinese characters.'),
+    d(4, 'It may be Chinese or Japanese in origin.'),
+    d(5, 'A Chinese-style composition with a tiger.'),
+  ], { title: 'Tiger', culture: 'Japanese' });
+  const culture = rowOf(rows, 'culture');
+  assert.deepEqual(culture.annotation_ids, [1]);
+  assert.deepEqual(culture.others, [{ term: 'Chinese', annotation_ids: [2] }]);
+});
+
+test('record match: a broader culture term agrees ("Islamic" for Persian work)', () => {
+  const rows = recordOf([d(1, 'An Islamic manuscript page.'), d(2, 'A Persian miniature painting.')], { title: 'Page', culture: 'Persian' });
+  assert.deepEqual(rowOf(rows, 'culture').annotation_ids, [1, 2]);
+});
+
+test('record match: dates agree within 25 years; bare years need a dating phrase', () => {
+  const rows = recordOf([
+    d(1, 'An early 20th-century collage.'),
+    d(2, 'Probably made in the 1960s.'),
+    d(3, 'It depicts the war of 1812.'),
+    d(4, 'Created around 1931 in Germany.'),
+  ], { title: 'Collage', dated: '1929', datebegin: 1929, dateend: 1929 });
+  const date = rowOf(rows, 'date');
+  assert.deepEqual(date.annotation_ids, [1, 4]);
+  assert.deepEqual(date.others, [{ annotation_id: 2, phrases: ['1960s'] }]);
+});
+
+test('record match: a year the image OCR read is not a date claim', () => {
+  const rows = recordOf([d(1, 'A poster dated 2019.')], { title: 'Concert', dated: '1975', datebegin: 1975, dateend: 1975 }, 'ICA 2019');
+  assert.deepEqual(rowOf(rows, 'date').others, []);
+});
+
+test('record match: a record dated only in text ("20th century", "X/XI c.") still gets a date row', () => {
+  const century = rowOf(recordOf([d(1, 'An early 20th-century ink painting.')], { title: 'Rabbit', dated: '20th century', datebegin: 0, dateend: 0 }), 'date');
+  assert.deepEqual(century.annotation_ids, [1]);
+  const roman = rowOf(recordOf([d(1, 'A coin from the 10th century.'), d(2, 'Minted in the 15th century.')], { title: 'Coin', dated: 'X/XI c.', datebegin: 0, dateend: 0 }), 'date');
+  assert.deepEqual(roman.annotation_ids, [1]);
+  assert.deepEqual(roman.others.map(o => o.annotation_id), [2]);
+});

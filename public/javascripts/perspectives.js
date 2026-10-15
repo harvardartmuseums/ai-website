@@ -49,7 +49,11 @@ var positions = require('./positions');
 //     object type, artist) the descriptions that agree and disagree.
 //     Divergence leaves out names the image's OCR read, and names not
 //     written as names ("bob haircut").
-const ALGORITHM_VERSION = 'ace-v4.10.0';
+// 4.11 record_match adds culture (origin claims only, not script, language,
+//     subject or hedges) and date (centuries, decades, and years after a
+//     dating phrase, within 25 years of the record). See
+//     .plans/culture-date-match.md.
+const ALGORITHM_VERSION = 'ace-v4.11.0';
 
 const CONFIG = {
   min_services:                2,

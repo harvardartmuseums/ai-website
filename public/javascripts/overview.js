@@ -16,7 +16,7 @@
 //   divergence   claims that disagree with the museum record (titles, names,
 //                media), plus the shortest and longest descriptions
 //   record_match what the descriptions confirm in the record: title, medium,
-//                object type, artist
+//                object type, culture, date, artist
 //
 // Everything here is deterministic and counts *descriptions*, never repeated
 // mentions inside one description. Agreement still does not mean accuracy.
@@ -609,7 +609,8 @@ function computeDivergence(descriptions, objectInfo, ocrText) {
 // ---------------------------------------------------------------------------
 // The other half of divergence: per record field, the descriptions that agree
 // with it, and the ones that disagree. Fields that can be seen in the image
-// come first (title subject, medium, object type), then context (artist).
+// come first (title subject, medium, object type), then context (culture,
+// date, artist).
 // Agreement is matched loosely (a mention counts); disagreement reuses the
 // divergence signals, which only count claims.
 
@@ -675,6 +676,151 @@ function surnameOf(person) {
   return String(person.displayname || person.name || '').trim().split(/\s+/).pop();
 }
 
+// --- Culture ----------------------------------------------------------------
+// Tuned on 392 objects (see .plans/culture-date-match.md). Most culture words
+// in descriptions are about script, language or subject ("Chinese characters",
+// "Roman numerals", "Roman soldiers"), or hedges ("Chinese or Japanese"), so
+// only origin claims count: a culture word before a kind of work or an origin
+// word ("a Japanese woodblock print", "of Persian origin", "a French artist"),
+// or after "from" / "made in".
+
+// Culture families: record spellings and description words that mean the same.
+// The first word is the family's name on the card.
+const CULTURE_FAMILIES = {
+  American: ['american', 'united states'], British: ['british', 'english', 'england', 'scottish', 'britain'],
+  French: ['french', 'france'], German: ['german', 'germany'],
+  Dutch: ['dutch', 'netherlandish', 'netherlands', 'flemish', 'flanders', 'holland'],
+  Italian: ['italian', 'italy', 'venetian', 'florentine', 'neapolitan'], Spanish: ['spanish', 'spain'],
+  Swiss: ['swiss'], Austrian: ['austrian', 'viennese'], Russian: ['russian'], Croatian: ['croatian'],
+  Japanese: ['japanese', 'japan'], Chinese: ['chinese', 'china'], Korean: ['korean', 'korea'],
+  Indian: ['indian', 'india', 'mughal', 'rajput'], Persian: ['persian', 'iranian', 'iran', 'persia', 'safavid', 'qajar'],
+  Turkish: ['turkish', 'ottoman', 'turkey'], Egyptian: ['egyptian', 'egypt', 'coptic'],
+  Greek: ['greek', 'greece', 'hellenistic', 'attic', 'corinthian'], Roman: ['roman'], Byzantine: ['byzantine'],
+  Etruscan: ['etruscan'], Cambodian: ['cambodian', 'khmer', 'cambodia'], Thai: ['thai', 'thailand', 'siamese'],
+  Tibetan: ['tibetan', 'tibet'], 'Sri Lankan': ['sri lankan', 'sinhalese', 'singhalese', 'ceylon'], Syrian: ['syrian', 'syria'],
+  Mesopotamian: ['mesopotamian', 'sumerian', 'babylonian', 'assyrian'], Moroccan: ['moroccan', 'morocco'],
+  Uzbek: ['uzbek'], 'Central Asian': ['central asian'], Islamic: ['islamic'], Cypriot: ['cypriot', 'cyprus'],
+};
+// Broader or near terms that agree: "Islamic" for Persian or Ottoman work
+// (and the reverse), "Roman" for Byzantine, the Eastern Roman Empire.
+const BROADER_CULTURES = {
+  Islamic: ['Persian', 'Turkish', 'Moroccan', 'Indian', 'Egyptian', 'Syrian', 'Uzbek', 'Central Asian'],
+  Roman: ['Byzantine'],
+};
+const CULTURE_OF_WORD = new Map(Object.entries(CULTURE_FAMILIES).flatMap(([family, words]) => words.map(w => [w, family])));
+const CULTURE_WORDS = [...CULTURE_OF_WORD.keys()].sort((a, b) => b.length - a.length).map(w => w.replace(/ /g, '\\s+')).join('|');
+const CULTURE_WORK = '(?:art|artwork|artist|painter|printmaker|calligrapher|craftsman|craftsmen|artisans?|school|style|tradition|workshop|origin|manufacture|craftsmanship|painting|print|woodblock|woodcut|scroll|screen|album|ceramics?|pottery|porcelain|stoneware|earthenware|vase|bowl|jar|vessel|coins?|coinage|medal|textile|silk|carpet|rug|manuscript|miniature|lacquer|lacquerware|jade|sculpture|bronze|bronzes|photograph|engraving|etching|drawing|book|furniture|metalwork|glass|work|works|piece|object)';
+const CULTURE_BEFORE_WORK = new RegExp('\\b(' + CULTURE_WORDS + ')(?:[\\s-]+(?:[a-z-]+[\\s-]+){0,2})?' + CULTURE_WORK + 's?\\b', 'gi');
+const CULTURE_FROM = new RegExp('\\b(?:from|made\\s+in|produced\\s+in|originat\\w+\\s+(?:in|from))\\s+(?:the\\s+)?(' + CULTURE_WORDS + ')\\b', 'gi');
+// After the culture word: script, language and subject words, and "-style".
+const NOT_ORIGIN = /^[\s-]+(?:characters?|script|numerals?|letters?|text|texts|writing|language|inscription|calligraphy|alphabet|words?|mythology|myths?|emperors?|soldiers?|gods?|goddess|figures?|attire|dress|clothing|costume|people|man|woman|warriors?|history|literature|poetry|legend|motifs?)\b|^[\s-]*(?:style|styled|inspired|influenced|like|esque|type)\b/i;
+const CULTURE_COMPARISON = /\b(?:like|reminiscent\s+of|inspired\s+by|influenced\s+by|in\s+the\s+style\s+of|evok\w+|imitat\w+)\s+(?:\w+\s+){0,3}$/i;
+
+// The culture families a description claims for the work.
+function claimedCultures(text) {
+  const found = new Set();
+  for (const pattern of [CULTURE_BEFORE_WORK, CULTURE_FROM]) {
+    for (const m of String(text || '').matchAll(pattern)) {
+      const word = m[1].toLowerCase().replace(/\s+/g, ' ');
+      const at = m.index + m[0].indexOf(m[1]);
+      const before = text.slice(Math.max(0, at - 12), at), after = text.slice(at + m[1].length, at + m[1].length + 40);
+      if (NOT_ORIGIN.test(after) || CULTURE_COMPARISON.test(text.slice(Math.max(0, at - 50), at))) continue;
+      // Hedges: "Chinese or Japanese", "Persian/Mughal".
+      if (/\bor\s*$|\/\s*$/i.test(before) || /^\s*(?:,\s*)?(?:or\s+\w+|\/)/i.test(after)) continue;
+      if (word === 'american' && /(?:native|latin|south|north)\s+$/i.test(before)) continue;
+      if (word === 'indian' && /american\s+$/i.test(before)) continue;
+      found.add(CULTURE_OF_WORD.get(word));
+    }
+  }
+  return found;
+}
+// The culture families a record names: "German?", "Roman Imperial", "Italian, Neapolitan".
+function recordedCultures(culture) {
+  const text = String(culture || '').toLowerCase().replace(/\?/g, '');
+  return new Set([...CULTURE_OF_WORD].filter(([w]) => new RegExp('\\b' + w + '\\b').test(text)).map(([, f]) => f));
+}
+function culturesAgree(claimed, recorded) {
+  return recorded.has(claimed) || (BROADER_CULTURES[claimed] || []).some(c => recorded.has(c))
+    || [...recorded].some(r => (BROADER_CULTURES[r] || []).includes(claimed));
+}
+
+// --- Date -------------------------------------------------------------------
+// Centuries ("late 19th-century", "18th–19th century", "5th century BCE"),
+// decades ("the 1920s", "late 1800s") and years. A bare year counts only after
+// a dating phrase ("created in 1720", "circa 1720"; not "of", as in "the war of
+// 1812"), so event years and
+// inscription numbers don't, and a year the image's OCR read is text printed
+// on the work. A date agrees when it overlaps the record's range, give or
+// take DATE_TOLERANCE years.
+const DATE_TOLERANCE = 25;
+const ORDINAL_WORDS = { first: 1, second: 2, third: 3, fourth: 4, fifth: 5, sixth: 6, seventh: 7, eighth: 8,
+  ninth: 9, tenth: 10, eleventh: 11, twelfth: 12, thirteenth: 13, fourteenth: 14, fifteenth: 15, sixteenth: 16,
+  seventeenth: 17, eighteenth: 18, nineteenth: 19, twentieth: 20, 'twenty-first': 21 };
+const DATING_PHRASE = /\b(?:created|made|painted|printed|drawn|photographed|taken|produced|executed|engraved|published|issued|minted|dated?|dating|dates?\s+(?:back\s+)?(?:to|from)|from|circa|c\.|ca\.|around|about|likely|probably|possibly|approximately|in)\s*(?:the\s+)?(?:year\s+)?$/i;
+
+function centuryRange(n, qualifier, bce) {
+  let from = (n - 1) * 100, to = from + 99;
+  if (/early/i.test(qualifier || '')) to = from + 40;
+  else if (/late/i.test(qualifier || '')) from += 60;
+  else if (/mid/i.test(qualifier || '')) { from += 30; to -= 30; }
+  return bce ? [-to, -from] : [from, to];
+}
+
+// The dates a description gives: [{ from, to, phrase }].
+function datesIn(text, ocrText) {
+  const found = [];
+  const qualifier = '(?:(early|mid|middle|late)[\\s-]+)?';
+  for (const m of text.matchAll(new RegExp('\\b' + qualifier + '(\\d{1,2})(?:st|nd|rd|th)(?:\\s*(?:[-–]|to|or|and)\\s*(?:early|mid|late)?[\\s-]*(\\d{1,2})(?:st|nd|rd|th))?[\\s-]+centur(?:y|ies)(\\s*(?:BCE?|B\\.C\\.E?\\.?))?', 'gi'))) {
+    const a = centuryRange(+m[2], m[1], !!m[4]), b = m[3] ? centuryRange(+m[3], null, !!m[4]) : a;
+    found.push({ from: Math.min(a[0], b[0]), to: Math.max(a[1], b[1]), phrase: m[0] });
+  }
+  for (const m of text.matchAll(new RegExp('\\b' + qualifier + '(' + Object.keys(ORDINAL_WORDS).join('|') + ')[\\s-]+century\\b', 'gi'))) {
+    const [from, to] = centuryRange(ORDINAL_WORDS[m[2].toLowerCase()], m[1]);
+    found.push({ from, to, phrase: m[0] });
+  }
+  for (const m of text.matchAll(/\b(?:(early|mid|late)[\s-]+)?(1\d{3}|20[0-2]\d)s\b/gi)) {
+    const year = +m[2], span = year % 100 === 0 ? 99 : 9;
+    let from = year, to = year + span;
+    if (span === 99 && /early/i.test(m[1] || '')) to = year + 40;
+    if (span === 99 && /late/i.test(m[1] || '')) from = year + 60;
+    found.push({ from, to, phrase: m[0] });
+  }
+  for (const m of text.matchAll(/\b(1\d{3}|20[0-2]\d)(?:\s*[-–]\s*(1\d{3}|20[0-2]\d|\d{2}))?\b(?!s\b|\s*(?:mm|cm|px|km|m\b|years?|x\b|×))/g)) {
+    if (!DATING_PHRASE.test(text.slice(Math.max(0, m.index - 40), m.index))) continue;
+    if (new RegExp('\\b' + m[1] + '\\b').test(ocrText || '')) continue;
+    const from = +m[1];
+    const to = m[2] ? (m[2].length === 2 ? Math.floor(from / 100) * 100 + +m[2] : +m[2]) : from;
+    found.push({ from, to, phrase: m[0] });
+  }
+  return found;
+}
+
+// The record's date range. Most records give datebegin/dateend; about a
+// third of the survey's give only text ("20th century", "19th-20th
+// century", "X/XI c."), which is parsed like a description's dates.
+const ROMAN_NUMERALS = { I: 1, V: 5, X: 10 };
+function romanNumber(text) {
+  let total = 0;
+  for (let i = 0; i < text.length; i++) {
+    const value = ROMAN_NUMERALS[text[i]], next = ROMAN_NUMERALS[text[i + 1]] || 0;
+    total += value < next ? -value : value;
+  }
+  return total;
+}
+function recordDateRange(info) {
+  if (info.datebegin || info.dateend) return [info.datebegin || info.dateend, info.dateend || info.datebegin];
+  for (const text of [info.dated, info.century].filter(Boolean)) {
+    const roman = /\b([IVX]+)(?:\s*[\/-]\s*([IVX]+))?\s*c\./.exec(text);
+    if (roman) {
+      const a = centuryRange(romanNumber(roman[1])), b = roman[2] ? centuryRange(romanNumber(roman[2])) : a;
+      return [a[0], b[1]];
+    }
+    const dates = datesIn(text, '');
+    if (dates.length) return [Math.min(...dates.map(x => x.from)), Math.max(...dates.map(x => x.to))];
+  }
+  return null;
+}
+
 function computeRecordMatch(descriptions, objectInfo, divergence, ocrText) {
   const info = objectInfo || {};
   const rows = [];
@@ -714,6 +860,37 @@ function computeRecordMatch(descriptions, objectInfo, divergence, ocrText) {
       .sort((a, b) => b.annotation_ids.length - a.annotation_ids.length)[0];
     rows.push({ field: 'object_type', value: type, annotation_ids: agreeing,
       instead: instead && instead.annotation_ids.length ? instead : null });
+  }
+
+  // Culture: descriptions claiming the record's culture (or a broader or near
+  // term); the other cultures claimed instead disagree.
+  const recordedCulture = recordedCultures(info.culture);
+  if (recordedCulture.size) {
+    const agreeing = [], others = {};
+    for (const d of descriptions) {
+      const claimed = [...claimedCultures(d.body)];
+      if (!claimed.length) continue;
+      if (claimed.some(c => culturesAgree(c, recordedCulture))) agreeing.push(d.id);
+      else for (const c of claimed) (others[c] = others[c] || []).push(d.id);
+    }
+    rows.push({ field: 'culture', value: info.culture, annotation_ids: agreeing,
+      others: Object.entries(others).map(([term, ids]) => ({ term, annotation_ids: ids }))
+        .sort((a, b) => b.annotation_ids.length - a.annotation_ids.length) });
+  }
+
+  // Date: descriptions giving a date within the record's range (± the
+  // tolerance); those giving only dates outside it disagree.
+  const range = recordDateRange(info);
+  if (range) {
+    const [begin, end] = range;
+    const agreeing = [], disagreeing = [];
+    for (const d of descriptions) {
+      const dates = datesIn(d.body, ocrText);
+      if (!dates.length) continue;
+      if (dates.some(x => x.from <= end + DATE_TOLERANCE && x.to >= begin - DATE_TOLERANCE)) agreeing.push(d.id);
+      else disagreeing.push({ annotation_id: d.id, phrases: [...new Set(dates.map(x => x.phrase))] });
+    }
+    rows.push({ field: 'date', value: info.dated || String(begin), annotation_ids: agreeing, others: disagreeing });
   }
 
   // Artist: descriptions naming a recorded maker's surname. Noted when the

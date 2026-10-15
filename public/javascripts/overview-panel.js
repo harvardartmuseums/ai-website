@@ -144,15 +144,18 @@
   // (bar and count), and a line naming disagreement or adding context. A field
   // no description agrees with reads "not mentioned". Rows open Descriptions
   // filtered to the descriptions that agree.
-  var RECORD_LABELS = { title: 'Title', medium: 'Medium', object_type: 'Object type', artist: 'Artist' };
-  // A record value as the card shows it: capitalized, and a medium cut to its
-  // first clause ("Ukiyo-e woodblock-printed surimono…"). The full text is
-  // the row's tooltip.
+  var RECORD_LABELS = { title: 'Title', medium: 'Medium', object_type: 'Object type', culture: 'Culture', date: 'Date', artist: 'Artist' };
+  // A record value as the card shows it: capitalized, and a medium cut to the
+  // clause with its matched word ("Ukiyo-e woodblock-printed surimono…").
+  // The full text is the row's tooltip.
   function recordValue(row) {
     var text = String(row.value || '');
     if (row.field === 'medium') {
-      var first = text.split(/;\s*/)[0];
-      if (first.length < text.length) text = first + '…';
+      // The clause the matched word came from: "Album leaf; ink and light
+      // color on paper" → "Ink and light color on paper…".
+      var clauses = text.split(/;\s*/);
+      var clause = clauses.find(function (c) { return row.term && c.toLowerCase().indexOf(row.term) !== -1; }) || clauses[0];
+      if (clause.length < text.length) text = clause + '…';
     }
     return text.charAt(0).toUpperCase() + text.slice(1);
   }
@@ -160,7 +163,7 @@
   function renderRecord(target, overview) {
     var rows = (overview.record_match && overview.record_match.rows) || [], total = overview.descriptions_count;
     if (!rows.length) {
-      target.replaceChildren(note('The museum record has no title, medium, object type or artist to compare with.'));
+      target.replaceChildren(note('The museum record has nothing to compare with.'));
       return;
     }
     var list = el('div', 'record-rows');
@@ -182,6 +185,15 @@
       } else if (row.field === 'object_type') {
         ids = row.annotation_ids;
         if (row.instead && row.instead.annotation_ids.length > ids.length) notes.push(row.instead.annotation_ids.length + ' call it a ' + row.instead.term);
+      } else if (row.field === 'culture') {
+        ids = row.annotation_ids;
+        row.others.slice(0, 3).forEach(function (o) { dissent.push(plural(o.annotation_ids.length, 'says', 'say') + ' ' + o.term); });
+      } else if (row.field === 'date') {
+        ids = row.annotation_ids;
+        if (row.others.length) {
+          var phrases = [].concat.apply([], row.others.map(function (o) { return o.phrases; }));
+          dissent.push(plural(row.others.length, 'gives another date', 'give other dates') + ': ' + phrases.slice(0, 3).join(', '));
+        }
       } else if (row.field === 'artist') {
         ids = row.annotation_ids;
         if (row.in_image && ids.length) notes.push('The name is printed on the work.');
@@ -210,7 +222,7 @@
       if (dissent.length) item.appendChild(el('span', 'record-note is-dissent', dissent.join(' · ')));
       list.appendChild(item);
     });
-    target.replaceChildren(list, el('p', 'research-note', 'Most descriptions describe what they see, so context such as the artist is often not mentioned. Agreement with the record isn’t proof either is right.'));
+    target.replaceChildren(list, el('p', 'research-note', 'Most descriptions describe what they see, so context such as the date or artist is often not mentioned. Dates agree within 25 years. Agreement with the record isn’t proof either is right.'));
   }
 
   // A tile per radar dimension; darker tiles mean more descriptions.
