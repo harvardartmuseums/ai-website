@@ -14,7 +14,9 @@
 //   attention    how many descriptions touch each radar dimension
 //   distinctive  per description, phrases no other description uses
 //   divergence   claims that disagree with the museum record (titles, names,
-//                paint media), plus the shortest and longest descriptions
+//                media), plus the shortest and longest descriptions
+//   record_match what the descriptions confirm in the record: title, medium,
+//                object type, artist
 //
 // Everything here is deterministic and counts *descriptions*, never repeated
 // mentions inside one description. Agreement still does not mean accuracy.
@@ -344,6 +346,9 @@ function unrecordedNames(text, recordedWords) {
   const names = [...tagged, ...attributed]
     .map(name => name.replace(/['’]s$/, '').replace(/[^\p{L}\s'-]/gu, '').trim())
     .filter(name => name.split(/\s+/).length >= 2)
+    // Written as a name: every word capitalized, apart from particles ("van",
+    // "de"). Keeps out phrases tagged as names, like "bob haircut".
+    .filter(name => name.split(/\s+/).every(w => /^\p{Lu}/u.test(w) || /^(?:van|von|de|del|der|da|di|le|la|du)$/.test(w)))
     .filter(name => ![...wordSet(name)].some(word => INSTITUTION_WORDS.has(word)));
   const unknown = names.filter(name => ![...wordSet(name)].some(word => recordedWords.has(word)));
   return [...new Set(unknown)];
@@ -533,8 +538,12 @@ function computeDivergence(descriptions, objectInfo, ocrText) {
   // small minority of descriptions count as divergence.
   // Names are grouped by first word so that misreadings of the same sign
   // ("Horace S Ely", "Horace S Elv") count as one shared name.
+  // Names the image's OCR also read are printed on the work (an engraver's
+  // line in a caption): reading them isn't a claim.
+  const ocrWords = [...new Set(titleKey(ocrText).split(' ').filter(w => w.length >= 3))];
   const nameKey = name => name.split(/\s+/)[0].toLowerCase();
-  const namesById = new Map(descriptions.map(d => [d.id, unrecordedNames(d.body, recordedWords)]));
+  const namesById = new Map(descriptions.map(d => [d.id, unrecordedNames(d.body, recordedWords)
+    .filter(name => shareReadInImage(name, ocrWords) < MIN_TITLE_WORDS_READ)]));
   const nameUsage = new Map();
   for (const names of namesById.values()) {
     for (const key of new Set(names.map(nameKey))) nameUsage.set(key, (nameUsage.get(key) || 0) + 1);
@@ -547,7 +556,6 @@ function computeDivergence(descriptions, objectInfo, ocrText) {
   const recordTitles = [objectInfo && objectInfo.title,
     ...((objectInfo && objectInfo.titles) || []).map(t => t.title)].filter(Boolean);
   if (recordTitles.length) {
-    const ocrWords = [...new Set(titleKey(ocrText).split(' ').filter(w => w.length >= 3))];
     const titlesById = new Map(descriptions.map(d => [d.id, claimedTitles(d.raw || d.body)
       .filter(title => !isRecordedTitle(title, recordTitles))]));
     const maxTitleUsage = Math.max(2, Math.floor(descriptions.length * MAX_TITLE_SHARE));
@@ -596,6 +604,132 @@ function computeDivergence(descriptions, objectInfo, ocrText) {
  * @param {Object}   input.objectInfo     HAM object record
  * @param {string}   input.ocrText        the image's OCR text, joined (optional)
  */
+// ---------------------------------------------------------------------------
+// Record match: what the descriptions confirm in the museum record
+// ---------------------------------------------------------------------------
+// The other half of divergence: per record field, the descriptions that agree
+// with it, and the ones that disagree. Fields that can be seen in the image
+// come first (title subject, medium, object type), then context (artist).
+// Agreement is matched loosely (a mention counts); disagreement reuses the
+// divergence signals, which only count claims.
+
+// Words in a record medium that name a support or a quality, not a medium:
+// "Ink and light color on cream antique laid paper" → ink.
+const MEDIUM_FILLER = new Set(['and', 'with', 'on', 'over', 'in', 'of', 'the', 'a', 'light', 'dark',
+  'transparent', 'opaque', 'black', 'white', 'brown', 'red', 'gray', 'grey', 'blue', 'green', 'yellow',
+  'gold', 'silver', 'cream', 'off', 'colored', 'coloured', 'touches', 'traces', 'album', 'leaf']);
+// Kinds of work a description may call an object, for "37 call it a painting".
+const WORK_TYPES = ['painting', 'drawing', 'print', 'photograph', 'collage', 'sculpture', 'engraving',
+  'etching', 'woodcut', 'lithograph', 'watercolor', 'manuscript', 'scroll', 'vessel', 'vase', 'bowl',
+  'coin', 'medal', 'textile', 'tapestry', 'book', 'poster', 'sketch'];
+// Kinds of a type that count as that type: an engraving is a print.
+const TYPE_KINDS = {
+  print: ['engraving', 'etching', 'woodcut', 'lithograph', 'aquatint', 'mezzotint', 'screenprint', 'impression'],
+  drawing: ['sketch', 'study'],
+  photograph: ['photo', 'gelatin silver print'],
+  painting: ['watercolor', 'oil painting'],
+};
+// Roles of people the record credits with making the work.
+const MAKER_ROLE = /artist|printmaker|author|maker|painter|photographer|calligrapher|designer|sculptor|engraver|draftsman|draughtsman|illustrator|potter|manufacturer|workshop|studio/i;
+
+const plainText = text => String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '');
+const idsWhere = (descriptions, test) => descriptions.filter(test).map(d => d.id);
+
+// The title's subject: its nouns, minus generic words ("Untitled [with Anna
+// May Wong]" → Anna May Wong). The noun most descriptions mention leads.
+function titleSubject(title, descriptions) {
+  const doc = nlp(String(title || '').replace(/[[\]()]/g, ' '));
+  // A person's name ("Anna May Wong") is matched as a whole. Titles are in
+  // Title Case, so capitals alone don't mark a name: "Young Rabbit" isn't one.
+  const people = doc.people().out('array').map(n => n.replace(/[^\p{L}\s'’-]/gu, '').trim()).filter(n => n.split(/\s+/).length > 1);
+  const nouns = doc.nouns().out('array')
+    .map(chunk => chunk.replace(/^(?:the|a|an|with|at)\s+/i, '').replace(/[^\p{L}\s'’-]/gu, '').trim())
+    .filter(chunk => chunk && !people.some(p => chunk.includes(p) || p.includes(chunk)))
+    .map(chunk => headNoun(chunk.replace(/['’]s$/, '')));
+  const subjects = [
+    ...people.map(name => ({ term: name, test: text => new RegExp('\\b' + escapeRegExp(plainText(name)) + '\\b', 'i').test(plainText(text)) })),
+    ...nouns.map(head => ({ term: head, test: text => mentions(text, head) })),
+  ].filter(s => s.term.length > 2 && !GENERIC_NOUNS.has(s.term.toLowerCase()) && s.term.toLowerCase() !== 'untitled');
+  return subjects.map(s => ({ term: s.term, annotation_ids: idsWhere(descriptions, d => s.test(d.body)) }))
+    .sort((a, b) => b.annotation_ids.length - a.annotation_ids.length)[0] || null;
+}
+
+// The record medium's first medium word: "Oil on canvas" → oil.
+// Segments after a semicolon are tried too: "Album leaf; ink and light color
+// on paper" → ink.
+function mainMediumWord(medium) {
+  for (const segment of String(medium || '').split(/;|\//)) {
+    const before = segment.split(/\s+on\s+/i)[0];
+    const words = before.toLowerCase().match(/[\p{L}-]+/gu) || [];
+    const word = words.find(w => w.length > 2 && !MEDIUM_FILLER.has(w));
+    if (word) return word;
+  }
+  return null;
+}
+
+// A person's surname as a description would write it: "Renoir, Pierre-
+// Auguste" → Renoir; "Le Brun, Charles" → Le Brun; "Kawasaki, Shōko" → Kawasaki.
+function surnameOf(person) {
+  const sort = person.alphasort || '';
+  if (sort.includes(',')) return sort.split(',')[0].trim();
+  return String(person.displayname || person.name || '').trim().split(/\s+/).pop();
+}
+
+function computeRecordMatch(descriptions, objectInfo, divergence, ocrText) {
+  const info = objectInfo || {};
+  const rows = [];
+  const signalsOf = kind => divergence.filter(s => s.kind === kind);
+
+  // Title: descriptions naming its subject, and descriptions giving the title.
+  if (info.title) {
+    const recordTitles = [info.title, ...(info.titles || []).map(t => t.title)].filter(Boolean);
+    const given = idsWhere(descriptions, d => claimedTitles(d.raw || d.body).some(t => isRecordedTitle(t, recordTitles)));
+    const other = signalsOf('unrecorded_title');
+    rows.push({ field: 'title', value: info.title, subject: titleSubject(info.title, descriptions),
+      given_ids: given, other_titles: other.map(s => ({ annotation_id: s.annotation_id, titles: s.titles })) });
+  }
+
+  // Medium: descriptions mentioning the record's main medium word; media
+  // claimed against the record disagree.
+  const word = mainMediumWord(info.medium);
+  if (word) {
+    const disagree = {};
+    for (const s of signalsOf('unrecorded_medium')) for (const m of s.media) (disagree[m] = disagree[m] || []).push(s.annotation_id);
+    rows.push({ field: 'medium', value: info.medium, term: word,
+      annotation_ids: idsWhere(descriptions, d => mentions(d.body, word)),
+      others: Object.entries(disagree).map(([medium, ids]) => ({ term: medium, annotation_ids: ids }))
+        .sort((a, b) => b.annotation_ids.length - a.annotation_ids.length) });
+  }
+
+  // Object type: descriptions using the record's type; the type most of the
+  // others use instead ("37 call it a painting" for an album leaf).
+  const type = (info.worktypes || [])[0] && info.worktypes[0].worktype;
+  if (type) {
+    const kinds = [type, ...(TYPE_KINDS[type.toLowerCase()] || [])];
+    const uses = text => kinds.some(k => k.split(/\s+/).length > 1
+      ? new RegExp('\\b' + escapeRegExp(k) + 's?\\b', 'i').test(text) : mentions(text, k));
+    const agreeing = idsWhere(descriptions, d => uses(d.body));
+    const instead = WORK_TYPES.filter(t => !kinds.some(k => k.toLowerCase().includes(t)))
+      .map(t => ({ term: t, annotation_ids: idsWhere(descriptions, d => !uses(d.body) && mentions(d.body, t)) }))
+      .sort((a, b) => b.annotation_ids.length - a.annotation_ids.length)[0];
+    rows.push({ field: 'object_type', value: type, annotation_ids: agreeing,
+      instead: instead && instead.annotation_ids.length ? instead : null });
+  }
+
+  // Artist: descriptions naming a recorded maker's surname. Noted when the
+  // name is printed on the work (OCR read it), so naming it is reading it.
+  const makers = (info.people || []).filter(p => !p.role || MAKER_ROLE.test(p.role));
+  if (makers.length) {
+    const surnames = [...new Set(makers.map(surnameOf).filter(n => n && n.length > 2))];
+    const named = idsWhere(descriptions, d => surnames.some(n => new RegExp('\\b' + escapeRegExp(plainText(n)) + '\\b', 'i').test(plainText(d.body))));
+    const ocr = plainText(ocrText).toLowerCase();
+    rows.push({ field: 'artist', value: makers.map(p => p.displayname || p.name).join('; '), annotation_ids: named,
+      in_image: surnames.some(n => ocr.includes(plainText(n).toLowerCase())),
+      others: signalsOf('unrecorded_names').map(s => ({ annotation_id: s.annotation_id, names: s.names })) });
+  }
+  return { rows };
+}
+
 function computeOverview({ descriptions, observations, moodPalette, coverageRadar, phrasesByDescription, objectInfo, ocrText }) {
   const texts = descriptions.map(d => ({ ...d, words: d.body.split(/\s+/).filter(Boolean).length }));
   // Words from the classification ("Paintings", "Coins") describe the object
@@ -605,6 +739,7 @@ function computeOverview({ descriptions, observations, moodPalette, coverageRada
   for (const person of (objectInfo && objectInfo.people) || []) {
     for (const word of wordSet(person.name)) excludedWords.add(word);
   }
+  const divergence = computeDivergence(texts, objectInfo, ocrText);
   return {
     descriptions_count: texts.length,
     providers_count: new Set(texts.map(d => d.source)).size,
@@ -613,7 +748,8 @@ function computeOverview({ descriptions, observations, moodPalette, coverageRada
     colour_words: computeColourWords(texts),
     attention: computeAttention(coverageRadar),
     distinctive: computeDistinctive(phrasesByDescription || new Map()),
-    divergence: computeDivergence(texts, objectInfo, ocrText),
+    divergence,
+    record_match: computeRecordMatch(texts, objectInfo, divergence, ocrText),
   };
 }
 

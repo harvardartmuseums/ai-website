@@ -45,7 +45,11 @@ var positions = require('./positions');
 //     not in hedges, comparisons, purposes or color words. Compared whenever
 //     the record has medium text; print techniques only on prints. See
 //     .plans/media-divergence.md.
-const ALGORITHM_VERSION = 'ace-v4.9.0';
+// 4.10 adds overview.record_match: per museum-record field (title, medium,
+//     object type, artist) the descriptions that agree and disagree.
+//     Divergence leaves out names the image's OCR read, and names not
+//     written as names ("bob haircut").
+const ALGORITHM_VERSION = 'ace-v4.10.0';
 
 const CONFIG = {
   min_services:                2,

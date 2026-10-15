@@ -68,6 +68,14 @@
           <h2 class="overview-card-title">Where they diverge</h2>
           <div data-overview-slot="divergence"><p class="research-note">Loading…</p></div>
         </article>
+        {{!-- What matches the museum record: per record field, the descriptions
+              that agree with it and the ones that disagree. Visible fields
+              first (title, medium, object type), then the artist.
+              overview-panel.js renders it from overview.record_match. --}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">What matches the museum record</h2>
+          <div data-overview-slot="record"><p class="research-note">Loading…</p></div>
+        </article>
         {{#if display_image.description}}
         <article class="overview-card">
           <h2 class="overview-card-title">A person’s description</h2>

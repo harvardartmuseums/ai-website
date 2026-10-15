@@ -56,8 +56,9 @@
     return row ? row.dataset.model : 'Annotation ' + id;
   }
 
-  function plural(count, word) {
-    return count + ' ' + word + (count === 1 ? '' : 's');
+  // "1 face", "3 faces"; pass the plural when it isn't word + s ("gives"/"give").
+  function plural(count, word, many) {
+    return count + ' ' + (count === 1 ? word : many || word + 's');
   }
 
   // -------------------------------------------------------------------------
@@ -137,6 +138,79 @@
     if (!claims.length) children.push(note('No description gives a title, names a person or a paint medium that contradicts the museum record.'));
     if (items.children.length) children.push(items);
     target.replaceChildren.apply(target, children);
+  }
+
+  // One row per record field: the record's value, the descriptions that agree
+  // (bar and count), and a line naming disagreement or adding context. A field
+  // no description agrees with reads "not mentioned". Rows open Descriptions
+  // filtered to the descriptions that agree.
+  var RECORD_LABELS = { title: 'Title', medium: 'Medium', object_type: 'Object type', artist: 'Artist' };
+  // A record value as the card shows it: capitalized, and a medium cut to its
+  // first clause ("Ukiyo-e woodblock-printed surimono…"). The full text is
+  // the row's tooltip.
+  function recordValue(row) {
+    var text = String(row.value || '');
+    if (row.field === 'medium') {
+      var first = text.split(/;\s*/)[0];
+      if (first.length < text.length) text = first + '…';
+    }
+    return text.charAt(0).toUpperCase() + text.slice(1);
+  }
+  function quoteList(items) { return items.map(function (t) { return '“' + t + '”'; }).join(', '); }
+  function renderRecord(target, overview) {
+    var rows = (overview.record_match && overview.record_match.rows) || [], total = overview.descriptions_count;
+    if (!rows.length) {
+      target.replaceChildren(note('The museum record has no title, medium, object type or artist to compare with.'));
+      return;
+    }
+    var list = el('div', 'record-rows');
+    rows.forEach(function (row) {
+      var ids = [], notes = [], dissent = [];
+      if (row.field === 'title') {
+        var subject = row.subject;
+        ids = subject && subject.annotation_ids.length ? subject.annotation_ids : row.given_ids;
+        if (subject) notes.push(subject.annotation_ids.length ? subject.annotation_ids.length + ' mention “' + subject.term + '”' : 'None mention “' + subject.term + '”');
+        if (row.given_ids.length) notes.push(plural(row.given_ids.length, 'gives', 'give') + ' the title');
+        if (row.other_titles.length) {
+          var titles = [].concat.apply([], row.other_titles.map(function (o) { return o.titles; }));
+          dissent.push(plural(row.other_titles.length, 'gives another title', 'give other titles') + ': ' + quoteList(titles.slice(0, 3)));
+        }
+      } else if (row.field === 'medium') {
+        ids = row.annotation_ids;
+        if (ids.length) notes.push(ids.length + ' mention “' + row.term + '”');
+        row.others.forEach(function (o) { dissent.push(plural(o.annotation_ids.length, 'says', 'say') + ' ' + o.term); });
+      } else if (row.field === 'object_type') {
+        ids = row.annotation_ids;
+        if (row.instead && row.instead.annotation_ids.length > ids.length) notes.push(row.instead.annotation_ids.length + ' call it a ' + row.instead.term);
+      } else if (row.field === 'artist') {
+        ids = row.annotation_ids;
+        if (row.in_image && ids.length) notes.push('The name is printed on the work.');
+        var counts = {};
+        row.others.forEach(function (o) { o.names.forEach(function (n) { counts[n] = (counts[n] || 0) + 1; }); });
+        var names = Object.keys(counts).sort(function (a, b) { return counts[b] - counts[a]; });
+        if (names.length) dissent.push('Others name ' + names.slice(0, 3).map(function (n) { return n + (counts[n] > 1 ? ' (' + counts[n] + ')' : ''); }).join(', '));
+      }
+      var none = !ids.length;
+      var item = outputsButton('record-row' + (none ? ' is-none' : ''), function (outputs) {
+        if (ids.length) outputs.filter(RECORD_LABELS[row.field] + ': ' + row.value, ids);
+      });
+      if (none) item.disabled = true;
+      // Field and count on one line, then the value, the bar and the notes.
+      var head = el('span', 'record-head');
+      head.append(el('span', 'record-field', RECORD_LABELS[row.field]),
+        el('span', 'record-count', none ? 'not mentioned' : ids.length + ' of ' + total));
+      var value = el('span', 'record-value', recordValue(row));
+      value.title = row.value;
+      var track = el('span', 'record-track');
+      var fill = el('span', 'record-fill');
+      fill.style.width = Math.round(ids.length / total * 100) + '%';
+      track.appendChild(fill);
+      item.append(head, value, track);
+      if (notes.length) item.appendChild(el('span', 'record-note', notes.join(' · ')));
+      if (dissent.length) item.appendChild(el('span', 'record-note is-dissent', dissent.join(' · ')));
+      list.appendChild(item);
+    });
+    target.replaceChildren(list, el('p', 'research-note', 'Most descriptions describe what they see, so context such as the artist is often not mentioned. Agreement with the record isn’t proof either is right.'));
   }
 
   // A tile per radar dimension; darker tiles mean more descriptions.
@@ -234,7 +308,7 @@
     // Faces don't depend on there being descriptions, only on the summary.
     var faces = document.querySelector('[data-overview-faces]');
     if (faces && data && data.summary) renderFaces(faces, data.summary);
-    var renderers = { agreement: renderAgreement, divergence: renderDivergence, attention: renderAttention, colour: renderColour, mood: renderMood };
+    var renderers = { agreement: renderAgreement, divergence: renderDivergence, record: renderRecord, attention: renderAttention, colour: renderColour, mood: renderMood };
     Object.keys(renderers).forEach(function (name) {
       var target = slot(name);
       if (!target) return;

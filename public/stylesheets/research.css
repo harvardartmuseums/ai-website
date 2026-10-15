@@ -233,6 +233,25 @@ html:has(.research-page) body { background: var(--c-white); }
 .positions-aside summary { cursor: pointer; }
 .positions-aside-kind { margin: 12px 0 4px; color: var(--c-nearblack); }
 .positions-aside-example { margin: 2px 0 0 12px; line-height: 1.5; }
+/* What matches the museum record. Each row stacks: field and count, the
+   record's value, a bar, then notes, so it reads at any card width. */
+.record-rows { display: flex; flex-direction: column; }
+.record-row { display: flex; flex-direction: column; gap: 4px; width: 100%; background: none; border: 0; border-top: 1px solid var(--c-lightgray); padding: 10px 0; font: inherit; font-size: 14px; color: inherit; text-align: left; cursor: pointer; }
+.record-row:first-child { border-top: 0; padding-top: 0; }
+.record-row:hover:not(:disabled) .record-value { text-decoration: underline; }
+.record-row:disabled { cursor: default; }
+.record-head { display: flex; justify-content: space-between; gap: 12px; }
+.record-field { font-size: 13px; color: var(--c-grayblack); }
+.record-count { font-size: 13px; color: var(--c-grayblack); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.record-value { font-family: "Neutral Medium 3", sans-serif; font-size: 15px; line-height: 1.35; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.record-track { height: 8px; background: var(--c-lightgray); margin: 2px 0; }
+.record-fill { display: block; height: 100%; background: var(--c-nearblack); }
+.record-note { font-size: 13px; line-height: 1.45; color: var(--c-grayblack); }
+.record-note.is-dissent { color: #b3241b; }
+.record-row.is-none .record-value { color: var(--c-grayblack); }
+.record-row.is-none .record-track { display: none; }
+.record-row.is-none .record-count { color: #9a9a9a; }
+.record-row:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
 .overview-card-subhead { margin: 0 0 6px; font-size: 12px; color: var(--c-grayblack); }
 .overview-card .image-palette { margin-top: 0; max-width: none; }
 

@@ -196,3 +196,55 @@ test('a title many descriptions share, or that OCR read, is text in the image', 
 test('"called" and "known as" introduce terms, not titles', () => {
   assert.deepEqual(titlesOf({ objectInfo: { title: 'Chestnut' }, descriptions: [d(1, 'The script is known as "sōsho", also called "grass script".')] }), []);
 });
+
+// --- What matches the museum record --------------------------------------------
+
+const recordOf = (descriptions, objectInfo, ocrText = '') => computeOverview({
+  descriptions, observations: {}, moodPalette: [], coverageRadar: null,
+  phrasesByDescription: new Map(), objectInfo, ocrText,
+}).record_match.rows;
+const rowOf = (rows, field) => rows.find(r => r.field === field);
+
+test('record match: title subject, given title and other titles', () => {
+  const rows = recordOf([
+    d(1, 'A young rabbit crouches in the grass.'),
+    d(2, 'An ink painting titled "Young Rabbit" shows a rabbit.'),
+    d(3, 'A painting titled "Spring Hare".'),
+  ], { title: 'Young Rabbit' });
+  const title = rowOf(rows, 'title');
+  assert.equal(title.subject.term, 'rabbit');
+  assert.deepEqual(title.subject.annotation_ids, [1, 2]);
+  assert.deepEqual(title.given_ids, [2]);
+  assert.deepEqual(title.other_titles, [{ annotation_id: 3, titles: ['Spring Hare'] }]);
+});
+
+test('record match: a person in the title is matched as a whole name', () => {
+  const rows = recordOf([d(1, 'A collage with a photograph of Anna May Wong.'), d(2, 'A collage of a giraffe.')],
+    { title: 'Untitled [with Anna May Wong]' });
+  assert.deepEqual(rowOf(rows, 'title').subject, { term: 'Anna May Wong', annotation_ids: [1] });
+});
+
+test('record match: medium from any segment of the record; object type counts its kinds', () => {
+  const rows = recordOf([d(1, 'Black ink on paper.'), d(2, 'An engraving of a ship.')],
+    { title: 'A Ship', medium: 'Album leaf; ink and light color on paper', worktypes: [{ worktype: 'print' }] });
+  assert.equal(rowOf(rows, 'medium').term, 'ink');
+  assert.deepEqual(rowOf(rows, 'medium').annotation_ids, [1]);
+  assert.deepEqual(rowOf(rows, 'object_type').annotation_ids, [2]);
+});
+
+test('record match: artist by surname, noted when the name is printed on the work', () => {
+  const rows = recordOf([d(1, 'A painting by Renoir.'), d(2, 'A painting by Mary Cassatt.')],
+    { title: 'At the Milliner’s', people: [{ name: 'Pierre-Auguste Renoir', displayname: 'Pierre-Auguste Renoir', alphasort: 'Renoir, Pierre-Auguste', role: 'Artist' }] },
+    'Renoir pinx.');
+  const artist = rowOf(rows, 'artist');
+  assert.deepEqual(artist.annotation_ids, [1]);
+  assert.equal(artist.in_image, true);
+  assert.deepEqual(artist.others, [{ annotation_id: 2, names: ['Mary Cassatt'] }]);
+});
+
+test('names the image OCR read, or not written as names, are not divergence', () => {
+  const result = computeOverview({ descriptions: [d(1, 'Engraved by Gaspard Duchange.'), d(2, 'A woman with a bob haircut.')],
+    observations: {}, moodPalette: [], coverageRadar: null, phrasesByDescription: new Map(),
+    objectInfo: { title: 'Print' }, ocrText: 'Gaspard Duchange sculp.' });
+  assert.equal(result.divergence.some(s => s.kind === 'unrecorded_names'), false);
+});
