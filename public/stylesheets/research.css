@@ -63,7 +63,10 @@ html:has(.research-page) body { background: var(--c-white); }
 .research-tabs a { display: block; padding: 8px 12px; border-radius: 4px; color: var(--c-grayblack); font-size: 13px; }
 .research-tabs a[aria-current] { background: var(--c-nearblack); color: white; }
 .image-research-workspace [hidden] { display: none !important; }
-.image-research-workspace .attention-section h2 { font-size: 22px; }
+/* Each tab's first heading (Vocabulary, Positions, Tags & detections, Data &
+   method, Compare): one size and spacing, so switching tabs doesn't make the
+   heading jump. Matches the Descriptions reader's title (.outputs-entry-title). */
+.image-research-workspace .research-panel-title { margin: 4px 0 8px; font-family: "Neutral Bold 3", sans-serif; font-size: 22px; line-height: 1.25; font-weight: normal; color: var(--c-nearblack); }
 .image-research-workspace .attention-card--ai { border: 0; padding: 0; }
 .image-research-workspace .ai-section { margin-top: 0; }
 .image-research-workspace .desc-toolbar, .image-research-workspace .desc-toolbar-controls, .image-research-workspace .desc-toolbar-control-group { flex-wrap: wrap; white-space: normal; }
@@ -138,8 +141,11 @@ html:has(.research-page) body { background: var(--c-white); }
 .overview-card { border: 1px solid var(--c-lightgray); padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 /* A trailing "go to…" link sits at the bottom of its card. */
 .overview-card > .overview-link:last-child { margin-top: auto; }
-.overview-card-title { margin: 0; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-grayblack); font-weight: normal; }
-.overview-lede { margin: 0; font-family: "Neutral Medium 3", sans-serif; font-size: 19px; line-height: 1.3; }
+/* Card titles are headings: sentence case in the bold weight, the first
+   thing read in each card. The lede under them is quieter (dark grey), so
+   the title outranks it by weight rather than size. */
+.overview-card-title { margin: 0; font-family: "Neutral Bold 3", sans-serif; font-size: 16px; line-height: 1.3; color: var(--c-nearblack); font-weight: normal; }
+.overview-lede { margin: 0; font-size: 16px; line-height: 1.4; color: var(--c-grayblack); }
 .overview-quote { margin: 0; font-size: 15px; line-height: 1.55; }
 .overview-quote--clamped { display: -webkit-box; -webkit-line-clamp: 6; -webkit-box-orient: vertical; overflow: hidden; }
 .overview-facts { margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.7; }
@@ -217,7 +223,8 @@ html:has(.research-page) body { background: var(--c-white); }
 .positions-quote-text { font-size: 15px; line-height: 1.5; }
 .positions-quote mark { background: #fbe3df; color: inherit; padding: 0 2px; }
 .positions-quote-source { font-size: 12px; }
-.positions-subhead { margin: 24px 0 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-grayblack); font-weight: normal; }
+/* Same as the Overview card titles: bold, sentence case. */
+.positions-subhead { margin: 28px 0 6px; font-family: "Neutral Bold 3", sans-serif; font-size: 16px; line-height: 1.3; color: var(--c-nearblack); font-weight: normal; }
 .positions-aside { margin-top: 24px; font-size: 13px; color: var(--c-grayblack); border-top: 1px solid var(--c-lightgray); padding-top: 12px; }
 .positions-aside summary { cursor: pointer; }
 .positions-aside-kind { margin: 12px 0 4px; color: var(--c-nearblack); }

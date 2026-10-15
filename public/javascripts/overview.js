@@ -71,7 +71,7 @@ const COLOUR_WORDS = new Set(['red', 'orange', 'yellow', 'green', 'blue',
 const DESCRIBED_COLOURS = {
   red: ['red'], orange: ['orange'], yellow: ['yellow'], green: ['green'],
   blue: ['blue'], purple: ['purple', 'violet'], pink: ['pink'], brown: ['brown'],
-  black: ['black'], white: ['white'], grey: ['grey', 'gray'], gold: ['gold', 'golden'],
+  black: ['black'], white: ['white'], gray: ['gray', 'grey'], gold: ['gold', 'golden'],
   silver: ['silver'], beige: ['beige'], cream: ['cream'], ochre: ['ochre', 'ocher'],
   turquoise: ['turquoise'], teal: ['teal'],
 };

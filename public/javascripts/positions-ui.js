@@ -30,11 +30,11 @@
   // How a place reads in a row's "where" line, and in short lists.
   var PLACE_NAMES = {
     'top-left': 'Top left corner', 'top': 'Along the top', 'top-right': 'Top right corner',
-    'left': 'Left side', 'center': 'Centre', 'right': 'Right side',
+    'left': 'Left side', 'center': 'Center', 'right': 'Right side',
     'bottom-left': 'Bottom left corner', 'bottom': 'Along the bottom', 'bottom-right': 'Bottom right corner',
   };
   var SHORT_NAMES = {
-    'top-left': 'top left', 'top': 'top', 'top-right': 'top right', 'left': 'left', 'center': 'centre',
+    'top-left': 'top left', 'top': 'top', 'top-right': 'top right', 'left': 'left', 'center': 'center',
     'right': 'right', 'bottom-left': 'lower left', 'bottom': 'bottom', 'bottom-right': 'lower right',
   };
   // How set-aside kinds are described on the Positions tab.
@@ -91,7 +91,7 @@
     return Math.min(agreeing, claim.placed) + ' of ' + claim.placed;
   }
 
-  // "Centre · 4 others say left, lower left or bottom"
+  // "Center · 4 others say left, lower left or bottom"
   function whereText(claim) {
     var others = claim.spread.filter(function (s) { return !agree(claim.usual, s[0]); });
     var where = PLACE_NAMES[claim.usual];
@@ -134,13 +134,13 @@
 
   // A flag reads like a claim row: what was detected, who boxed it, and how
   // few descriptions agree.
-  //   Labelled “Bird”
+  //   Labeled “Bird”
   //   AWS Rekognition drew 5 boxes
   //   ◌ Only 4 of 42 descriptions mention “bird”
   function flagLines(flag, descriptionCount) {
     var word = '“' + flag.label.toLowerCase() + '”';
     return {
-      title: 'Labelled “' + flag.label + '”',
+      title: 'Labeled “' + flag.label + '”',
       detail: bySource(flag),
       check: flag.mentioned === 0 ? 'No description mentions ' + word
         : 'Only ' + flag.mentioned + ' of ' + descriptionCount + ' descriptions mention ' + word,
@@ -240,11 +240,15 @@
     });
   }
 
-  // The spotlight belongs to the position views; other tabs show the plain image.
+  // Every tab switch starts from the plain image: the spotlight belongs to the
+  // row that drew it. The Positions tab re-draws its open claim (syncPanel);
+  // the Overview card drops its selection (cardReset).
+  var cardReset = null;
   var workspace = document.querySelector('.image-research-workspace');
   if (workspace) {
-    workspace.addEventListener('researchview', function (event) {
-      if (event.detail !== 'overview' && event.detail !== 'positions') clearSpotlight();
+    workspace.addEventListener('researchview', function () {
+      clearSpotlight();
+      if (cardReset) cardReset();
     });
   }
 
@@ -267,6 +271,10 @@
 
     // Choosing a row spotlights it; choosing it again turns the spotlight off.
     var selected = -1;
+    cardReset = function () {
+      selected = -1;
+      rows.forEach(function (row) { row.classList.remove('is-selected'); row.setAttribute('aria-pressed', 'false'); });
+    };
     function select(index) {
       selected = selected === index ? -1 : index;
       rows.forEach(function (row, i) {

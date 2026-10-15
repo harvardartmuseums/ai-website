@@ -181,13 +181,13 @@
 
   // CSS colours for the dot beside each colour word. Only names CSS doesn't
   // already understand need an entry.
-  var COLOUR_DOTS = { grey: 'gray', ochre: '#cc7722', cream: '#fffdd0' };
+  var COLOUR_DOTS = { ochre: '#cc7722', cream: '#fffdd0' };
 
   // Colour words the descriptions use, set under the measured palette.
   function renderColour(target, overview) {
     var colours = overview.colour_words || [], total = overview.descriptions_count;
     if (!colours.length) {
-      target.replaceChildren(note('No description names a colour.'));
+      target.replaceChildren(note('No description names a color.'));
       return;
     }
     var words = el('div', 'overview-words');
@@ -244,7 +244,7 @@
         return;
       }
       if (!overview.descriptions_count) {
-        target.replaceChildren(note('There are no AI descriptions of this image to summarise.'));
+        target.replaceChildren(note('There are no AI descriptions of this image to summarize.'));
         return;
       }
       renderers[name](target, overview);

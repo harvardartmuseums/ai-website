@@ -99,7 +99,7 @@
               descriptions use. The palette covers the whole photograph,
               including bare canvas, mounts and background. --}}
         <article class="overview-card">
-          <h2 class="overview-card-title">Colour: measured and described</h2>
+          <h2 class="overview-card-title">Color: measured and described</h2>
           {{#if display_image.colors}}
           <div>
             <p class="overview-card-subhead">Measured in the image</p>
@@ -155,12 +155,12 @@
       claim spotlights it on the image in the left pane. #positions/<claim id>
       opens the tab at that claim. Filled by positions-ui.js. --}}
 <section id="research-positions" data-research-panel="positions" aria-label="Where the descriptions place things">
-  <h2>Where they looked</h2>
+  <h2 class="research-panel-title">Where they looked</h2>
   <p class="research-note">Each claim is a subject and where the descriptions put it. Counts are of descriptions. A ✓ means a box detected by a vision service sits in that place; – means nothing detected there to check against. Choose a claim to see it on the image.</p>
   <div data-positions-panel><p class="research-note">Loading…</p></div>
 </section>
 <div id="research-vocabulary" data-research-panel="vocabulary"><section class="ai-section attention-section" id="attention-section">
-          <h2>Vocabulary</h2>
+          <h2 class="research-panel-title">Vocabulary</h2>
           <p class="attention-intro">The words behind the Overview, with the excerpts they came from.</p>
           <nav class="vocab-sections" aria-label="Vocabulary sections">
             <a href="#vocabulary/shared">Shared vocabulary</a>
@@ -215,11 +215,11 @@
         </section></div>
 {{!-- Compare: no tab of its own. Opened from the Descriptions index
       ("Open full comparison"), the Overview, or radar evidence. --}}
-<section id="research-compare" data-research-panel="compare"><a class="overview-link" href="#descriptions">← Descriptions</a><h2>Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
+<section id="research-compare" data-research-panel="compare"><a class="overview-link" href="#descriptions">← Descriptions</a><h2 class="research-panel-title">Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
 {{!-- Tags & detections: full-image tags, then faces, features, categories,
       captions, text and colours. --}}
-<div id="research-detections" data-research-panel="detections">{{#unless ai_sorted.tagsect}}<p>No tags are available for this image.</p>{{/unless}}<section class="ai-section">
-          <h3>Tags</h3>
+<div id="research-detections" data-research-panel="detections"><h2 class="research-panel-title">Tags &amp; detections</h2><p class="attention-intro">What the vision services found, service by service: tags, faces, features, categories, captions, text and colors.</p>{{#unless ai_sorted.tagsect}}<p>No tags are available for this image.</p>{{/unless}}<section class="ai-section">
+          <h3>Tags for the whole image</h3>
           <div class="tag-box">
             {{#each ai_sorted.tagsect}}
               <div class="service-tags">
@@ -436,7 +436,7 @@
 
 {{!-- Data & method: where the numbers come from, and the raw download. --}}
 <section id="research-data" data-research-panel="data" aria-label="Data and method">
-  <h2>Data &amp; method</h2>
+  <h2 class="research-panel-title">Data &amp; method</h2>
   {{#if image_summary.full}}<p class="image-summary">{{{image_summary.full}}}</p>{{/if}}
   <p><a class="quickbar-btn" href="/object/{{object_info.id}}/image/{{display_image.imageid}}/perspectives" download="image-{{display_image.imageid}}-ai-perspectives.json">Download analysis JSON</a></p>
   <h3>How the overview is built</h3>

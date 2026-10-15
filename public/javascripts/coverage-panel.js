@@ -28,7 +28,7 @@
   var PHRASES_SHOWN = 8;     // phrases visible in a row before "Show all"
   var SNIPPETS_SHOWN = 5;    // excerpts visible under a phrase before "Show all"
   var INITIAL_SERIES = 3;
-  var AXIS_LABELS = { people: 'People', objects: 'Objects', setting: 'Setting', colour_light: 'Colour',
+  var AXIS_LABELS = { people: 'People', objects: 'Objects', setting: 'Setting', colour_light: 'Color',
     action: 'Pose', animals: 'Animals', material_technique: 'Technique', condition: 'Condition', mood: 'Mood' };
 
   // -------------------------------------------------------------------------

@@ -449,7 +449,7 @@ function groupClaims(descriptions, options = {}) {
 // How a split claim names its place: "figures on the left".
 const PLACE_PHRASES = {
   'top-left': 'in the top left', top: 'at the top', 'top-right': 'in the top right',
-  left: 'on the left', center: 'in the centre', right: 'on the right',
+  left: 'on the left', center: 'in the center', right: 'on the right',
   'bottom-left': 'in the bottom left', bottom: 'at the bottom', 'bottom-right': 'in the bottom right',
 };
 

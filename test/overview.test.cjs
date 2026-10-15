@@ -98,7 +98,7 @@ test('colour words count descriptions, merge spelling variants and leave out ton
     d(3, 'A redwood frame, light and airy.'),
   ] });
   assert.deepEqual(result.colour_words.map(c => [c.word, c.descriptions_count, c.annotation_ids]),
-    [['black', 1, [2]], ['grey', 1, [2]], ['red', 1, [1]]]);
+    [['black', 1, [2]], ['gray', 1, [2]], ['red', 1, [1]]]);
 });
 
 test('mood keeps single interpretive words and drops tone words', () => {

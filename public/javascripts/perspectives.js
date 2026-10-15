@@ -37,7 +37,9 @@ var positions = require('./positions');
 // 4.8 adds overview.divergence kind 'unrecorded_title': a title a
 //     description gives ("titled "The Reader"") that the record doesn't have,
 //     leaving out titles read off the image. Signals list titles first.
-const ALGORITHM_VERSION = 'ace-v4.8.0';
+// 4.8.1 American spellings in labels: "Color & Light", "Objects &
+//     Artifacts", "gray" for the grey/gray color word, "in the center".
+const ALGORITHM_VERSION = 'ace-v4.8.1';
 
 const CONFIG = {
   min_services:                2,
@@ -327,7 +329,7 @@ const OBSERVATION_CATEGORIES = [
   },
   {
     key:   'objects',
-    label: 'Objects & Artefacts',
+    label: 'Objects & Artifacts',
     seeds: new Set([
       'vessel','vase','urn','jar','jug','pitcher','bowl','cup','chalice','goblet',
       'flask','amphora','basket','box','chest','casket','bag','sack',
@@ -383,7 +385,7 @@ const OBSERVATION_CATEGORIES = [
   },
   {
     key:   'colour_light',
-    label: 'Colour & Light',
+    label: 'Color & Light',
     seeds: new Set([
       'red','blue','green','yellow','orange','purple','violet','pink',
       'white','black','grey','gray','brown','gold','golden','silver',
@@ -1246,9 +1248,9 @@ function extractObservations(descAnnotations, regionAnnotations, context) {
 
 const RADAR_DIMENSIONS = [
   { key: 'people',             label: 'People & Figures',     seeds: categorySeeds('people') },
-  { key: 'objects',            label: 'Objects & Artefacts',  seeds: categorySeeds('objects') },
+  { key: 'objects',            label: 'Objects & Artifacts',  seeds: categorySeeds('objects') },
   { key: 'setting',            label: 'Setting & Space',      seeds: categorySeeds('setting') },
-  { key: 'colour_light',       label: 'Colour & Light',       seeds: categorySeeds('colour_light') },
+  { key: 'colour_light',       label: 'Color & Light',       seeds: categorySeeds('colour_light') },
   { key: 'action',             label: 'Pose & Action',        seeds: categorySeeds('action') },
   { key: 'animals',            label: 'Animals & Creatures',  seeds: categorySeeds('animals') },
   { key: 'material_technique', label: 'Material & Technique', seeds: categorySeeds('material_technique') },
