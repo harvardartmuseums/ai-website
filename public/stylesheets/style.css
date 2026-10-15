@@ -2978,3 +2978,268 @@ mark.desc-highlight {
   .desc-card-density { max-width: 100%; width: 100%; border-right: none; border-bottom: 1px solid var(--c-lightgray); }
   .desc-card-cost { max-width: 100%; width: 100%; }
 }
+
+/* -------------------------------------------------------------------------
+   Points of attention section
+   ------------------------------------------------------------------------- */
+
+.attention-section h2 {
+  margin-bottom: 4px;
+}
+
+.attention-intro {
+  font-size: 14px;
+  color: var(--c-gray);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.attention-card {
+  border: 1px solid var(--c-lightgray);
+  border-radius: 4px;
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.attention-card-heading {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--c-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 12px;
+}
+
+.attention-card--curator .attention-card-body {
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.attention-card--curator .attention-card-body p {
+  margin-bottom: 8px;
+}
+
+.attention-card-intro {
+  font-size: 13px;
+  color: var(--c-gray);
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+/* -------------------------------------------------------------------------
+   AI Perspectives panel
+   ------------------------------------------------------------------------- */
+.beta-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--c-yellow);
+  color: var(--c-nearblack);
+  padding: 1px 6px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.perspectives-toggle-btn {
+  margin-left: 10px;
+  vertical-align: middle;
+}
+.perspectives-download-btn {
+  margin-left: 10px;
+  vertical-align: middle;
+  text-decoration: none;
+}
+.perspectives-intro {
+  font-size: 14px;
+  color: var(--c-grayblack);
+  margin-bottom: 14px;
+  line-height: 1.5;
+}
+.perspectives-block {
+  margin-bottom: 22px;
+}
+.perspectives-block-heading {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: var(--c-nearblack);
+}
+.perspectives-concept {
+  padding: 8px 0;
+  border-bottom: 1px solid var(--c-lightgray);
+  font-size: 13px;
+}
+.perspectives-concept:last-child { border-bottom: none; }
+.perspectives-concept--expandable {
+  cursor: pointer;
+}
+.perspectives-concept--expandable:hover .perspectives-concept-summary {
+  color: var(--c-blue, #2563eb);
+}
+.perspectives-concept-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 6px;
+}
+.perspectives-concept--expandable .perspectives-concept-summary::before {
+  content: '\25B8';
+  font-size: 11px;
+  color: var(--c-gray);
+  margin-right: 2px;
+  transition: transform 0.15s;
+}
+.perspectives-concept--open .perspectives-concept-summary::before {
+  transform: rotate(90deg);
+}
+.perspectives-concept-detail {
+  margin-top: 6px;
+  padding-left: 16px;
+}
+.perspectives-concept-text {
+  font-weight: 600;
+  color: var(--c-nearblack);
+  min-width: 100px;
+}
+.perspectives-badge {
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+}
+.perspectives-badge--descriptive  { background: #e8f0fb; color: #2a5298; }
+.perspectives-badge--interpretive { background: #fdf3e3; color: #a05a00; }
+.perspectives-badge--stronger     { background: #e6f4ea; color: #1e6b35; }
+.perspectives-badge--weaker       { background: var(--c-lightgray); color: var(--c-grayblack); }
+.perspectives-badge--people       { background: #fde8f0; color: #8b1a4a; }
+.perspectives-badge--thematic     { background: #ede8fb; color: #4a2d91; }
+.perspectives-agreement {
+  font-size: 12px;
+  color: var(--c-gray);
+  margin-left: auto;
+}
+.perspectives-snippets {
+  width: 100%;
+  margin-top: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.perspectives-snippet {
+  font-size: 12px;
+  color: var(--c-gray);
+  font-style: italic;
+}
+.perspectives-type-note {
+  font-size: 12px;
+  color: var(--c-gray);
+  margin-top: 12px;
+  line-height: 1.5;
+}
+.perspectives-divergence-intro {
+  font-size: 13px;
+  color: var(--c-grayblack);
+  margin-bottom: 10px;
+  line-height: 1.5;
+}
+.perspectives-divergence-item {
+  font-size: 13px;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--c-lightgray);
+  color: var(--c-nearblack);
+  line-height: 1.5;
+}
+.perspectives-divergence-item:last-child { border-bottom: none; }
+.perspectives-footer-note {
+  font-size: 12px;
+  color: var(--c-gray);
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid var(--c-lightgray);
+  line-height: 1.5;
+}
+.perspectives-status {
+  font-size: 13px;
+  color: var(--c-gray);
+  font-style: italic;
+}
+.perspectives-status--error { color: var(--c-orangered); font-style: normal; }
+.perspectives-empty {
+  font-size: 13px;
+  color: var(--c-gray);
+  font-style: italic;
+}
+.perspectives-variants {
+  width: 100%;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--c-grayblack);
+}
+.perspectives-variant {
+  white-space: nowrap;
+}
+.perspectives-variant-sources {
+  color: var(--c-gray);
+  font-style: italic;
+}
+
+/* -------------------------------------------------------------------------
+   Mood palette
+   ------------------------------------------------------------------------- */
+
+/* -------------------------------------------------------------------------
+   Coverage Radar Chart
+   ------------------------------------------------------------------------- */
+.radar-layout {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+#perspectives-radar-chart {
+  flex: 1 1 auto;
+  display: flex;
+  justify-content: center;
+  padding: 12px 0;
+  min-width: 0;
+}
+#perspectives-radar-chart svg {
+  max-width: 100%;
+  height: auto;
+}
+.radar-legend {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0 4px;
+}
+.radar-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #374151;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 3px;
+  transition: background 0.15s;
+}
+.radar-legend-item:hover {
+  background: #f3f4f6;
+}
+.radar-legend-swatch {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+}
+
+/* -------------------------------------------------------------------------
+   What the AIs noticed — observations section
+   ------------------------------------------------------------------------- */
+

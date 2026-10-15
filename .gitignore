@@ -60,3 +60,6 @@ typings/
 # next.js build output
 .next
 .claude/settings.local.json
+
+# Mood audit cache (large corpus data, embeddings)
+utilities/mood-cache/

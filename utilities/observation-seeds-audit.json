@@ -1,0 +1,3239 @@
+{
+  "generated_at": "2026-05-28T20:44:09.535Z",
+  "total_region_terms": 647,
+  "categorized_count": 289,
+  "uncategorized_count": 357,
+  "ignored_count": 1,
+  "by_category": {
+    "people": {
+      "label": "People & Figures",
+      "terms": [
+        "person",
+        "human face",
+        "man",
+        "human arm",
+        "woman",
+        "human eye",
+        "human nose",
+        "adult",
+        "human head",
+        "human hair",
+        "human leg",
+        "male",
+        "human mouth",
+        "female",
+        "human hand",
+        "bride",
+        "baby",
+        "boy",
+        "girl",
+        "human ear",
+        "child",
+        "human beard",
+        "teen",
+        "human foot"
+      ]
+    },
+    "animals": {
+      "label": "Animals & Creatures",
+      "terms": [
+        "bird",
+        "animal",
+        "horse",
+        "cattle",
+        "dog",
+        "insect",
+        "cow",
+        "fish",
+        "cat",
+        "snake",
+        "elephant",
+        "sheep",
+        "mammal",
+        "antelope",
+        "turtle",
+        "chicken",
+        "honey bee",
+        "spider",
+        "lion",
+        "bear",
+        "pig",
+        "dinosaur",
+        "deer",
+        "butterfly",
+        "lizard",
+        "tiger",
+        "giraffe",
+        "monkey",
+        "duck",
+        "carnivore",
+        "mouse",
+        "zebra",
+        "bull",
+        "camel",
+        "penguin",
+        "lobster",
+        "construction crane",
+        "goat",
+        "marine invertebrates",
+        "kangaroo",
+        "hot dog",
+        "teddy bear",
+        "owl",
+        "shark",
+        "shellfish",
+        "teddy bear",
+        "swan",
+        "marine mammal",
+        "parrot",
+        "invertebrate",
+        "rabbit",
+        "panther",
+        "eagle",
+        "mule",
+        "jellyfish",
+        "tortoise",
+        "goose",
+        "polar bear",
+        "giant panda",
+        "sparrow",
+        "falcon",
+        "rat",
+        "turkey",
+        "snail",
+        "beetle",
+        "frog",
+        "rhinoceros",
+        "leopard",
+        "ostrich",
+        "sea lion",
+        "seahorse",
+        "dolphin",
+        "goldfish",
+        "oyster",
+        "reptile",
+        "caterpillar",
+        "crocodile",
+        "whale",
+        "brown bear",
+        "cat furniture",
+        "bee",
+        "sea turtle",
+        "fox"
+      ]
+    },
+    "action": {
+      "label": "Action & Gesture",
+      "terms": []
+    },
+    "objects": {
+      "label": "Objects & Artefacts",
+      "terms": [
+        "window",
+        "clothing",
+        "footwear",
+        "picture frame",
+        "wheel",
+        "boat",
+        "book",
+        "coin",
+        "chair",
+        "car",
+        "rug",
+        "table",
+        "vehicle",
+        "shoe",
+        "furniture",
+        "dress",
+        "hat",
+        "door",
+        "sculpture",
+        "toy",
+        "suit",
+        "land vehicle",
+        "airplane",
+        "curtain",
+        "train",
+        "helmet",
+        "bottle",
+        "glasses",
+        "box",
+        "vase",
+        "bed",
+        "shelf",
+        "flag",
+        "bicycle",
+        "coat",
+        "bowl",
+        "skull",
+        "document",
+        "lamp",
+        "jeans",
+        "helicopter",
+        "bench",
+        "clock tower",
+        "plate",
+        "sunglasses",
+        "umbrella",
+        "truck",
+        "couch",
+        "cart",
+        "sword",
+        "bus",
+        "spoon",
+        "bronze sculpture",
+        "musical instrument",
+        "grenade",
+        "necklace",
+        "cross",
+        "knife",
+        "door handle",
+        "weapon",
+        "pillow",
+        "bust",
+        "guitar",
+        "piano",
+        "drum",
+        "balloon",
+        "pen",
+        "glove",
+        "motorcycle",
+        "skirt",
+        "vehicle registration plate",
+        "gun",
+        "ring",
+        "teapot",
+        "dining table",
+        "candle",
+        "platter",
+        "cup",
+        "bicycle wheel",
+        "axe",
+        "jug",
+        "mirror",
+        "jacket",
+        "dagger",
+        "camera",
+        "locket",
+        "bracelet",
+        "clock",
+        "desk",
+        "cowboy hat",
+        "shirt",
+        "wall clock",
+        "plastic bag",
+        "pitcher",
+        "belt",
+        "fork",
+        "coffee cup",
+        "sun hat",
+        "coffee cup",
+        "coffee table",
+        "saucer",
+        "stool",
+        "infant bed",
+        "altar",
+        "mace club",
+        "earrings",
+        "violin",
+        "doll",
+        "bow",
+        "scarf",
+        "chest of drawers",
+        "crown",
+        "rifle",
+        "lantern",
+        "bow and arrow",
+        "cannon",
+        "picnic basket",
+        "window blind",
+        "mixing bowl",
+        "baseball cap",
+        "kitchen & dining room table",
+        "billiard table",
+        "baseball glove",
+        "tablet computer",
+        "sofa bed",
+        "harp",
+        "spear",
+        "studio couch",
+        "table tennis racket",
+        "football helmet",
+        "ring binder",
+        "disposable cup",
+        "kitchen knife",
+        "pickup truck",
+        "punching bag",
+        "arrow",
+        "digital clock",
+        "golf cart",
+        "photo frame",
+        "swim cap",
+        "fire truck",
+        "license plate",
+        "baseball glove",
+        "tablet computer",
+        "bicycle helmet",
+        "alarm clock"
+      ]
+    },
+    "setting": {
+      "label": "Setting & Space",
+      "terms": [
+        "tree",
+        "flower",
+        "house",
+        "building",
+        "plant",
+        "skyscraper",
+        "stairs",
+        "tower",
+        "street light",
+        "palm tree",
+        "flowerpot",
+        "porch",
+        "houseplant",
+        "swimming pool",
+        "fireplace",
+        "fountain",
+        "staircase",
+        "castle",
+        "christmas tree",
+        "office building",
+        "lighthouse",
+        "christmas tree",
+        "bridge",
+        "gate",
+        "swimming pool",
+        "road sign",
+        "field hockey stick"
+      ]
+    },
+    "colour_light": {
+      "label": "Colour & Light",
+      "terms": [
+        "white board",
+        "traffic light",
+        "light bulb",
+        "traffic light",
+        "orange",
+        "light switch"
+      ]
+    },
+    "material_technique": {
+      "label": "Material & Technique",
+      "terms": [
+        "toilet paper",
+        "paper towel",
+        "pencil case"
+      ]
+    }
+  },
+  "uncategorized": [
+    {
+      "term": "poster",
+      "original": "Poster",
+      "doc_count": 40228,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "moon",
+      "original": "Moon",
+      "doc_count": 23801,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "fashion accessory",
+      "original": "Fashion accessory",
+      "doc_count": 14451,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "food",
+      "original": "Food",
+      "doc_count": 12400,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tableware",
+      "original": "Tableware",
+      "doc_count": 8330,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tie",
+      "original": "Tie",
+      "doc_count": 8057,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bread",
+      "original": "Bread",
+      "doc_count": 7578,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "envelope",
+      "original": "Envelope",
+      "doc_count": 5262,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "monitor",
+      "original": "Monitor",
+      "doc_count": 3641,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "whiteboard",
+      "original": "Whiteboard",
+      "doc_count": 3026,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "milk",
+      "original": "Milk",
+      "doc_count": 2506,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "drawer",
+      "original": "Drawer",
+      "doc_count": 1677,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "business card",
+      "original": "Business Card",
+      "doc_count": 1625,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "tent",
+      "original": "Tent",
+      "doc_count": 1587,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "countertop",
+      "original": "Countertop",
+      "doc_count": 1144,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "blackboard",
+      "original": "Blackboard",
+      "doc_count": 1115,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "shaker",
+      "original": "Shaker",
+      "doc_count": 1046,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "drink",
+      "original": "Drink",
+      "doc_count": 1030,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "handbag",
+      "original": "Handbag",
+      "doc_count": 1018,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "rose",
+      "original": "Rose",
+      "doc_count": 958,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "fedora",
+      "original": "Fedora",
+      "doc_count": 954,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "nail",
+      "original": "Nail",
+      "doc_count": 916,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wedding gown",
+      "original": "Wedding Gown",
+      "doc_count": 878,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "auto part",
+      "original": "Auto part",
+      "doc_count": 828,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "menu",
+      "original": "Menu",
+      "doc_count": 813,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "ball",
+      "original": "Ball",
+      "doc_count": 804,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ruler",
+      "original": "Ruler",
+      "doc_count": 791,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cabinetry",
+      "original": "Cabinetry",
+      "doc_count": 790,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tool",
+      "original": "Tool",
+      "doc_count": 777,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "smoke pipe",
+      "original": "Smoke Pipe",
+      "doc_count": 766,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "sports equipment",
+      "original": "Sports equipment",
+      "doc_count": 765,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "egg",
+      "original": "Egg",
+      "doc_count": 708,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "passport",
+      "original": "Passport",
+      "doc_count": 696,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "television",
+      "original": "Television",
+      "doc_count": 630,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "billboard",
+      "original": "Billboard",
+      "doc_count": 623,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "diamond",
+      "original": "Diamond",
+      "doc_count": 580,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "fruit",
+      "original": "Fruit",
+      "doc_count": 573,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wristwatch",
+      "original": "Wristwatch",
+      "doc_count": 558,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "beer",
+      "original": "Beer",
+      "doc_count": 546,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "perfume",
+      "original": "Perfume",
+      "doc_count": 527,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wedding cake",
+      "original": "Wedding Cake",
+      "doc_count": 497,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "snowman",
+      "original": "Snowman",
+      "doc_count": 496,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "snack",
+      "original": "Snack",
+      "doc_count": 460,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "mobile phone",
+      "original": "Mobile Phone",
+      "doc_count": 453,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "tape",
+      "original": "Tape",
+      "doc_count": 433,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "shorts",
+      "original": "Shorts",
+      "doc_count": 427,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "can",
+      "original": "Can",
+      "doc_count": 420,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "kitchen appliance",
+      "original": "Kitchen appliance",
+      "doc_count": 417,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "skateboard",
+      "original": "Skateboard",
+      "doc_count": 416,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cookie",
+      "original": "Cookie",
+      "doc_count": 415,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "microphone",
+      "original": "Microphone",
+      "doc_count": 415,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "baked goods",
+      "original": "Baked goods",
+      "doc_count": 412,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bathtub",
+      "original": "Bathtub",
+      "doc_count": 406,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "mailbox",
+      "original": "Mailbox",
+      "doc_count": 395,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "fire hydrant",
+      "original": "Fire Hydrant",
+      "doc_count": 392,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "office supplies",
+      "original": "Office supplies",
+      "doc_count": 390,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sink faucet",
+      "original": "Sink Faucet",
+      "doc_count": 376,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "paddle",
+      "original": "Paddle",
+      "doc_count": 366,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tattoo",
+      "original": "Tattoo",
+      "doc_count": 361,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "ketchup",
+      "original": "Ketchup",
+      "doc_count": 331,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "sink",
+      "original": "Sink",
+      "doc_count": 323,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "dessert",
+      "original": "Dessert",
+      "doc_count": 313,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pear",
+      "original": "Pear",
+      "doc_count": 309,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tank",
+      "original": "Tank",
+      "doc_count": 308,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "purse",
+      "original": "Purse",
+      "doc_count": 307,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "crib",
+      "original": "Crib",
+      "doc_count": 302,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "dairy",
+      "original": "Dairy",
+      "doc_count": 292,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pineapple",
+      "original": "Pineapple",
+      "doc_count": 281,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "fungus",
+      "original": "Fungus",
+      "doc_count": 275,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "tire",
+      "original": "Tire",
+      "doc_count": 269,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cricket bat",
+      "original": "Cricket Bat",
+      "doc_count": 267,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "surfboard",
+      "original": "Surfboard",
+      "doc_count": 261,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "musical keyboard",
+      "original": "Musical keyboard",
+      "doc_count": 258,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wine glass",
+      "original": "Wine glass",
+      "doc_count": 244,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "computer keyboard",
+      "original": "Computer Keyboard",
+      "doc_count": 242,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "bathroom accessory",
+      "original": "Bathroom accessory",
+      "doc_count": 240,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "vegetable",
+      "original": "Vegetable",
+      "doc_count": 231,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "maple",
+      "original": "Maple",
+      "doc_count": 212,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ladder",
+      "original": "Ladder",
+      "doc_count": 197,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "birthday cake",
+      "original": "Birthday Cake",
+      "doc_count": 194,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "ice cream",
+      "original": "Ice Cream",
+      "doc_count": 193,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "towel",
+      "original": "Towel",
+      "doc_count": 193,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "trousers",
+      "original": "Trousers",
+      "doc_count": 190,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "utility pole",
+      "original": "Utility Pole",
+      "doc_count": 189,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "high heel",
+      "original": "High Heel",
+      "doc_count": 180,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "home appliance",
+      "original": "Home appliance",
+      "doc_count": 175,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ceiling fan",
+      "original": "Ceiling Fan",
+      "doc_count": 174,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "hammer",
+      "original": "Hammer",
+      "doc_count": 172,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "swimwear",
+      "original": "Swimwear",
+      "doc_count": 169,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "bookcase",
+      "original": "Bookcase",
+      "doc_count": 167,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tennis racket",
+      "original": "Tennis Racket",
+      "doc_count": 164,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "gondola",
+      "original": "Gondola",
+      "doc_count": 162,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tap",
+      "original": "Tap",
+      "doc_count": 159,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "banana",
+      "original": "Banana",
+      "doc_count": 156,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tin can",
+      "original": "Tin can",
+      "doc_count": 156,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "toilet",
+      "original": "Toilet",
+      "doc_count": 153,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "traffic sign",
+      "original": "Traffic sign",
+      "doc_count": 153,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ice hockey puck",
+      "original": "Ice Hockey Puck",
+      "doc_count": 149,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "mobile phone",
+      "original": "Mobile phone",
+      "doc_count": 149,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "rocket",
+      "original": "Rocket",
+      "doc_count": 148,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "diaper",
+      "original": "Diaper",
+      "doc_count": 147,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "kettle",
+      "original": "Kettle",
+      "doc_count": 143,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "mushroom",
+      "original": "Mushroom",
+      "doc_count": 138,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "clapperboard",
+      "original": "Clapperboard",
+      "doc_count": 131,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "chess",
+      "original": "Chess",
+      "doc_count": 121,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "cake",
+      "original": "Cake",
+      "doc_count": 120,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "mortar shell",
+      "original": "Mortar Shell",
+      "doc_count": 118,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "serving tray",
+      "original": "Serving tray",
+      "doc_count": 116,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "jacuzzi",
+      "original": "Jacuzzi",
+      "doc_count": 113,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "laptop",
+      "original": "Laptop",
+      "doc_count": 113,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "waste container",
+      "original": "Waste container",
+      "doc_count": 113,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "personal care",
+      "original": "Personal care",
+      "doc_count": 110,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "barrel",
+      "original": "Barrel",
+      "doc_count": 107,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "canoe",
+      "original": "Canoe",
+      "doc_count": 107,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "scissors",
+      "original": "Scissors",
+      "doc_count": 107,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "refrigerator",
+      "original": "Refrigerator",
+      "doc_count": 106,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bat",
+      "original": "Bat",
+      "doc_count": 104,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "dynamite",
+      "original": "Dynamite",
+      "doc_count": 102,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "scoreboard",
+      "original": "Scoreboard",
+      "doc_count": 102,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "moths and butterflies",
+      "original": "Moths and butterflies",
+      "doc_count": 100,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "apple",
+      "original": "Apple",
+      "doc_count": 98,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "baseball bat",
+      "original": "Baseball Bat",
+      "doc_count": 96,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "switch",
+      "original": "Switch",
+      "doc_count": 92,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "tripod",
+      "original": "Tripod",
+      "doc_count": 91,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cheese",
+      "original": "Cheese",
+      "doc_count": 90,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wallet",
+      "original": "Wallet",
+      "doc_count": 90,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "power plugs and sockets",
+      "original": "Power plugs and sockets",
+      "doc_count": 88,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cosmetics",
+      "original": "Cosmetics",
+      "doc_count": 86,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "toothbrush",
+      "original": "Toothbrush",
+      "doc_count": 85,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "medical equipment",
+      "original": "Medical equipment",
+      "doc_count": 83,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "adhesive tape",
+      "original": "Adhesive tape",
+      "doc_count": 81,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "mug",
+      "original": "Mug",
+      "doc_count": 80,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cutting board",
+      "original": "Cutting board",
+      "doc_count": 79,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "disk",
+      "original": "Disk",
+      "doc_count": 72,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "chandelier",
+      "original": "Chandelier",
+      "doc_count": 66,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "crutch",
+      "original": "Crutch",
+      "doc_count": 64,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "overcoat",
+      "original": "Overcoat",
+      "doc_count": 64,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "wheelchair",
+      "original": "Wheelchair",
+      "doc_count": 64,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sock",
+      "original": "Sock",
+      "doc_count": 63,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "accordion",
+      "original": "Accordion",
+      "doc_count": 59,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "lipstick",
+      "original": "Lipstick",
+      "doc_count": 56,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pumpkin",
+      "original": "Pumpkin",
+      "doc_count": 55,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "screw",
+      "original": "Screw",
+      "doc_count": 54,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "suitcase",
+      "original": "Suitcase",
+      "doc_count": 53,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cooktop",
+      "original": "Cooktop",
+      "doc_count": 52,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "qr code",
+      "original": "QR Code",
+      "doc_count": 52,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "mixer",
+      "original": "Mixer",
+      "doc_count": 48,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "watercraft",
+      "original": "Watercraft",
+      "doc_count": 46,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "burger",
+      "original": "Burger",
+      "doc_count": 45,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "grape",
+      "original": "Grape",
+      "doc_count": 45,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "mechanical fan",
+      "original": "Mechanical fan",
+      "doc_count": 45,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pill",
+      "original": "Pill",
+      "doc_count": 45,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "computer monitor",
+      "original": "Computer monitor",
+      "doc_count": 43,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "microwave",
+      "original": "Microwave",
+      "doc_count": 42,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "soccer ball",
+      "original": "Soccer Ball",
+      "doc_count": 41,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "brush",
+      "original": "Brush",
+      "doc_count": 39,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "turret",
+      "original": "Turret",
+      "doc_count": 39,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "ski",
+      "original": "Ski",
+      "doc_count": 38,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "headphones",
+      "original": "Headphones",
+      "doc_count": 37,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "van",
+      "original": "Van",
+      "doc_count": 37,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "blouse",
+      "original": "Blouse",
+      "doc_count": 36,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "bullet",
+      "original": "Bullet",
+      "doc_count": 35,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "bonfire",
+      "original": "Bonfire",
+      "doc_count": 34,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "convenience store",
+      "original": "Convenience store",
+      "doc_count": 34,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "credit card",
+      "original": "Credit Card",
+      "doc_count": 34,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "missile",
+      "original": "Missile",
+      "doc_count": 34,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ping pong paddle",
+      "original": "Ping Pong Paddle",
+      "doc_count": 34,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "fast food",
+      "original": "Fast food",
+      "doc_count": 33,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "windmill",
+      "original": "Windmill",
+      "doc_count": 33,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "salt and pepper shakers",
+      "original": "Salt and pepper shakers",
+      "doc_count": 32,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "shovel",
+      "original": "Shovel",
+      "doc_count": 32,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "coconut",
+      "original": "Coconut",
+      "doc_count": 31,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "fire hydrant",
+      "original": "Fire hydrant",
+      "doc_count": 30,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "beaker",
+      "original": "Beaker",
+      "doc_count": 29,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bulldozer",
+      "original": "Bulldozer",
+      "doc_count": 29,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "gas stove",
+      "original": "Gas stove",
+      "doc_count": 29,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "hiking equipment",
+      "original": "Hiking equipment",
+      "doc_count": 29,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "plumbing fixture",
+      "original": "Plumbing fixture",
+      "doc_count": 29,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "baton",
+      "original": "Baton",
+      "doc_count": 28,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "high heels",
+      "original": "High heels",
+      "doc_count": 28,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "nightstand",
+      "original": "Nightstand",
+      "doc_count": 28,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sunflower",
+      "original": "Sunflower",
+      "doc_count": 28,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cello",
+      "original": "Cello",
+      "doc_count": 27,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "driving license",
+      "original": "Driving License",
+      "doc_count": 27,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "screwdriver",
+      "original": "Screwdriver",
+      "doc_count": 27,
+      "sources": [
+        "Clarifai",
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "shower faucet",
+      "original": "Shower Faucet",
+      "doc_count": 27,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "baseball (ball)",
+      "original": "Baseball (Ball)",
+      "doc_count": 26,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "hot tub",
+      "original": "Hot Tub",
+      "doc_count": 26,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "telephone",
+      "original": "Telephone",
+      "doc_count": 26,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "watch",
+      "original": "Watch",
+      "doc_count": 25,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "closet",
+      "original": "Closet",
+      "doc_count": 24,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "flyer",
+      "original": "Flyer",
+      "doc_count": 24,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "tennis ball",
+      "original": "Tennis Ball",
+      "doc_count": 24,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "candy",
+      "original": "Candy",
+      "doc_count": 23,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "dice",
+      "original": "Dice",
+      "doc_count": 23,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "id cards",
+      "original": "Id Cards",
+      "doc_count": 23,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "cake stand",
+      "original": "Cake stand",
+      "doc_count": 22,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "hanukkah menorah",
+      "original": "Hanukkah Menorah",
+      "doc_count": 22,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "parachute",
+      "original": "Parachute",
+      "doc_count": 22,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tomato",
+      "original": "Tomato",
+      "doc_count": 22,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "washing machine",
+      "original": "Washing machine",
+      "doc_count": 22,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "lily",
+      "original": "Lily",
+      "doc_count": 21,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "razor",
+      "original": "Razor",
+      "doc_count": 21,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "corded phone",
+      "original": "Corded phone",
+      "doc_count": 19,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "goggles",
+      "original": "Goggles",
+      "doc_count": 19,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sewing machine",
+      "original": "Sewing machine",
+      "doc_count": 19,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bowling equipment",
+      "original": "Bowling equipment",
+      "doc_count": 18,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "kite",
+      "original": "Kite",
+      "doc_count": 18,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "computer keyboard",
+      "original": "Computer keyboard",
+      "doc_count": 17,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "first aid",
+      "original": "First Aid",
+      "doc_count": 17,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "rugby ball",
+      "original": "Rugby Ball",
+      "doc_count": 17,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "unicycle",
+      "original": "Unicycle",
+      "doc_count": 17,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "baseball bat",
+      "original": "Baseball bat",
+      "doc_count": 16,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "earring",
+      "original": "Earring",
+      "doc_count": 16,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "luggage and bags",
+      "original": "Luggage and bags",
+      "doc_count": 16,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "shotgun",
+      "original": "Shotgun",
+      "doc_count": 16,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "trumpet",
+      "original": "Trumpet",
+      "doc_count": 16,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "boot",
+      "original": "Boot",
+      "doc_count": 15,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pizza",
+      "original": "Pizza",
+      "doc_count": 15,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "sandal",
+      "original": "Sandal",
+      "doc_count": 15,
+      "sources": [
+        "AWS Rekognition",
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "shower",
+      "original": "Shower",
+      "doc_count": 15,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "beehive",
+      "original": "Beehive",
+      "doc_count": 14,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "blow dryer",
+      "original": "Blow Dryer",
+      "doc_count": 14,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "dumbbell",
+      "original": "Dumbbell",
+      "doc_count": 14,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "kitchen utensil",
+      "original": "Kitchen utensil",
+      "doc_count": 14,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "lavender",
+      "original": "Lavender",
+      "doc_count": 14,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "rays and skates",
+      "original": "Rays and skates",
+      "doc_count": 14,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wine",
+      "original": "Wine",
+      "doc_count": 14,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "gas pump",
+      "original": "Gas Pump",
+      "doc_count": 13,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "juice",
+      "original": "Juice",
+      "doc_count": 13,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tennis racket",
+      "original": "Tennis racket",
+      "doc_count": 13,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ceiling fan",
+      "original": "Ceiling fan",
+      "doc_count": 12,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ratchet",
+      "original": "Ratchet",
+      "doc_count": 12,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sweater",
+      "original": "Sweater",
+      "doc_count": 12,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "woodpecker",
+      "original": "Woodpecker",
+      "doc_count": 12,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "crab",
+      "original": "Crab",
+      "doc_count": 11,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "flying disc",
+      "original": "Flying disc",
+      "doc_count": 11,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ice hockey stick",
+      "original": "Ice Hockey Stick",
+      "doc_count": 11,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "solar panels",
+      "original": "Solar Panels",
+      "doc_count": 11,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "wood-burning stove",
+      "original": "Wood-burning stove",
+      "doc_count": 11,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "aircraft",
+      "original": "Aircraft",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "american football (ball)",
+      "original": "American Football (Ball)",
+      "doc_count": 10,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "basketball (ball)",
+      "original": "Basketball (Ball)",
+      "doc_count": 10,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "cream",
+      "original": "Cream",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cupboard",
+      "original": "Cupboard",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "doughnut",
+      "original": "Doughnut",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "dragonfly",
+      "original": "Dragonfly",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "hand dryer",
+      "original": "Hand dryer",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "organ",
+      "original": "Organ",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "panda",
+      "original": "Panda",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pants",
+      "original": "Pants",
+      "doc_count": 10,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "snowboard",
+      "original": "Snowboard",
+      "doc_count": 10,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "speaker",
+      "original": "Speaker",
+      "doc_count": 10,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "washer",
+      "original": "Washer",
+      "doc_count": 10,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "asparagus",
+      "original": "Asparagus",
+      "doc_count": 9,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "coffee",
+      "original": "Coffee",
+      "doc_count": 9,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cucumber",
+      "original": "Cucumber",
+      "doc_count": 9,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "football",
+      "original": "Football",
+      "doc_count": 9,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "frying pan",
+      "original": "Frying pan",
+      "doc_count": 9,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "horizontal bar",
+      "original": "Horizontal bar",
+      "doc_count": 9,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "lemon",
+      "original": "Lemon",
+      "doc_count": 9,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "flute",
+      "original": "Flute",
+      "doc_count": 8,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "kitchen island",
+      "original": "Kitchen Island",
+      "doc_count": 8,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "wine rack",
+      "original": "Wine rack",
+      "doc_count": 8,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "worm",
+      "original": "Worm",
+      "doc_count": 8,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "binoculars",
+      "original": "Binoculars",
+      "doc_count": 7,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cricket ball",
+      "original": "Cricket Ball",
+      "doc_count": 7,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "handgun",
+      "original": "Handgun",
+      "doc_count": 7,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "lawn mower",
+      "original": "Lawn Mower",
+      "doc_count": 7,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "saxophone",
+      "original": "Saxophone",
+      "doc_count": 7,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sports uniform",
+      "original": "Sports uniform",
+      "doc_count": 7,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "starfish",
+      "original": "Starfish",
+      "doc_count": 7,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "stretcher",
+      "original": "Stretcher",
+      "doc_count": 7,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "taxi",
+      "original": "Taxi",
+      "doc_count": 7,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "carrot",
+      "original": "Carrot",
+      "doc_count": 6,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ladybug",
+      "original": "Ladybug",
+      "doc_count": 6,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "trombone",
+      "original": "Trombone",
+      "doc_count": 6,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wrench",
+      "original": "Wrench",
+      "doc_count": 6,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "earbuds",
+      "original": "Earbuds",
+      "doc_count": 5,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "face powder",
+      "original": "Face powder",
+      "doc_count": 5,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "racket",
+      "original": "Racket",
+      "doc_count": 5,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "raven",
+      "original": "Raven",
+      "doc_count": 5,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "remote control",
+      "original": "Remote Control",
+      "doc_count": 5,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "sombrero",
+      "original": "Sombrero",
+      "doc_count": 5,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "vest",
+      "original": "Vest",
+      "doc_count": 5,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "banjo",
+      "original": "Banjo",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "barge",
+      "original": "Barge",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "brassiere",
+      "original": "Brassiere",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "chopsticks",
+      "original": "Chopsticks",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "e-scooter",
+      "original": "E-scooter",
+      "doc_count": 4,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "hedgehog",
+      "original": "Hedgehog",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "hoodie",
+      "original": "Hoodie",
+      "doc_count": 4,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "porcupine",
+      "original": "Porcupine",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "strawberry",
+      "original": "Strawberry",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "toaster",
+      "original": "Toaster",
+      "doc_count": 4,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bidet",
+      "original": "Bidet",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "flashlight",
+      "original": "Flashlight",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "hardhat",
+      "original": "Hardhat",
+      "doc_count": 3,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "miniskirt",
+      "original": "Miniskirt",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "otter",
+      "original": "Otter",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sandwich",
+      "original": "Sandwich",
+      "doc_count": 3,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "spice rack",
+      "original": "Spice rack",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "tea",
+      "original": "Tea",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "watermelon",
+      "original": "Watermelon",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "zucchini",
+      "original": "Zucchini",
+      "doc_count": 3,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "armadillo",
+      "original": "Armadillo",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "backpack",
+      "original": "Backpack",
+      "doc_count": 2,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "bathroom cabinet",
+      "original": "Bathroom cabinet",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bridal veil",
+      "original": "Bridal Veil",
+      "doc_count": 2,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "briefcase",
+      "original": "Briefcase",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "canary",
+      "original": "Canary",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "chime",
+      "original": "Chime",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "drinking straw",
+      "original": "Drinking straw",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "filing cabinet",
+      "original": "Filing cabinet",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "golf ball",
+      "original": "Golf ball",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "harbor seal",
+      "original": "Harbor seal",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ipod",
+      "original": "Ipod",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "limo",
+      "original": "Limo",
+      "doc_count": 2,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "pajamas",
+      "original": "Pajamas",
+      "doc_count": 2,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "pomegranate",
+      "original": "Pomegranate",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pork",
+      "original": "Pork",
+      "doc_count": 2,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "slow cooker",
+      "original": "Slow cooker",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "soap dispenser",
+      "original": "Soap dispenser",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "sushi",
+      "original": "Sushi",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "t-shirt",
+      "original": "T-Shirt",
+      "doc_count": 2,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "tiara",
+      "original": "Tiara",
+      "doc_count": 2,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "vr headset",
+      "original": "VR Headset",
+      "doc_count": 2,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "ant",
+      "original": "Ant",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "bell pepper",
+      "original": "Bell pepper",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "broccoli",
+      "original": "Broccoli",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "calculator",
+      "original": "Calculator",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cantaloupe",
+      "original": "Cantaloupe",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cassette deck",
+      "original": "Cassette deck",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cheetah",
+      "original": "Cheetah",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "cocktail",
+      "original": "Cocktail",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "common fig",
+      "original": "Common fig",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "crossbow",
+      "original": "Crossbow",
+      "doc_count": 1,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "dryer",
+      "original": "Dryer",
+      "doc_count": 1,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "hippopotamus",
+      "original": "Hippopotamus",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "horn",
+      "original": "Horn",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "ice cream",
+      "original": "Ice cream",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "jaguar",
+      "original": "Jaguar",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "limousine",
+      "original": "Limousine",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "mango",
+      "original": "Mango",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "microwave oven",
+      "original": "Microwave oven",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "pasta",
+      "original": "Pasta",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "peach",
+      "original": "Peach",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "potato",
+      "original": "Potato",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "printer",
+      "original": "Printer",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "remote control",
+      "original": "Remote control",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "scale",
+      "original": "Scale",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "scorpion",
+      "original": "Scorpion",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "seafood",
+      "original": "Seafood",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "stop sign",
+      "original": "Stop sign",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "volleyball (ball)",
+      "original": "Volleyball (Ball)",
+      "doc_count": 1,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    },
+    {
+      "term": "whisk",
+      "original": "Whisk",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    },
+    {
+      "term": "wok",
+      "original": "Wok",
+      "doc_count": 1,
+      "sources": [
+        "Clarifai"
+      ]
+    }
+  ],
+  "ignored": [
+    {
+      "term": "painting",
+      "original": "Painting",
+      "doc_count": 44595,
+      "sources": [
+        "AWS Rekognition"
+      ]
+    }
+  ]
+}

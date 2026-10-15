@@ -1,0 +1,30 @@
+{{!-- Left column: the zoomable image stays in view while reading, with the
+picker for the object's other images. Title and the museum record live in the
+main header; the human image description is on the Overview. --}}
+<section class="object-view-panel image-research-viewer">
+  {{#if display_image}}
+  <div class="object-image-container">
+    <div id="openseadragon1" aria-label="Zoomable image {{display_image.imageid}}"></div>
+    <div id="image-toolbar"><button type="button" id="zoom-in" title="Zoom in" aria-label="Zoom in"><i
+          class="fa fa-search-plus toolbar-button" aria-hidden="true"></i></button><button type="button" id="zoom-out"
+        title="Zoom out" aria-label="Zoom out"><i class="fa fa-search-minus toolbar-button"
+          aria-hidden="true"></i></button><button type="button" id="zoom-home">Fit image</button></div>
+  </div>
+  {{else}}<p>No image available for this object.</p>{{/if}}
+  {{!-- Other images of the object: plain links, so they work without
+        JavaScript and open in new tabs. research-workspace.js keeps each
+        link's hash on the current tab, so switching images keeps the view. --}}
+  {{#if multiple_images}}
+  <nav class="research-image-strip" aria-label="Images of this object">
+    <ol>
+      {{#each image_choices}}
+      <li>
+        <a href="{{url}}" title="{{label}}"{{#if selected}} aria-current="page"{{/if}}>
+          {{#if thumbnail}}<img src="{{thumbnail}}" alt="{{label}}">{{else}}<span class="research-image-strip-fallback">{{label}}</span>{{/if}}
+        </a>
+      </li>
+      {{/each}}
+    </ol>
+  </nav>
+  {{/if}}
+</section>

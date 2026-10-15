@@ -1,0 +1,114 @@
+{{!--
+  Descriptions: a scannable index of every AI description (left) and a reader
+  for the selected one (right). Ticking two rows shows them side by side, with
+  a link into the full Compare workspace.
+
+  Everything is server-rendered so the full text is in the page without
+  JavaScript; outputs-index.js adds filtering, sorting, grouping, selection and
+  the side-by-side view. The overview data (shared terms, distinctive phrases,
+  divergence flags) is layered on once the perspectives JSON arrives.
+--}}
+<section id="research-outputs" data-research-panel="descriptions" aria-label="Descriptions"{{#if selected_output_id}} data-initial-selection="{{selected_output_id}}"{{/if}}>
+  {{#if output_rows}}
+  <div class="outputs-toolbar">
+    <div class="outputs-terms" id="outputs-terms" role="group" aria-label="Filter by a term the descriptions share"></div>
+    <label class="outputs-find">
+      <span>Find</span>
+      <input type="search" id="outputs-find" placeholder="Model, provider or any word" autocomplete="off">
+    </label>
+    <label class="outputs-sort">
+      <span>Sort</span>
+      <select id="outputs-sort">
+        <option value="provider">Provider</option>
+        <option value="words-desc">Most words</option>
+        <option value="words-asc">Fewest words</option>
+        <option value="created-desc">Newest generated</option>
+        <option value="created-asc">Oldest generated</option>
+        <option value="released-desc">Newest model</option>
+        <option value="released-asc">Oldest model</option>
+      </select>
+    </label>
+    <span class="outputs-count" id="outputs-count" role="status"></span>
+  </div>
+
+  <div class="outputs-layout">
+    {{!-- Index. Each row carries the values the filters and sorters need. --}}
+    <div class="outputs-index">
+      <div class="outputs-row outputs-row--head" aria-hidden="true">
+        <span>Pair</span><span>Model</span><span>Generated</span><span>Words</span><span>Notable</span>
+      </div>
+      <ol class="outputs-list" id="outputs-list">
+        {{#each output_rows}}
+        <li class="outputs-row" data-annotation-id="{{annotation_id}}" data-key="{{key}}" data-provider="{{source}}" data-model="{{display_model}}" data-created="{{createdate}}" data-released="{{model_released}}" data-words="{{words}}">
+          <input type="checkbox" class="outputs-pair-toggle" aria-label="Compare {{display_model}} ({{source}}, {{createdate}})">
+          <button type="button" class="outputs-select">
+            <span class="outputs-model">{{display_model}}</span>
+            <span class="outputs-provider">{{source}}</span>
+          </button>
+          <span class="outputs-date">{{createdate}}</span>
+          <span class="outputs-words">{{words}} <span class="outputs-bar" style="--words: {{words}}" aria-hidden="true"></span></span>
+          <span class="outputs-notable"></span>
+        </li>
+        {{/each}}
+      </ol>
+      <p class="outputs-empty" id="outputs-empty" hidden>No descriptions match. <button type="button" class="overview-link" id="outputs-clear">Clear filters</button></p>
+    </div>
+
+    {{!-- Reader. One article per description; outputs-index.js shows one at a time. --}}
+    <div class="outputs-reader" id="outputs-reader" aria-live="polite">
+      {{#each output_rows}}
+      <article class="outputs-entry" data-annotation-id="{{annotation_id}}" aria-labelledby="output-title-{{annotation_id}}" hidden>
+        <h2 class="outputs-entry-title" id="output-title-{{annotation_id}}">{{display_model}}</h2>
+        <p class="research-note">{{source}} · generated {{createdate}}{{#if age}} ({{age}}){{/if}} · {{words}} words{{#if model_released}} · model released {{model_released}}{{/if}}</p>
+        <p class="outputs-flag" hidden></p>
+        <div class="outputs-body">{{#if body}}{{{markdown body}}}{{else}}<p class="desc-empty">No description written</p>{{/if}}</div>
+        <p class="research-note">Tick another row to compare side by side.</p>
+        {{#if stats}}
+        <details class="outputs-details">
+          <summary>Language statistics</summary>
+          <dl class="outputs-facts">
+            <div><dt title="Content words / total words">Lexical density</dt><dd>{{stats.lexicalDensity}}%</dd></div>
+            <div><dt title="Unique words / total words">Vocabulary diversity</dt><dd>{{stats.ttr}}%</dd></div>
+            <div><dt title="Words appearing once / total words">Specificity</dt><dd>{{stats.hapaxRatio}}%</dd></div>
+            <div><dt>Average sentence</dt><dd>{{stats.avgSentLen}} words</dd></div>
+          </dl>
+        </details>
+        {{/if}}
+        <details class="outputs-details">
+          <summary>Token usage</summary>
+          {{#if cost}}
+          <dl class="outputs-facts">
+            <div><dt>Input tokens</dt><dd>{{cost.input}}</dd></div>
+            <div><dt>Output tokens</dt><dd>{{cost.output}}</dd></div>
+            {{#if cost.total}}<div><dt>Total tokens</dt><dd>{{cost.total}}</dd></div>{{/if}}
+          </dl>
+          {{else}}
+          <p class="research-note">Token usage was not recorded for this description.</p>
+          {{/if}}
+        </details>
+        <details class="outputs-details">
+          <summary>Record details</summary>
+          <dl class="outputs-facts">
+            <div><dt>Annotation</dt><dd>{{annotation_id}}</dd></div>
+            <div><dt>Model identifier</dt><dd>{{#if model}}{{model}}{{else}}not recorded{{/if}}</dd></div>
+            <div><dt>Source</dt><dd>{{source_raw}}</dd></div>
+          </dl>
+        </details>
+      </article>
+      {{/each}}
+
+      {{!-- Side by side: filled with copies of the two ticked entries. --}}
+      <section class="outputs-pair" id="outputs-pair" aria-label="Side-by-side comparison" hidden>
+        <div class="outputs-pair-head">
+          <h2 class="outputs-entry-title">Side by side</h2>
+          <button type="button" class="quickbar-btn" id="outputs-pair-open">Open full comparison</button>
+          <button type="button" class="quickbar-btn" id="outputs-pair-clear">Clear</button>
+        </div>
+        <div class="outputs-pair-columns" id="outputs-pair-columns"></div>
+      </section>
+    </div>
+  </div>
+  {{else}}
+  <p>No model descriptions are available for this image.</p>
+  {{/if}}
+</section>

@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "build-vocab": "node vocab.js"
+    "build-vocab": "node vocab.js",
+    "test:research": "node --test test/research-workspace.test.cjs test/perspectives-evidence.test.cjs test/overview.test.cjs"
   },
   "dependencies": {
+    "compromise": "^14.10.0",
     "cookie-parser": "~1.4.4",
     "debug": "~2.6.9",
     "dotenv": "^8.0.0",
@@ -20,6 +22,6 @@
     "openseadragon": "^2.4.1"
   },
   "devDependencies": {
-    "compromise": "^14.10.0"
+    "@huggingface/transformers": "^4.2.0"
   }
 }

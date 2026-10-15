@@ -6,6 +6,7 @@ var querystring = require('querystring');
 var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
 var organize = require('../public/javascripts/organize')
+var perspectives = require('../public/javascripts/perspectives')
 var models = require('../models')
 var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
@@ -23,6 +24,30 @@ var stopwords = require('../public/vocabularies/stopwords');
 const API_KEY = process.env['API_KEY']
 
 let statsCache = null;
+
+// In-memory perspectives cache: object ID + image ID + algorithm version.
+// TTL 12 hours, max 1000 entries (oldest-first eviction).
+const PERSPECTIVES_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
+const PERSPECTIVES_CACHE_MAX    = 1000;
+const perspectivesCache = new Map();
+
+function perspectivesCacheGet(key) {
+  const entry = perspectivesCache.get(key);
+  if (!entry) return null;
+  if (Date.now() - entry.ts > PERSPECTIVES_CACHE_TTL_MS) {
+    perspectivesCache.delete(key);
+    return null;
+  }
+  return entry.result;
+}
+
+function perspectivesCacheSet(key, result) {
+  if (perspectivesCache.size >= PERSPECTIVES_CACHE_MAX) {
+    // Evict the oldest entry
+    perspectivesCache.delete(perspectivesCache.keys().next().value);
+  }
+  perspectivesCache.set(key, { result, ts: Date.now() });
+}
 
 async function refreshStatsCache() {
   const queries = [
@@ -201,19 +226,20 @@ function _buildImageSummary(ai_sorted) {
     const withDates = ai_descs.filter(d => d.model_released).sort((a, b) => a.model_released.localeCompare(b.model_released));
     const oldest = withDates[0];
     const newest = withDates[withDates.length - 1];
-    const runDates = ai_descs.map(d => d.createdate).filter(Boolean).sort();
+    const runDates = ai_descs.map(d => d.createdate).filter(date => Number.isFinite(Date.parse(date))).sort();
     const firstRun = runDates[0];
     const lastRun = runDates[runDates.length - 1];
-    const modelLabel = ai_descs.length === 1 ? '1 model' : `${ai_descs.length} models`;
-    const providerLabel = providerCount === 1 ? '1 provider' : `${providerCount} sources`;
-    const descParts = [`This image was run through ${modelLabel} from ${providerLabel}.`];
-    if (oldest && newest && withDates.length > 1) {
+    const modelCount = new Set(ai_descs.filter(d => d.model).map(d => d.source + '\0' + d.model)).size;
+    const modelLabel = modelCount === 1 ? '1 model' : `${modelCount} models`;
+    const providerLabel = providerCount === 1 ? '1 provider' : `${providerCount} providers`;
+    const descParts = [`This image has ${ai_descs.length} description${ai_descs.length === 1 ? '' : 's'} from ${providerLabel}${modelCount ? ' (' + modelLabel + ')' : ''}.`];
+    if (oldest && newest && (oldest.model !== newest.model || oldest.source !== newest.source)) {
       descParts.push(`The oldest model is ${oldest.display_model} (${oldest.model_released.slice(0,4)}) and the newest is ${newest.display_model} (${newest.model_released.slice(0,4)}).`);
     } else if (oldest) {
       descParts.push(`The model is ${oldest.display_model} (${oldest.model_released.slice(0,4)}).`);
     }
     if (firstRun && lastRun) {
-      const fmt = d => new Date(d).toLocaleDateString('en-US', {month: 'short', year: 'numeric'});
+      const fmt = d => new Date(d).toLocaleDateString('en-US', {month: 'short', year: 'numeric', timeZone: 'UTC'});
       descParts.push(firstRun === lastRun
         ? `Descriptions were collected in ${fmt(firstRun)}.`
         : `Descriptions were collected between ${fmt(firstRun)} and ${fmt(lastRun)}.`);
@@ -677,8 +703,104 @@ router.get('/category/:category/:page?', function(req, res, next) {
   })
 });
 
+// Counts for the research page header and the Overview's detections card.
+// Counted from the raw annotation records so every number matches the data
+// a researcher can download, independent of how organize.divide groups them.
+function buildWorkspaceStats(ai_data) {
+  const count = (type, feature) => ai_data.filter(r => r.type === type && (!feature || r.feature === feature)).length;
+  const descriptions = ai_data.filter(r => r.type === 'description' && (r.body || '').trim());
+  const years = ai_data.map(r => Number(String(r.createdate || '').slice(0, 4))).filter(Number.isFinite).filter(y => y > 0);
+  const first = years.length ? Math.min(...years) : null, last = years.length ? Math.max(...years) : null;
+  const stats = {
+    descriptions: descriptions.length,
+    providers: new Set(descriptions.map(r => r.source)).size,
+    tags: count('tag', 'full'),
+    regions: count('tag', 'region'),
+    faces: count('face'),
+    categories: count('category'),
+    // AWS Rekognition reports text as both a line and a word, so a one-word
+    // inscription arrives twice. Count distinct readings per service, the
+    // same way organize.divide lists them on the Tags & detections tab.
+    text: new Set(ai_data.filter(r => r.type === 'text').map(r => r.source + '\0' + r.body)).size,
+    // When the annotations were generated, e.g. "2018–2026"; not artwork dates.
+    years: first === null ? null : first === last ? String(first) : `${first}–${last}`,
+  };
+  stats.detections = stats.tags + stats.regions + stats.faces + stats.categories + stats.text;
+  return stats;
+}
+
+// Thumbnails for the image strip under the viewer, one per image of the
+// object in museum display order. Labels identify an image without its ID:
+// position, the image's date, and a short alt text or description.
+function buildImageChoices(object_info, imageid) {
+  const images = (object_info.images || []).slice().sort((a, b) => (a.displayorder || 0) - (b.displayorder || 0));
+  const shorten = (text, max) => text.length > max ? text.slice(0, max).replace(/\s+\S*$/, '') + '…' : text;
+  return images.map((image, index) => {
+    const year = image.date ? String(image.date).slice(0, 4) : null;
+    const about = image.alttext || image.description || '';
+    const label = [`Image ${index + 1} of ${images.length}`, year && `photographed ${year}`]
+      .filter(Boolean).join(', ') + (about ? ': ' + shorten(about, 120) : '');
+    return {
+      imageid: image.imageid,
+      url: `/object/${encodeURIComponent(object_info.id)}/image/${image.imageid}`,
+      // IIIF: fit within 96×96 so tall and wide images both stay whole.
+      thumbnail: image.baseimageurl ? `${image.baseimageurl}/full/!96,96/0/default.jpg` : null,
+      label,
+      selected: image.imageid === Number(imageid),
+    };
+  });
+}
+
+// One row per AI description for the Descriptions index. Human-authored
+// references stay out of the index; they appear on the Overview and in Compare.
+function buildOutputRows(descriptions_list) {
+  // Older services record no model ("unknown"); name the provider instead so
+  // the row still says whose output it is.
+  const hasModelName = d => d.display_model && d.display_model !== 'unknown';
+  return descriptions_list.filter(d => !d.isHuman).map(d => ({
+    ...d,
+    display_model: hasModelName(d) ? d.display_model : d.source + ' (model not recorded)',
+    words: d.stats ? d.stats.total : d.body.split(/\s+/).filter(Boolean).length,
+  }));
+}
+
+function buildResearchDescriptions(ai_sorted, object_info, display_image) {
+  let descriptions_list = [];
+
+      if (object_info.labeltext) {
+        descriptions_list.push({ key: 'labeltext', scope: 'Object wall label', source: 'Human', model: 'Wall Label Text', createdate: '?', body: object_info.labeltext, isHuman: true, stats: _computeStats(object_info.labeltext) });
+      }
+      if (display_image && display_image.description) {
+        descriptions_list.push({ key: 'imagedesc', scope: 'Human image description', source: 'Human', model: 'Image Description', createdate: '?', body: display_image.description, isHuman: true, stats: _computeStats(display_image.description) });
+      }
+
+      for (let [key, val] of Object.entries(ai_sorted.descriptions || {})) {
+        for (let desc of val.descriptions) {
+          descriptions_list.push({
+            key:           'annotation_' + desc.id,
+            annotation_id: desc.id,
+            source_raw: desc.source,
+            scope: 'Image ' + (display_image ? display_image.imageid : ''),
+            source:        val.source,
+            model:         desc.model || '',
+            display_model: desc.display_model || desc.model || '',
+            model_released: desc.model_released || null,
+            createdate:    desc.createdate,
+            age:           desc.age || '',
+            body:          desc.body || '',
+            isHuman:       false,
+            cost:         desc.cost,
+            stats:         desc.stats || null
+          });
+        }
+      }
+
+  return descriptions_list;
+}
+
 /* GET object info. */
 router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
+  if (req.params.image === 'compare' && !req.params.image_id) return res.redirect('/object/' + encodeURIComponent(req.params.object_id) + '#compare');
   let tag_list = _.sampleSize(example_tags.tags_list, 5);
   let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
   let image_list = _.sampleSize(example_images.image_list, 6);
@@ -687,23 +809,61 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
   
   fetch(object_url).then(response => response.json())
   .then(object_info => {
-    let imageid = object_info.images[0].imageid;
-    if (req.params.image_id > 0) {
-      imageid = req.params.image_id;
+    const selected = req.params.image_id
+      ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
+      : (object_info.images || [])[0];
+    if (!selected) {
+      const error = new Error('No matching image is available for this object.');
+      error.status = 404;
+      return next(error);
     }
+    const imageid = selected.imageid;
 
     const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
-    fetch(ai_url).then(response => response.json())
-    .then(ai_info => {
+    // The full image record carries data the summary embedded in the object
+    // record lacks, notably this image's own colour palette. It is optional:
+    // if the request fails, the page renders without those fields.
+    const image_url = `https://api.harvardartmuseums.org/image/` + imageid + `?apikey=` + API_KEY;
+    const image_record = fetch(image_url)
+      .then(response => response.ok ? response.json() : null)
+      .catch(() => null);
+
+    Promise.all([fetch(ai_url).then(response => response.json()), image_record])
+    .then(([ai_info, image_info]) => {
+      // Evidence links retain the complete, original annotation body and model
+      // identifier before organize.divide enriches/mutates the display records.
+      const selected_annotation = req.query && req.query.annotation
+        ? _.cloneDeep((ai_info.records || []).find(record => String(record.id) === req.query.annotation)) : null;
       let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
       // Divide data into general categories
       let ai_sorted = organize.divide(ai_data)
       const image_summary = _buildImageSummary(ai_sorted);
 
-      let display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+      // The embedded summary keeps fields only it has (displayorder,
+      // publiccaption); the full image record adds colors, fingerprints, etc.
+      const embedded_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+      const display_image = image_info && image_info.imageid === embedded_image.imageid
+        ? { ...embedded_image, ...image_info } : embedded_image;
+      const descriptions_list = buildResearchDescriptions(ai_sorted, object_info, display_image);
+      // An evidence link to a description opens it in the Descriptions reader;
+      // any other annotation (tags, faces, regions) is shown as a source record.
+      const linksToDescription = selected_annotation && selected_annotation.type === 'description';
+      const image_choices = buildImageChoices(object_info, imageid);
 
-      res.render('object', { title: 'AI Data for ' + object_info.title,
-                             navbar: false,
+      // Matches the page heading; the layout appends "| AI Explorer | Harvard Art Museums".
+      res.render('object', { title: 'How AI describes ' + object_info.title + ' (image ' + imageid + ')',
+                             selected_annotation: linksToDescription ? null : selected_annotation,
+                             selected_output_id: linksToDescription ? selected_annotation.id : null,
+                             descriptions_list,
+                             output_rows: buildOutputRows(descriptions_list),
+                             workspace_stats: buildWorkspaceStats(ai_info.records || []),
+                             // Same display order as the image strip, so "(2 of 7)" matches it.
+                             image_position: image_choices.findIndex(choice => choice.selected) + 1,
+                             has_other_analysis: Boolean(display_image.colors && display_image.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
+                             multiple_images: object_info.images.length > 1,
+                             object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
+                             image_choices,
+                             navbar: true,
                              year: new Date().getFullYear(),
                              ai_data: ai_data,
                              ai_sorted: ai_sorted,
@@ -729,81 +889,46 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
                                           image_list: image_list})})
 });
 
-/* GET compare descriptions view. */
-router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res, next) {
-  let tag_list = _.sampleSize(example_tags.tags_list, 5);
-  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
-  let image_list = _.sampleSize(example_images.image_list, 6);
+/* Legacy comparison links now open the selected image workspace. */
+router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res) {
+  const path = '/object/' + encodeURIComponent(req.params.object_id) + (req.params.image_id ? '/image/' + encodeURIComponent(req.params.image_id) : '');
+  res.redirect(path + '#compare');
+});
 
+/* GET AI Perspectives JSON for an object/image. */
+router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, res, next) {
   const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
 
   fetch(object_url).then(response => response.json())
   .then(object_info => {
-    let imageid = object_info.images[0].imageid;
-    if (req.params.image_id > 0) {
-      imageid = req.params.image_id;
+    const selected = req.params.image_id
+      ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
+      : (object_info.images || [])[0];
+    if (!selected) {
+      const error = new Error('No matching image is available for this object.');
+      error.status = 404;
+      return next(error);
+    }
+    const imageid = selected.imageid;
+
+    const cacheKey = `${object_info.id}_${imageid}_${perspectives.ALGORITHM_VERSION}`;
+    const cached = perspectivesCacheGet(cacheKey);
+    if (cached) {
+      return res.json(cached);
     }
 
     const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
     fetch(ai_url).then(response => response.json())
     .then(ai_info => {
-      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
-      let ai_sorted = organize.divide(ai_data);
-      let display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
-
-      let descriptions_list = [];
-
-      if (object_info.labeltext) {
-        descriptions_list.push({ key: 'labeltext', source: 'Human', model: 'Wall Label Text', createdate: '?', body: object_info.labeltext, isHuman: true, stats: _computeStats(object_info.labeltext) });
-      }
-      if (display_image && display_image.description) {
-        descriptions_list.push({ key: 'imagedesc', source: 'Human', model: 'Image Description', createdate: '?', body: display_image.description, isHuman: true, stats: _computeStats(display_image.description) });
-      }
-
-      for (let [key, val] of Object.entries(ai_sorted.descriptions)) {
-        for (let desc of val.descriptions) {
-          descriptions_list.push({
-            key:           'desc_' + descriptions_list.length,
-            source:        val.source,
-            model:         desc.model || '',
-            display_model: desc.display_model || desc.model || '',
-            model_released: desc.model_released || null,
-            createdate:    desc.createdate,
-            age:           desc.age || '',
-            body:          desc.body || '',
-            isHuman:       false,
-            cost:         desc.cost || { input: '-', output: '-' },
-            stats:         desc.stats || null
-          });
-        }
-      }
-
-      const image_summary = _buildImageSummary(ai_sorted);
-
-      res.render('compare', { title: 'Compare — ' + object_info.title,
-                               navbar: false,
-                               year: new Date().getFullYear(),
-                               object_info: object_info,
-                               display_image: display_image,
-                               descriptions_list: descriptions_list,
-                               image_summary: image_summary,
-                             });
+      const ai_data      = ai_info.records || [];
+      const display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+      const result       = perspectives.compute(ai_data, object_info, display_image);
+      perspectivesCacheSet(cacheKey, result);
+      res.json(result);
     })
-    .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
-                                            navbar: true,
-                                            year: new Date().getFullYear(),
-                                            error: true,
-                                            tag_list: tag_list,
-                                            mobile_tag_list: mobile_tag_list,
-                                            image_list: image_list})})
+    .catch(err => res.status(500).json({ status: 'error', message: 'Failed to fetch annotations' }))
   })
-  .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
-                                          navbar: true,
-                                          year: new Date().getFullYear(),
-                                          error: true,
-                                          tag_list: tag_list,
-                                          mobile_tag_list: mobile_tag_list,
-                                          image_list: image_list})})
+  .catch(err => res.status(500).json({ status: 'error', message: 'Failed to fetch object' }))
 });
 
 router.get('/statistics', function(req, res, next) {

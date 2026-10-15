@@ -1,121 +1,242 @@
-<section class="object-view-panel">
-  <a class="object-nav-header" href="/">
-    <img class="nav-logo" src="/images/artmuseumslogo.png"></img>
-  </a>
-  <div class="object-image-container">
-    <div id="openseadragon1">
+{{!-- Two columns under the site navbar: the image pane sticks while the
+      workspace scrolls. See .research-page in research.css. --}}
+<div class="research-page">
+{{> image_context}}
+<section class="object-info-panel image-research-workspace">
+  {{!-- Header: this page is an account of what AI says, so the heading frames
+        the artwork as its subject rather than presenting a catalogue entry.
+          - Data line: how much AI output, about which image, and when it was
+            generated (annotation dates, not artwork dates). Per-type counts
+            live on the tabs. "Providers" are the companies whose models wrote
+            descriptions.
+          - Museum record: artist, date and medium stay visible as the
+            disclosure's label, because readers need them to judge claims like
+            "names a person not in the record"; the rest opens beneath. --}}
+  <header class="research-heading">
+    <div class="research-heading-top">
+      <h1>How AI describes <cite>{{object_info.title}}</cite></h1>
+      {{!-- Copies this page's address, including the open tab ("#positions"),
+            so a shared link opens the same view. research-workspace.js. --}}
+      <button type="button" class="research-share" data-research-share title="Copy a link to this page and tab">
+        <i class="fa fa-link" aria-hidden="true"></i> <span data-research-share-label>Share</span>
+      </button>
     </div>
-    <div id="image-toolbar">
-      <a id="zoom-in" href="#zoom-in" title="Zoom in"><i class="fa fa-search-plus toolbar-button"></i></a>
-      <a id="zoom-out" href="#zoom-out" title="Zoom out"><i class="fa fa-search-minus toolbar-button"></i></a>
-    </div>
-  </div>
+    <p class="research-heading-data">
+      {{#if workspace_stats.descriptions}}{{workspace_stats.descriptions}} description{{#unless (eq workspace_stats.descriptions 1)}}s{{/unless}} from {{workspace_stats.providers}} provider{{#unless (eq workspace_stats.providers 1)}}s{{/unless}}{{else}}No AI descriptions{{/if}} of image {{display_image.imageid}}{{#if multiple_images}} ({{image_position}} of {{object_images.length}}){{/if}}{{#if workspace_stats.years}}, generated {{workspace_stats.years}}{{/if}}
+    </p>
+    <details class="research-record">
+      <summary>Museum record{{#if (or object_info.people object_info.dated object_info.medium)}}: {{#each object_info.people}}{{name}}{{#unless @last}}, {{/unless}}{{/each}}{{#if object_info.people}}{{#if object_info.dated}} · {{/if}}{{/if}}{{object_info.dated}}{{#if object_info.medium}}{{#if (or object_info.people object_info.dated)}} · {{/if}}{{object_info.medium}}{{/if}}{{/if}}</summary>
+      <div class="research-record-body">
+        <dl class="research-record-facts">
+          <div><dt>Object number</dt><dd>{{object_info.objectnumber}}</dd></div>
+          <div><dt>Object ID</dt><dd>{{object_info.id}}</dd></div>
+          <div><dt>Classification</dt><dd>{{object_info.classification}}</dd></div>
+          <div><dt>Credit line</dt><dd>{{object_info.creditline}}</dd></div>
+          {{#if object_info.copyright}}<div><dt>Copyright</dt><dd>{{object_info.copyright}}</dd></div>{{/if}}
+        </dl>
+        {{#if object_info.labeltext}}
+        <h2 class="research-record-subhead">Object wall label</h2>
+        <p class="research-record-label">{{object_info.labeltext}}</p>
+        <p class="research-note">Museum-authored text about the object.</p>
+        {{/if}}
+        <a href="{{object_info.url}}">Full museum record <i class="fa fa-external-link" aria-hidden="true"></i></a>
+      </div>
+    </details>
+  </header>
+
+  {{!-- Tabs. Compare has no tab: it opens from the Descriptions index.
+        research-workspace.js maps the old hashes (#perspectives, #tags,
+        #other) onto these so existing links keep working. --}}
+  <nav class="research-tabs" aria-label="Image analysis views">
+    <a href="#overview" data-research-tab="overview">Overview</a>
+    <a href="#descriptions" data-research-tab="descriptions">Descriptions <span class="research-tab-count">{{workspace_stats.descriptions}}</span></a>
+    <a href="#vocabulary" data-research-tab="vocabulary">Vocabulary <span class="beta-badge">Beta</span></a>
+    <a href="#positions" data-research-tab="positions">Positions <span class="research-tab-count" data-positions-count></span> <span class="beta-badge">Beta</span></a>
+    <a href="#detections" data-research-tab="detections">Tags &amp; detections <span class="research-tab-count">{{workspace_stats.detections}}</span></a>
+    <a href="#data" data-research-tab="data">Data &amp; method</a>
+  </nav>
+  <div class="content">
+    {{!-- Overview: one card per question. Cards marked data-overview-slot are
+          filled by overview-panel.js once the perspectives JSON has loaded. --}}
+    <section id="research-overview" data-research-panel="overview" aria-label="Overview">
+      <div class="overview-grid">
+        <article class="overview-card">
+          <h2 class="overview-card-title">What they agree on</h2>
+          <div data-overview-slot="agreement"><p class="research-note">Loading…</p></div>
+        </article>
+        <article class="overview-card">
+          <h2 class="overview-card-title">Where they diverge</h2>
+          <div data-overview-slot="divergence"><p class="research-note">Loading…</p></div>
+        </article>
+        {{!-- What matches the museum record: per record field, the descriptions
+              that agree with it and the ones that disagree. Visible fields
+              first (title, medium, object type), then context (culture,
+              date, artist). On wide screens it runs down the right of the
+              grid (see .record-card in research.css), so its height doesn't
+              stretch a card beside it. overview-panel.js renders it from
+              overview.record_match. --}}
+        <article class="overview-card record-card">
+          <h2 class="overview-card-title">What matches the museum record</h2>
+          <div data-overview-slot="record"><p class="research-note">Loading…</p></div>
+        </article>
+        {{#if display_image.description}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">A person’s description</h2>
+          <blockquote class="overview-quote">{{display_image.description}}</blockquote>
+          <p class="research-note">Written by museum staff about this image.</p>
+          <button type="button" class="overview-link" data-compare-human="imagedesc">Compare with an AI description →</button>
+        </article>
+        {{else if object_info.labeltext}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">The museum’s wall label</h2>
+          <blockquote class="overview-quote overview-quote--clamped">{{object_info.labeltext}}</blockquote>
+          <p class="research-note">Written by museum staff about the object.</p>
+          <button type="button" class="overview-link" data-compare-human="labeltext">Compare with an AI description →</button>
+        </article>
+        {{else}}
+        {{!-- Always a card in this slot, so the cards after it keep their places. --}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">A person’s description</h2>
+          <p class="research-note">Museum staff haven’t written a description of this image, and the object has no wall label.</p>
+        </article>
+        {{/if}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">What they pay attention to</h2>
+          <div data-overview-slot="attention"><p class="research-note">Loading…</p></div>
+        </article>
+        {{!-- Where they looked: the places the descriptions agree on, each
+              checked against the boxes the vision services detected. Rows
+              spotlight the place on the image in the left pane. Filled by
+              positions-ui.js from the perspectives JSON's positions block. --}}
+        <article class="overview-card positions-card">
+          <h2 class="overview-card-title">Where they looked <span class="beta-badge">Beta</span></h2>
+          <div data-positions-card><p class="research-note">Loading…</p></div>
+        </article>
+        {{!-- Colour: the image's measured palette beside the colour words the
+              descriptions use. The palette covers the whole photograph,
+              including bare canvas, mounts and background. --}}
+        <article class="overview-card">
+          <h2 class="overview-card-title">Color: measured and described</h2>
+          {{#if display_image.colors}}
+          <div>
+            <p class="overview-card-subhead">Measured from the pixels in the image</p>
+            {{> image_palette}}
+          </div>
+          {{else}}
+          <p class="research-note">No measured palette is available for this image.</p>
+          {{/if}}
+          <div>
+            <p class="overview-card-subhead">Named in the descriptions</p>
+            <div data-overview-slot="colour"><p class="research-note">Loading…</p></div>
+          </div>
+          <p class="research-note">The palette covers the whole photograph, including any unpainted areas, mount or background.</p>
+        </article>
+        <article class="overview-card">
+          <h2 class="overview-card-title">Mood words</h2>
+          <div data-overview-slot="mood"><p class="research-note">Loading…</p></div>
+        </article>
+        <article class="overview-card">
+          <h2 class="overview-card-title">Detections</h2>
+          <ul class="overview-facts">
+            <li>{{workspace_stats.tags}} tags</li>
+            {{!-- Faces: replaced by overview-panel.js with a per-face summary from
+                  summary.face_stats. The raw count below (one record per face
+                  per service) is only the fallback if the analysis fails. --}}
+            <li data-overview-faces>{{workspace_stats.faces}} face detection records</li>
+            <li>{{workspace_stats.regions}} region tags</li>
+            <li>{{workspace_stats.categories}} categories · {{#if workspace_stats.text}}{{workspace_stats.text}} text reading{{#unless (eq workspace_stats.text 1)}}s{{/unless}}{{else}}no text found{{/if}}</li>
+          </ul>
+          <a class="overview-link" href="#detections">Tags, faces and regions →</a>
+        </article>
+      </div>
+    </section>
+
+    {{> outputs_index}}
+
+    {{#if selected_annotation}}
+    <section class="research-source-record" id="research-source-record">
+      <h2>Complete source annotation</h2>
+      <p>Annotation {{selected_annotation.id}} · {{selected_annotation.source}}{{#if selected_annotation.model}} · {{selected_annotation.model}}{{/if}} · {{selected_annotation.type}}</p>
+      <p class="research-note">About image {{display_image.imageid}}{{#if selected_annotation.createdate}} · Generated {{selected_annotation.createdate}}{{/if}}</p>
+      <div class="research-source-body">{{selected_annotation.body}}</div>
+    </section>
+    {{/if}}
+{{!-- Vocabulary: the detail behind the Overview cards, in the same order,
+      ending with the radar for comparing models. Each section has a
+      data-research-section name, so #vocabulary/<name> opens the tab at it
+      (see research-workspace.js). Content is rendered by the inline script
+      below from the perspectives JSON; section counts fill in once it loads. --}}
+{{!-- Positions: every place the descriptions give, as claims grouped by
+      subject and checked against detected boxes, plus the detections few
+      descriptions mention and the position phrases set aside. Choosing a
+      claim spotlights it on the image in the left pane. #positions/<claim id>
+      opens the tab at that claim. Filled by positions-ui.js. --}}
+<section id="research-positions" data-research-panel="positions" aria-label="Where the descriptions place things">
+  <h2 class="research-panel-title">Where they looked</h2>
+  <p class="research-note">Each claim is a subject and where the descriptions put it. Counts are of descriptions. A ✓ means a box detected by a vision service sits in that place; – means nothing detected there to check against. Choose a claim to see it on the image.</p>
+  <div data-positions-panel><p class="research-note">Loading…</p></div>
 </section>
+<div id="research-vocabulary" data-research-panel="vocabulary"><section class="ai-section attention-section" id="attention-section">
+          <h2 class="research-panel-title">Vocabulary</h2>
+          <p class="attention-intro">The words behind the Overview, with the excerpts they came from.</p>
+          <nav class="vocab-sections" aria-label="Vocabulary sections">
+            <a href="#vocabulary/shared">Shared vocabulary</a>
+            <a href="#vocabulary/coverage">What the models cover</a>
+            <a href="#vocabulary/relate">How descriptions relate</a>
+          </nav>
 
-<section class="object-info-panel">
-    <div class="object-human-info">
-        <h2>Human Generated Data</h2>
-    </div>
-    <table class="object-human-info">
-      <tr>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Title</h5>
-            <h4>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h4>
-          </div>
-        </td>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Date</h5>
-            <h4>{{object_info.dated}}</h4>
-            {{#unless object_info.dated}}
-              <h4>-</h4>
-            {{/unless}}
-          </div>
-        </td>
-      </tr>
-      <tr>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>People</h5>
-            {{#each object_info.people}}
-              <h4>{{role}}: {{name}}, {{culture}} {{displaydate}}</h4>
-            {{/each}}
-            {{#unless object_info.people}}
-              <h4>-</h4>
-            {{/unless}}
-          </div>
-        </td>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Classification</h5>
-            <h4>{{object_info.classification}}</h4>
-          </div>
-        </td>
-      </tr>
-      </tr>
-      <tr>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            <h5>Credit Line</h5>
-            <h4>{{object_info.creditline}}, {{object_info.objectnumber}}</h4>
-          </div>
-        </td>
-        <td class="object-info-row">
-          <div class="object-info-section">
-            {{#if object_info.copyright}}
-            <h5>Copyright</h5>
-            <h4>{{object_info.copyright}}</h4>
-            {{/if}}
-          </div>
-        </td>
-      </tr>      
-    </table>
-    <div class="object-human-info-mobile">
-      <div class="object-info-section">
-        <h2>Human Generated Data</h2>
-      </div>
-      <div class="object-info-section">
-        <h5>Title</h5>
-        <h4>{{object_info.title}}<span><a href="{{object_info.url}}"><i class="fa fa-external-link"></i></a></span></h4>
-      </div>
-      {{#if object_info.people}}
-      <div class="object-info-section">
-        <h5>People</h5>
-        {{#each object_info.people}}
-          <h4>{{role}}: {{name}}, {{culture}} {{displaydate}}</h4>
-        {{/each}}
-      </div>
-      {{/if}}
-      {{#if object_info.dated}}
-      <div class="object-info-section">
-        <h5>Date</h5>
-        <h4>{{object_info.dated}}</h4>
-      </div>
-      {{/if}}
-      <div class="object-info-section">
-        <h5>Classification</h5>
-        <h4>{{object_info.classification}}</h4>
-      </div>
-      <div class="object-info-section">
-        <h5>Credit Line</h5>
-        <h4>{{object_info.creditline}}, {{object_info.objectnumber}}</h4>
-      </div>
-      {{#if object_info.copyright}}
-      <div class="object-info-section">
-        <h5>Copyright</h5>
-        <h4>{{object_info.copyright}}</h4>
-      </div>
-      {{/if}}
-    </div>
+          <div class="attention-card attention-card--ai" id="ai-perspectives-section">
+            <div id="perspectives-panel">
+              <div id="perspectives-loading"><p class="perspectives-status">Loading…</p></div>
+              <div id="perspectives-error" style="display:none;"><p class="perspectives-status perspectives-status--error"></p></div>
+              <div id="perspectives-content" style="display:none;">
 
-    <div class="gray-line-break"></div>
-    <div class="content">
-    {{#if ai_sorted}}
-      <div class="ai-content">
-        <h2>Machine Generated Data</h2>
-        <section class="ai-section">
-          <h3>Tags</h3>
+                {{!-- 1. Detail for the Overview's "What they agree on". --}}
+                <details class="research-perspective-detail" data-research-section="shared" open><summary>Shared vocabulary <span class="vocab-count" data-vocab-count="shared"></span></summary><div id="perspectives-agreement" class="perspectives-block">
+                  <p class="perspectives-divergence-intro">Phrases repeated across providers (at least 2 providers and 3 descriptions or tag sets), with conservative linguistic equivalents. Related concepts keep separate support counts.</p>
+                  <p class="research-note">These are whole phrases (“black tricorn hat”), so counts differ from the Overview, which pools every phrasing of a noun (“hat”).</p>
+                  <div id="perspectives-concepts-list" class="perspectives-concepts-list"></div>
+                  <p class="perspectives-type-note"><strong>Descriptive</strong> concepts reflect what AI services observe visually—shapes, objects, settings. <strong>Interpretive</strong> concepts reflect genre, format, or subject-matter readings, which are more subjective and more likely to vary between services.</p>
+                </div></details>
+
+                {{!-- 2. What the models cover: the radar, a coverage grid and one row
+                      per dimension with its phrases (detail for "What they pay
+                      attention to"). Built by coverage-panel.js. --}}
+                <section class="vocab-coverage" data-research-section="coverage" aria-labelledby="coverage-heading">
+                  <h3 class="vocab-coverage-heading" id="coverage-heading">What the models cover <span class="vocab-count" data-vocab-count="coverage"></span></h3>
+                  <p class="perspectives-divergence-intro">Nine dimensions of description. The chart and grid show how much distinct vocabulary each provider or description used in each; the rows below list the phrases themselves.</p>
+                  <div id="coverage-panel" hidden>
+                    <div id="coverage-controls" class="coverage-controls"></div>
+                    <figure id="coverage-chart" class="coverage-chart"></figure>
+                    <p class="research-note coverage-chart-note">Select a dimension name to open its phrases. Larger shapes mean more distinct words, not better descriptions.</p>
+                    <details class="radar-method"><summary>How this is calculated</summary><p>Providers pools the vocabulary of all of a provider’s descriptions; Individual models shows one description per shape. Every shape and grid cell uses the same scale: the largest provider’s vocabulary in each dimension. Hiding or adding series never rescales. Word counts indicate opportunities to match vocabulary; larger shapes do not indicate accuracy or quality.</p><p>The optional object wall label never sets the scale. Where it exceeds the AI maximum it is marked “!” at the chart edge.</p></details>
+                    <h4 class="coverage-subhead">Coverage grid</h4>
+                    <p class="research-note">Every provider in every dimension. Darker cells mean more distinct words; select a provider’s name to add it to the chart.</p>
+                    <div id="coverage-grid" class="coverage-grid-wrap"></div>
+                    <div class="coverage-legend" aria-hidden="true"><span><i class="coverage-cell--0"></i>none</span><span><i class="coverage-cell--1"></i>up to a third</span><span><i class="coverage-cell--2"></i>up to two thirds</span><span><i class="coverage-cell--3"></i>more</span><span>of the most-covering provider</span></div>
+                    <h4 class="coverage-subhead">By dimension</h4>
+                    <div class="coverage-rows-head" aria-hidden="true"><span>Dimension</span><span>Phrases</span><span>Descriptions that use it</span><span>Distinct words, selected</span></div>
+                    <div id="coverage-rows" class="coverage-rows"></div>
+                  </div>
+                </section>
+
+                {{!-- 3. Curated concept families. --}}
+                <details class="research-perspective-detail" data-research-section="relate"><summary>How descriptions relate <span class="vocab-count" data-vocab-count="relate"></span></summary><div id="perspectives-relationships" class="perspectives-block" style="display:none;">
+                  <p class="perspectives-divergence-intro">Explore exact terms within curated concept families. Shared family membership does not imply the same meaning or agreement. Excerpts preserve the context of each mention.</p>
+                  <div id="perspectives-relationships-list" class="perspectives-relationships-list"></div>
+                </div></details>
+
+              </div>
+            </div>
+          </div>
+        </section></div>
+{{!-- Compare: no tab of its own. Opened from the Descriptions index
+      ("Open full comparison"), the Overview, or radar evidence. --}}
+<section id="research-compare" data-research-panel="compare"><a class="overview-link" href="#descriptions">← Descriptions</a><h2 class="research-panel-title">Compare descriptions</h2><p class="research-note">Model outputs describe image {{display_image.imageid}}. Human references identify whether they describe this image or its associated object.</p>{{> compare_workspace}}</section>
+{{!-- Tags & detections: full-image tags, then faces, features, categories,
+      captions, text and colours. --}}
+<div id="research-detections" data-research-panel="detections"><h2 class="research-panel-title">Tags &amp; detections</h2><p class="attention-intro">What the vision services found, service by service: tags, faces, features, categories, captions, text and colors.</p>{{#unless ai_sorted.tagsect}}<p>No tags are available for this image.</p>{{/unless}}<section class="ai-section">
+          <h3>Tags for the whole image</h3>
           <div class="tag-box">
             {{#each ai_sorted.tagsect}}
               <div class="service-tags">
@@ -126,7 +247,7 @@
                   <table class="tag-table">
                     {{#each tags}}
                       <tr>
-                        <td class="tag-body"><a href="/search/{{body}}">{{body}}</a></td>
+                        <td class="tag-body"><a href="/search/{{urlencode body}}">{{body}}</a></td>
                         <td class="tag-confidence">{{confidence}}</td>
                       </tr>
                       <tr>
@@ -134,7 +255,7 @@
                           <div class="confidence-bar">
                             <div class="red-bar" style="width:{{confidence}}%"></div>
                           </div>
-                        <td>
+                        </td>
                       </tr>
                     {{/each}}
                   </table>
@@ -143,18 +264,7 @@
             {{/each}}
           </div>
         </section>
-        <section class="ai-section">
-          <h3>Color Analysis</h3>
-          <div class="content-box captions-colors-box">
-            <div class="captions-colors-box-content" style="height:25px;">
-           {{#each object_info.colors}}
-              <div style="float:left;background:{{color}};height:25px;width:25px;"></div>
-           {{/each}}
-           </div>
-           </div>
-        </section>
-        {{#if ai_sorted.facesect}}
-          <section class="ai-section">
+<div id="research-other">{{#unless has_other_analysis}}<p>No other analyses are available for this image.</p>{{/unless}}{{#if ai_sorted.facesect}}<section class="ai-section">
             <h3>Face analysis</h3>
             <div class="faces-box">
               <div class="faces-toggle">
@@ -165,7 +275,7 @@
                     </div>
                     <div class="faces-icons">
                       {{#each faces}}
-                        <button id="{{@key}}face-button" onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{imageFragmentURL}})"></div></button>
+                        <button type="button" aria-label="Inspect detected face" id="{{id}}face-button" onclick="toggleface('{{id}}')"><div id="{{id}}icon" class="face-images" style="background-image:url({{imageFragmentURL}})"></div></button>
                       {{/each}}
                     </div>
                   </div>
@@ -177,7 +287,7 @@
                     <div class="face-info-box" id="{{id}}">
                       <div class="face-content">
                         <div class="face-image">
-                          <img src={{imageFragmentURL}}></img>
+                          <img src="{{imageFragmentURL}}" alt="Detected image region">
                         </div>
                         <div class="face-text">
                           <h4>{{source}}</h4>
@@ -196,10 +306,7 @@
                 {{/each}}
               </div>
             </div>
-          </section>
-        {{/if}}
-        {{#if ai_sorted.featuresect}}
-          <section class="ai-section">
+          </section>{{/if}}{{#if ai_sorted.featuresect}}<section class="ai-section">
             <h3>Feature analysis</h3>
             <div class="faces-box">
               <div class="faces-toggle">
@@ -216,7 +323,7 @@
                             <div class="feature-icon-title">{{@key}}</div>
                             <div>
                             {{#each this}}
-                              <button id="{{@key}}feature-button" onclick="togglefeature('{{id}}')">
+                              <button type="button" aria-label="Inspect detected feature" id="{{id}}feature-button" onclick="togglefeature('{{id}}')">
                               <div class="feature-images" id="{{id}}featureicon" style="background-image:url({{imageFragmentURL}})"></div>
                               </button>
                             {{/each}}
@@ -234,13 +341,13 @@
                       <div class="feature-info-box" id="{{id}}">
                         <div class="feature-content">
                           <div class="feature-image">
-                            <img class="feature-slide" src={{imageFragmentURL}}></img>
+                            <img class="feature-slide" src="{{imageFragmentURL}}" alt="Detected image region">
                           </div>
                           <div class="feature-text">
                             <h4>{{source}}</h4>
                             <table>
                               <tr>
-                                <td class="tag-body"><a href="/feature/{{body}}">{{body}}</a></td>
+                                <td class="tag-body"><a href="/feature/{{urlencode body}}">{{body}}</a></td>
                                 <td class="tag-confidence">{{confidence}}%</td>
                               </tr>
                               <tr>
@@ -259,10 +366,7 @@
                   {{/each}}
               </div>
             </div>
-          </section>
-        {{/if}}
-        {{#if ai_sorted.categories}}
-          <section class="ai-section">
+          </section>{{/if}}{{#if ai_sorted.categories}}<section class="ai-section">
             <h3>Categories</h3>
             <div class="content-box captions-colors-box">
               {{#each ai_sorted.categories}}
@@ -276,15 +380,15 @@
                 <table class="captions-table">
                   {{#each categories}}
                     <tr>
-                      <td><a href="/category/{{body}}">{{body}}</a></td>
+                      <td><a href="/category/{{urlencode body}}">{{body}}</a></td>
                       <td class="tag-confidence">{{confidence}}%</td>
-                    <tr>
+                    </tr>
                     <tr>
                       <td colspan="2">
                         <div class="confidence-bar">
                           <div class="red-bar" style="width:{{confidence}}%"></div>
                         </div>
-                      <td>
+                      </td>
                     </tr>
                   {{/each}}
                 </table>
@@ -292,10 +396,7 @@
               </div>
               {{/each}}
             </div>
-          </section>
-        {{/if}}        
-        {{#if ai_sorted.captions}}
-          <section class="ai-section">
+          </section>{{/if}}{{#if ai_sorted.captions}}<section class="ai-section">
             <h3>Captions</h3>
               <div class="content-box captions-colors-box">
               {{#each ai_sorted.captions}}
@@ -306,118 +407,22 @@
                 <table class="captions-table">
                   {{#each captions}}
                     <tr>
-                      <td><a href="/search/{{body}}">{{body}}</a></td>
+                      <td><a href="/search/{{urlencode body}}">{{body}}</a></td>
                       <td class="tag-confidence">{{confidence}}%</td>
-                    <tr>
+                    </tr>
                     <tr>
                       <td colspan="2">
                         <div class="confidence-bar">
                           <div class="red-bar" style="width:{{confidence}}%"></div>
                         </div>
-                      <td>
+                      </td>
                     </tr>
                   {{/each}}
                 </table>
               </div>
               {{/each}}
               </div>
-          </section>
-        {{/if}}
-        {{#if ai_sorted.descriptions}}
-          <section class="ai-section" id="descriptions">
-              <h3>Descriptions <a class="compare-link" href="/object/{{object_info.id}}/image/{{display_image.imageid}}/compare"><i class="fa fa-columns"></i> Compare</a></h3>
-              {{#if image_summary.descriptions}}<p class="image-summary">{{{image_summary.descriptions}}}</p>{{/if}}
-              <div class="desc-toolbar">
-                <div class="desc-toolbar-section">
-                  <div class="desc-toolbar-controls">
-                    <div class="desc-toolbar-control-group">
-                      <span class="desc-toolbar-label">Show me descriptions generated by</span>
-                      <select id="desc-source-select" class="compare-select desc-sort-select"></select>
-                      <span class="desc-toolbar-label">that are </span>
-                      <select id="desc-length-select" class="compare-select desc-sort-select"></select>
-                      <span class="desc-toolbar-label">and sort them by</span>
-                      <select id="desc-sort-select" class="compare-select desc-sort-select">
-                        <option value="source-asc">source A–Z</option>
-                        <option value="words-desc">most words</option>
-                        <option value="words-asc">fewest words</option>
-                        <option value="date-desc">newest generated</option>
-                        <option value="date-asc">oldest generated</option>
-                        <option value="model-desc">newest model</option>
-                        <option value="model-asc">oldest model</option>
-                        <option value="tokens-desc">most tokens</option>
-                        <option value="tokens-asc">fewest tokens</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div class="desc-toolbar-section">
-                  <div class="desc-toolbar-controls">
-                    <div class="desc-toolbar-control-group">
-                      <span class="desc-toolbar-label">Highlight</span>
-                      <input type="search" id="desc-highlight-input" class="desc-highlight-input" placeholder="Search text…">
-                      <span id="desc-highlight-count" class="desc-highlight-count"></span>
-                    </div>
-                    <div class="desc-toolbar-control-group">
-                      <button class="quickbar-btn" id="desc-density-toggle">Hide Density</button>
-                      <button class="quickbar-btn" id="desc-cost-toggle">Hide Cost</button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div id="desc-cards-container">
-              {{#each ai_sorted.descriptions}}
-                {{#each descriptions}}
-                  <div class="desc-card" data-wordcount="{{stats.total}}" data-source="{{../source}}" data-date="{{createdate}}" data-model-released="{{model_released}}" data-total-tokens="{{#if cost}}{{cost.total}}{{/if}}" data-default-index="{{@../index}}-{{@index}}">
-                    <div class="desc-card-header">
-                      <span class="desc-card-title">{{#if display_model}}{{display_model}}{{else}}{{model}}{{/if}}<span class="desc-card-source">{{../source}}</span></span>
-                    </div>
-                    <div class="desc-card-body">
-                      <div class="desc-card-date-col">
-                        {{#if age}}<span class="header-age desc-card-age">Generated {{age}}</span>{{/if}}
-                        <span class="desc-card-date">({{createdate}})</span>
-                      </div>
-                      <div class="desc-card-text">
-                        {{#if body}}
-                          {{{markdown body}}}
-                        {{else}}
-                          <p class="desc-empty">No description written</p>
-                        {{/if}}
-                      </div>
-                      {{#if stats}}
-                      <div class="panel-stats-section panel-stats-section--density desc-card-density">
-                        <span class="sidebar-group-label panel-stats-label">Information Density</span>
-                        <div class="panel-stats">
-                          <span class="panel-stat" title="Content words / total words">Lexical density <strong>{{stats.lexicalDensity}}%</strong></span>
-                          <span class="panel-stat" title="Unique words / total words">Vocab diversity <strong>{{stats.ttr}}%</strong></span>
-                          <span class="panel-stat" title="Words appearing once / total words">Specificity <strong>{{stats.hapaxRatio}}%</strong></span>
-                          <span class="panel-stat" title="Average words per sentence">Avg sentence <strong>{{stats.avgSentLen}} words</strong></span>
-                          <span class="panel-stat" title="Total word count">Length <strong>{{stats.total}} words</strong></span>
-                        </div>
-                      </div>
-                      {{/if}}
-                      <div class="panel-stats-section panel-stats-section--cost desc-card-cost">
-                        <span class="sidebar-group-label panel-stats-label">Cost</span>
-                        <div class="panel-stats panel-stats--tokens">
-                        {{#if cost}}
-                          <span class="panel-stat" title="Tokens sent to the model">Input tokens <strong>{{cost.input}}</strong></span>
-                          <span class="panel-stat" title="Tokens generated by the model">Output tokens <strong>{{cost.output}}</strong></span>
-                          {{#if cost.total}}<span class="panel-stat" title="Total tokens used">Total tokens <strong>{{cost.total}}</strong></span>{{/if}}
-                        {{else}}
-                          <span class="panel-stat" title="Tokens sent to the model">Input tokens <strong>?</strong></span>
-                          <span class="panel-stat" title="Tokens generated by the model">Output tokens <strong>?</strong></span>
-                          <span class="panel-stat" title="Total tokens used">Total tokens <strong>?</strong></span>
-                        {{/if}}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                {{/each}}
-              {{/each}}
-              </div>{{! /#desc-cards-container }}
-          </section>
-        {{/if}}
-        {{#if ai_sorted.textsect}}
-          <section class="ai-section">
+          </section>{{/if}}{{#if ai_sorted.textsect}}<section class="ai-section">
             <h3>Text analysis</h3>
             <div class="content-box text-box">
                 {{#each ai_sorted.textsect}}
@@ -428,7 +433,7 @@
                     <div class="text-tags-list">
                       {{#each text}}
                         <div class="text-tag">
-                          <img class="text-image" src="{{imageFragmentURL}}"></img>
+                          <img class="text-image" src="{{imageFragmentURL}}" alt="Image region containing detected text">
                           <div class="text-icon-title">{{body}}</div>
                         </div>
                       {{/each}}
@@ -436,24 +441,51 @@
                   </div>
                 {{/each}}
             </div>
-          </section>
-        {{/if}}
-      </div>
-    {{else}}
-      No AI data for this image
-    {{/if}}
-  </div>
-</section>
+          </section>{{/if}}{{#if display_image.colors}}
+          {{!-- Palette of the selected image, from its /image record. Each
+                swatch is as wide as its share of the image. --}}
+          <section class="ai-section">
+            <h3>Image color palette</h3>
+            <p class="research-note">Colors measured from image {{display_image.imageid}} by the museum’s image service; not a model annotation.</p>
+            {{> image_palette}}
+          </section>{{/if}}</div>{{! /#research-other }}
+</div>{{! /#research-detections }}
 
+{{!-- Data & method: where the numbers come from, and the raw download. --}}
+<section id="research-data" data-research-panel="data" aria-label="Data and method">
+  <h2 class="research-panel-title">Data &amp; method</h2>
+  {{#if image_summary.full}}<p class="image-summary">{{{image_summary.full}}}</p>{{/if}}
+  <p><a class="quickbar-btn" href="/object/{{object_info.id}}/image/{{display_image.imageid}}/perspectives" download="image-{{display_image.imageid}}-ai-perspectives.json">Download analysis JSON</a></p>
+  <h3>How the overview is built</h3>
+  <ul class="research-method-list">
+    <li>Counts are of descriptions, not mentions: a description that says “hat” five times counts once.</li>
+    <li><strong>What they agree on</strong> counts every phrasing of a noun together (“hat”, “black hat”, “tricorn hats”). Generic words such as “painting” or “figure”, the object’s own classification, and the names of people in the museum record are left out.</li>
+    <li><strong>Where they diverge</strong> lists titles a description gives that the record doesn’t have, people it names who aren’t in the record, and media the record doesn’t mention, then the shortest and longest descriptions. A medium counts only when a description says what the work is made with (“a charcoal drawing”, “oil on canvas”, “this engraving”), among oil, watercolor, gouache, pastel, tempera, fresco, acrylic, charcoal, graphite, chalk, engraving, woodcut and lithograph; hedges (“charcoal or graphite”) and comparisons (“reminiscent of frescoes”) don’t count, and print techniques are compared only on prints. Titles and names that many descriptions share, or that the image’s own text detection read, are treated as text visible in the image.</li>
+    <li><strong>What matches the museum record</strong> counts, for each field of the record, the descriptions that agree with it: the title’s subject (or the title itself), the main medium, object type, culture, date and artist. Culture counts only claims about where the work is from (“a Japanese woodblock print”, “made in France”), not script, language or subject (“Chinese characters”, “Roman soldiers”). Dates can be centuries, decades, years after a dating phrase (“created in 1720”) or named periods (“Edo period”, “Tang dynasty”), and agree within 25 years of the record’s. The line under a row names the descriptions that disagree.</li>
+    <li><strong>A person’s description</strong> is the description museum staff wrote for this image, for comparison with the AI descriptions. Without one, the card shows the object’s wall label.</li>
+    <li><strong>What they pay attention to</strong> counts the descriptions that use words from each of nine dimensions, such as People &amp; Figures or Color &amp; Light.</li>
+    <li><strong>Where they looked</strong> groups the places descriptions give (“in the lower right corner”) into claims about one subject. A claim needs at least three descriptions to appear on the card. ✓ means a box detected by a vision service sits in that place; nothing detected there is not a contradiction. Directions (“facing left”) and positions relative to something else (“to the right of the rabbit”) are set aside. The card also flags things a vision service boxed at least three times that fewer than 15% of descriptions mention, such as leaves boxed as “Bird”.</li>
+    <li><strong>Color</strong> sets the palette measured from the image’s pixels, which covers the whole photograph, including mounts and background, beside the color words the descriptions use.</li>
+    <li><strong>Mood words</strong> are single expressive words the descriptions use, excluding color and tone words.</li>
+    <li><strong>Detections</strong> counts what the vision services found in the image: tags, faces, region tags, categories and text readings.</li>
+    <li><strong>Notable phrases</strong> in the Descriptions list are ones no other description of this image uses.</li>
+    <li>Agreement between models is not evidence that a description is accurate, and agreement with the museum record isn’t proof that either is right.</li>
+    <li>The analysis assumes English. Descriptions in other languages are shown, but terms, titles and positions in them are mostly not found.</li>
+  </ul>
+  <p class="research-note" id="research-algorithm-version"></p>
+</section>
+</div></section>
+</div>{{! /.research-page }}
 <script src="/javascripts/openseadragon/openseadragon.min.js"></script>
 
 <script type="text/javascript">
   var viewer = OpenSeadragon({
       id: "openseadragon1",
-      prefixUrl: "../javascripts/openseadragon/images/",
+      prefixUrl: "/javascripts/openseadragon/images/",
       toolbar: "image-toolbar",
       zoomInButton: "zoom-in",
       zoomOutButton: "zoom-out",
+      homeButton: "zoom-home",
       {{#if object_info.imagepermissionlevel}}
       maxZoomLevel: 1,
       {{/if}}
@@ -462,175 +494,14 @@
       ]
   });
 
-  var descDensityVisible = true;
-  var descCostVisible = true;
-  var originalCardHTML = new Map();
-
-  function allCards() {
-    return Array.from(document.querySelectorAll('#desc-cards-container .desc-card'));
-  }
-
-  function applyDescVisibility() {
-    var section = document.getElementById('descriptions');
-    if (!section) return;
-    section.querySelectorAll('.panel-stats-section--density').forEach(function(el) {
-      el.style.display = descDensityVisible ? '' : 'none';
-    });
-    section.querySelectorAll('.panel-stats-section--cost').forEach(function(el) {
-      el.style.display = descCostVisible ? '' : 'none';
-    });
-  }
-
-  function applyDescFilter() {
-    var lengthSel = document.getElementById('desc-length-select');
-    var sourceSel = document.getElementById('desc-source-select');
-    var lengthVal = lengthSel ? lengthSel.value : 'any';
-    var sourceVal = sourceSel ? sourceSel.value : 'all';
-    var ranges = { short: [0, 100], medium: [101, 300], long: [301, Infinity] };
-    var minVal = lengthVal !== 'any' ? ranges[lengthVal][0] : 0;
-    var maxVal = lengthVal !== 'any' ? ranges[lengthVal][1] : Infinity;
-    allCards().forEach(function(card) {
-      var words = parseInt(card.dataset.wordcount, 10) || 0;
-      var srcMatch = sourceVal === 'all' || card.dataset.source === sourceVal;
-      card.style.display = (srcMatch && words >= minVal && words <= maxVal) ? '' : 'none';
-    });
-  }
-
-  function applySort() {
-    var select = document.getElementById('desc-sort-select');
-    var container = document.getElementById('desc-cards-container');
-    if (!select || !container) return;
-    var cards = allCards();
-    var val = select.value;
-    cards.sort(function(a, b) {
-      if (val === 'words-desc') return (parseInt(b.dataset.wordcount) || 0) - (parseInt(a.dataset.wordcount) || 0);
-      if (val === 'words-asc')  return (parseInt(a.dataset.wordcount) || 0) - (parseInt(b.dataset.wordcount) || 0);
-      if (val === 'date-desc')  return (b.dataset.date || '') > (a.dataset.date || '') ? 1 : -1;
-      if (val === 'date-asc')   return (a.dataset.date || '') > (b.dataset.date || '') ? 1 : -1;
-      if (val === 'model-desc') return (b.dataset.modelReleased || '') > (a.dataset.modelReleased || '') ? 1 : -1;
-      if (val === 'model-asc')  return (a.dataset.modelReleased || '') > (b.dataset.modelReleased || '') ? 1 : -1;
-      if (val === 'source-asc') return (a.dataset.source || '').localeCompare(b.dataset.source || '');
-      if (val === 'tokens-desc') return (parseInt(b.dataset.totalTokens) || 0) - (parseInt(a.dataset.totalTokens) || 0);
-      if (val === 'tokens-asc') {
-        var ta = parseInt(a.dataset.totalTokens) || Infinity;
-        var tb = parseInt(b.dataset.totalTokens) || Infinity;
-        return ta - tb;
-      }
-      // default: restore original order via data-default-index
-      return (a.dataset.defaultIndex || '').localeCompare(b.dataset.defaultIndex || '');
-    });
-    cards.forEach(function(c) { container.appendChild(c); });
-  }
-
-  function applyHighlight() {
-    var query = (document.getElementById('desc-highlight-input') || {}).value || '';
-    var countEl = document.getElementById('desc-highlight-count');
-    query = query.trim();
-    var totalHits = 0;
-    allCards().forEach(function(card) {
-      var textEl = card.querySelector('.desc-card-text');
-      if (!textEl) return;
-      if (!originalCardHTML.has(card)) originalCardHTML.set(card, textEl.innerHTML);
-      textEl.innerHTML = originalCardHTML.get(card);
-      if (!query) return;
-      var re;
-      try { re = new RegExp('(' + query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi'); }
-      catch(e) { return; }
-      var walker = document.createTreeWalker(textEl, NodeFilter.SHOW_TEXT, null, false);
-      var nodes = [];
-      var node;
-      while ((node = walker.nextNode())) nodes.push(node);
-      nodes.forEach(function(tn) {
-        var matches = tn.nodeValue.match(re);
-        if (!matches) return;
-        totalHits += matches.length;
-        var span = document.createElement('span');
-        span.innerHTML = tn.nodeValue.replace(re, '<mark class="desc-highlight">$1</mark>');
-        tn.parentNode.replaceChild(span, tn);
-      });
-    });
-    if (countEl) countEl.textContent = query ? totalHits + (totalHits === 1 ? ' match' : ' matches') : '';
-  }
-
-  function buildFilterSelects() {
-    // Length select — compute actual min/max per band from card data
-    var counts = allCards().map(function(c) { return parseInt(c.dataset.wordcount, 10) || 0; });
-    var inBand = function(min, max) { return counts.filter(function(w) { return w >= min && (max === Infinity || w <= max); }); };
-    var shortCounts  = inBand(0,   100);
-    var mediumCounts = inBand(101, 300);
-    var longCounts   = inBand(301, Infinity);
-    var bandLabel = function(label, bCounts) {
-      if (!bCounts.length) return null;
-      var lo = Math.min.apply(null, bCounts);
-      var hi = Math.max.apply(null, bCounts);
-      return label + ' (' + lo + (lo !== hi ? '–' + hi : '') + ' words)';
-    };
-    var lengthSel = document.getElementById('desc-length-select');
-    if (lengthSel) {
-      var anyOpt = document.createElement('option');
-      anyOpt.value = 'any'; anyOpt.textContent = 'any length'; lengthSel.appendChild(anyOpt);
-      [['short', shortCounts], ['medium', mediumCounts], ['long', longCounts]].forEach(function(pair) {
-        var lbl = bandLabel(pair[0].charAt(0).toUpperCase() + pair[0].slice(1), pair[1]);
-        if (!lbl) return;
-        var opt = document.createElement('option'); opt.value = pair[0]; opt.textContent = lbl;
-        lengthSel.appendChild(opt);
-      });
-      lengthSel.addEventListener('change', applyDescFilter);
-    }
-
-    // Source select — single pick
-    var sourceSel = document.getElementById('desc-source-select');
-    if (sourceSel) {
-      var allOpt = document.createElement('option'); allOpt.value = 'all'; allOpt.textContent = 'any source';
-      sourceSel.appendChild(allOpt);
-      var sources = [];
-      allCards().forEach(function(card) {
-        var s = card.dataset.source;
-        if (s && sources.indexOf(s) === -1) sources.push(s);
-      });
-      sources.sort().forEach(function(src) {
-        var opt = document.createElement('option'); opt.value = src; opt.textContent = src;
-        sourceSel.appendChild(opt);
-      });
-      sourceSel.addEventListener('change', applyDescFilter);
-    }
-  }
-
   document.addEventListener('DOMContentLoaded', function() {
-    if (document.getElementById('0face-button')) {
-      document.getElementById('0face-button').click()
-    }
+    loadPerspectives();
 
-    if (document.getElementById('0feature-button')) {
-      document.getElementById('0feature-button').click()
-    }
-
-    buildFilterSelects();
-    applyDescFilter();
-
-    var sortSelect = document.getElementById('desc-sort-select');
-    if (sortSelect) sortSelect.addEventListener('change', applySort);
-
-    var highlightInput = document.getElementById('desc-highlight-input');
-    if (highlightInput) highlightInput.addEventListener('input', applyHighlight);
-
-    var densityToggle = document.getElementById('desc-density-toggle');
-    if (densityToggle) {
-      densityToggle.addEventListener('click', function() {
-        descDensityVisible = !descDensityVisible;
-        this.textContent = descDensityVisible ? 'Hide Density' : 'Show Density';
-        applyDescVisibility();
-      });
-    }
-
-    var costToggle = document.getElementById('desc-cost-toggle');
-    if (costToggle) {
-      costToggle.addEventListener('click', function() {
-        descCostVisible = !descCostVisible;
-        this.textContent = descCostVisible ? 'Hide Cost' : 'Show Cost';
-        applyDescVisibility();
-      });
-    }
+    // Open the first detected face and feature so their panels aren't empty.
+    var firstFace = document.querySelector('button[id$="face-button"]');
+    if (firstFace) firstFace.click();
+    var firstFeature = document.querySelector('button[id$="feature-button"]');
+    if (firstFeature) firstFeature.click();
   }, false);
 
   function toggleface(id) {
@@ -663,4 +534,215 @@
       icons.style.border = icons.style.border == "1.5px solid var(--c-orangered)" ? "none" : "1.5px solid var(--c-orangered)";
   }
 
+  // ---------------------------------------------------------------------------
+  // AI Perspectives panel
+  // ---------------------------------------------------------------------------
+
+  var _perspectivesData    = null;
+  var _perspectivesLoaded  = false;
+  var _perspectivesUrl     = '/object/{{object_info.id}}/image/{{display_image.imageid}}/perspectives';
+
+  function loadPerspectives() {
+    var loading = document.getElementById('perspectives-loading');
+    var error   = document.getElementById('perspectives-error');
+    var content = document.getElementById('perspectives-content');
+
+    fetch(_perspectivesUrl)
+      .then(function(r) {
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        return r.json();
+      })
+      .then(function(data) {
+        _perspectivesData   = data;
+        _perspectivesLoaded = true;
+        loading.style.display = 'none';
+        shareWithWorkspace(data);
+        if (data.status === 'no_annotations') {
+          error.querySelector('p').textContent = 'No AI annotations are available for this image.';
+          error.style.display = '';
+          return;
+        }
+        if (data.status === 'error') {
+          error.querySelector('p').textContent = data.message || 'An error occurred.';
+          error.style.display = '';
+          return;
+        }
+        content.style.display = '';
+        renderPerspectives(data);
+      })
+      .catch(function(err) {
+        loading.style.display = 'none';
+        error.querySelector('p').textContent = 'AI Perspectives could not be loaded.';
+        error.style.display = '';
+        shareWithWorkspace(null);
+      });
+  }
+
+  // The same JSON feeds the Overview cards (overview-panel.js) and the
+  // shared-term filters and notable phrases in Descriptions (outputs-index.js).
+  // `data` is null when the request failed.
+  function shareWithWorkspace(data) {
+    if (window.renderResearchOverview) window.renderResearchOverview(data);
+    if (window.renderPositions) window.renderPositions(data);
+    if (data && data.overview && window.researchOutputs) window.researchOutputs.setOverview(data.overview);
+    var version = document.getElementById('research-algorithm-version');
+    if (version && data && data.algorithm_version) version.textContent = 'Algorithm ' + data.algorithm_version + ' · generated ' + data.generated_at;
+  }
+
+  function renderPerspectives(data) {
+    renderCoverageSection(data);
+    renderConcepts(data);
+    renderRelationships(data);
+    renderSectionCounts(data);
+    if (window.syncResearchSection) window.syncResearchSection();
+    // A section with nothing to show is hidden rather than left empty.
+    document.querySelectorAll('.research-perspective-detail').forEach(function(detail) {
+      var blocks = Array.from(detail.querySelectorAll('.perspectives-block'));
+      detail.hidden = blocks.length > 0 && blocks.every(function(block) { return block.style.display === 'none'; });
+    });
+    document.querySelectorAll('#perspectives-content div[onclick]').forEach(function(control) {
+      control.setAttribute('role', 'button'); control.setAttribute('tabindex', '0');
+      control.addEventListener('keydown', function(event) {
+        // Nested evidence links must keep their own Enter-key navigation.
+        if (event.target !== control) return;
+        if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); control.click(); }
+      });
+    });
+  }
+
+  // Counts beside each Vocabulary section title, so a closed section still
+  // says how much is inside it.
+  function renderSectionCounts(data) {
+    function plural(n, word) { return n + ' ' + word + (n === 1 ? '' : 's'); }
+    var observations = Object.values(data.observations || {});
+    var phrases = observations.reduce(function(n, c) { return n + c.entries.length; }, 0);
+    var counts = {
+      shared: plural((data.concepts || []).length, 'phrase'),
+      coverage: plural((data.coverage_radar && data.coverage_radar.dimensions || []).length, 'dimension') + ' · ' + plural(phrases, 'phrase'),
+      relate: plural((data.concept_relationships || []).length, 'concept family').replace('familys', 'families'),
+    };
+    Object.keys(counts).forEach(function(key) {
+      var target = document.querySelector('[data-vocab-count="' + key + '"]');
+      if (target) target.textContent = counts[key];
+    });
+  }
+
+  function evidenceLink(e) {
+    return e.url ? '<a class="perspectives-evidence-link" href="' + escHtml(e.url) + '">Read complete annotation</a>' : '';
+  }
+  function evidenceHTML(e) {
+    var label = e.source + (e.display_model && e.display_model !== e.source ? ' — ' + e.display_model : '');
+    return '<span class="perspectives-snippet">' + escHtml(label) + ': "' + escHtml(e.snippet || e.text) + '"</span>' + evidenceLink(e);
+  }
+
+  function renderConcepts(data) {
+    var list = document.getElementById('perspectives-concepts-list');
+    var concepts = data.concepts || [];
+    if (concepts.length === 0) {
+      list.innerHTML = '<p class="perspectives-empty">No shared vocabulary meets the provider and annotation thresholds. Explore concept families and individual observations below.</p>';
+      return;
+    }
+    var html = '';
+    for (var i = 0; i < concepts.length; i++) {
+      var c = concepts[i];
+      var typeBadge    = '<span class="perspectives-badge perspectives-badge--' + c.concept_type + '">' + capitalize(c.concept_type) + '</span>';
+      var levelBadge   = '<span class="perspectives-badge perspectives-badge--' + c.agreement_level + '">' + capitalize(c.agreement_level) + '</span>';
+      var peopleBadge  = c.people_related ? '<span class="perspectives-badge perspectives-badge--people">People-related</span>' : '';
+      var snippets = (c.example_annotations || []).map(function(e) {
+        return evidenceHTML(e);
+      }).join('');
+      var variantHtml = '';
+      if (c.variants && c.variants.length > 1) {
+        var variantParts = c.variants.map(function(v) {
+          return '<span class="perspectives-variant">' + escHtml(v.term)
+               + ' <span class="perspectives-variant-sources">(' + v.services.map(escHtml).join(', ') + ')</span></span>';
+        });
+        variantHtml = '<div class="perspectives-variants">Called: ' + variantParts.join(', ') + '</div>';
+      }
+      var hasDetail = snippets || variantHtml;
+      html += '<div class="perspectives-concept' + (hasDetail ? ' perspectives-concept--expandable' : '') + '"' + (hasDetail ? ' onclick="toggleConceptDetail(this)"' : '') + '>'
+            +   '<div class="perspectives-concept-summary">'
+            +     '<span class="perspectives-concept-text">' + escHtml(c.concept) + '</span>'
+            +     typeBadge + levelBadge + peopleBadge
+            +     '<span class="perspectives-agreement">' + c.services_count + ' service' + (c.services_count === 1 ? '' : 's') + ', ' + c.annotations_count + ' annotation' + (c.annotations_count === 1 ? '' : 's') + '</span>'
+            +   '</div>'
+            +   (hasDetail ? '<div class="perspectives-concept-detail" style="display:none;">' + variantHtml + (snippets ? '<div class="perspectives-snippets">' + snippets + '</div>' : '') + '</div>' : '')
+            + '</div>';
+    }
+    list.innerHTML = html;
+  }
+
+  function toggleConceptDetail(el) {
+    var detail = el.querySelector('.perspectives-concept-detail');
+    if (!detail) return;
+    var open = detail.style.display !== 'none';
+    detail.style.display = open ? 'none' : '';
+    el.classList.toggle('perspectives-concept--open', !open);
+  }
+
+
+  function renderRelationships(data) {
+    var block = document.getElementById('perspectives-relationships');
+    var list = document.getElementById('perspectives-relationships-list');
+    var families = data.concept_relationships || [];
+    block.style.display = '';
+    if (!families.length) {
+      list.innerHTML = '<p class="perspectives-empty">No related terms were found in the current curated vocabulary. Individual observations remain available above.</p>';
+      return;
+    }
+    list.innerHTML = families.map(function(family) {
+      var synonyms = (family.synonym_groups || []).map(function(group) {
+        return '<p class="perspectives-type-note">Linguistic equivalents: ' + group.terms.map(escHtml).join(', ') + '</p>';
+      }).join('');
+      return '<details class="research-concept-family"><summary>' + escHtml(capitalize(family.family))
+        + ' — ' + family.terms.length + ' related terms</summary>' + synonyms
+        + family.terms.map(function(term) {
+          return '<details class="research-family-term"><summary>' + escHtml(term.term)
+            + ' — ' + term.services.map(escHtml).join(', ') + ' · ' + term.annotations_count
+            + ' annotation' + (term.annotations_count === 1 ? '' : 's') + '</summary>'
+            + (term.example_annotations || []).map(function(e) {
+              return '<div class="research-family-evidence"><span class="perspectives-type-note">'
+                + escHtml(capitalize(e.type || 'annotation')) + '</span> ' + evidenceHTML(e) + '</div>';
+            }).join('') + '</details>';
+        }).join('') + '</details>';
+    }).join('');
+  }
+
+
+
+
+  // -------------------------------------------------------------------------
+  // Coverage Radar Chart (D3)
+  // -------------------------------------------------------------------------
+  // "What the models cover": radar, coverage grid and dimension rows.
+  // (Not named renderCoverage: top-level functions here are globals, and
+  // that name belongs to coverage-panel.js.)
+  function renderCoverageSection(data) {
+    if (window.renderCoverage) window.renderCoverage(data);
+  }
+
+  function escHtml(str) {
+    return String(str || '')
+      .replace(/&/g,'&amp;')
+      .replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;')
+      .replace(/'/g,'&#39;');
+  }
+
+  function capitalize(str) {
+    return str ? str.charAt(0).toUpperCase() + str.slice(1) : '';
+  }
+
 </script>
+
+<script src="/javascripts/research-workspace.js"></script>
+<script src="/javascripts/outputs-index.js"></script>
+<script src="/javascripts/overview-panel.js"></script>
+<script src="/javascripts/positions-ui.js"></script>
+<script src="/javascripts/coverage-panel.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
+<script src="/vocabularies/stopwords.js"></script>
+<script src="/javascripts/textanalysis.js"></script>
+<script src="/javascripts/compare-workspace.js"></script>
+<script type="module" src="/javascripts/compare-semantic.js"></script>
