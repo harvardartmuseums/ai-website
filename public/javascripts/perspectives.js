@@ -31,7 +31,13 @@ var positions = require('./positions');
 // 4.7 adds the additive `positions` block (see positions.js): where the
 //     descriptions place things, grouped into claims and checked against
 //     detected boxes. No existing field changes.
-const ALGORITHM_VERSION = 'ace-v4.7.0';
+// 4.7.1 labels groups of people "figures", names the place in claims split
+//     by place ("figures on the left"), and counts flag boxes per service.
+// 4.7.2 position sentences drop markdown list markers ("- ", "* ", "1. ").
+// 4.8 adds overview.divergence kind 'unrecorded_title': a title a
+//     description gives ("titled "The Reader"") that the record doesn't have,
+//     leaving out titles read off the image. Signals list titles first.
+const ALGORITHM_VERSION = 'ace-v4.8.0';
 
 const CONFIG = {
   min_services:                2,
@@ -1484,13 +1490,14 @@ function compute(ai_data, object_info, display_image) {
   }
   const overviewBlock = overview.computeOverview({
     descriptions: descAnnotations
-      .map(ann => ({ id: ann.id, source: ann.source, body: stripMarkdown(ann.body || '').trim() }))
+      .map(ann => ({ id: ann.id, source: ann.source, body: stripMarkdown(ann.body || '').trim(), raw: ann.body || '' }))
       .filter(d => d.body),
     observations,
     moodPalette,
     coverageRadar,
     phrasesByDescription,
     objectInfo: object_info,
+    ocrText: textAnnotations.map(ann => ann.body || '').join(' '),
   });
 
   // -------------------------------------------------------------------------

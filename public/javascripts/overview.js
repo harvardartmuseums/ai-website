@@ -13,8 +13,8 @@
 //   colour_words colours the descriptions name, to set beside the measured palette
 //   attention    how many descriptions touch each radar dimension
 //   distinctive  per description, phrases no other description uses
-//   divergence   claims that disagree with the museum record, plus the
-//                shortest and longest descriptions
+//   divergence   claims that disagree with the museum record (titles, names,
+//                paint media), plus the shortest and longest descriptions
 //
 // Everything here is deterministic and counts *descriptions*, never repeated
 // mentions inside one description. Agreement still does not mean accuracy.
@@ -349,7 +349,92 @@ function unrecordedMedia(text, recorded) {
     && MEDIUM_FAMILIES[family].some(word => mentions(text, word)));
 }
 
-function computeDivergence(descriptions, objectInfo) {
+// ---------------------------------------------------------------------------
+// Titles a description gives that the record doesn't have
+// ---------------------------------------------------------------------------
+// "a painting titled "The Reader" by Pierre-Auguste Renoir": a confident,
+// checkable claim. Tuned on 392 objects (see .plans/title-divergence.md):
+//  - Only "titled"/"entitled" cue a title. "Called", "known as" and "named"
+//    almost always introduce a term ("a script known as sōsho").
+//  - Most other mismatches are text read off the image (a document heading,
+//    an inscription in French). Those are left out when several descriptions
+//    give the same title, allowing for spelling variants, or when the image's
+//    OCR text contains most of its words.
+
+const TITLE_CUE = /\b(?:titled|entitled)\s*[:,]?\s*/gi;
+// A quoted or emphasised title: "The Reader", “The Reader”, *The Reader*.
+const QUOTED_TITLE = /^\(?\s*(?:["“”'‘’]|\*{1,3}|_{1,2})([^"“”*_\n]{1,120}?)(?:["“”'‘’]|\*{1,3}|_{1,2})/;
+// An unquoted title: a run of capitalised words, with short linking words.
+const TITLE_CASE_RUN = /^((?:(?:The|A|An|La|Le|Les|Il|Der|Die|Das)\s+)?\p{Lu}[\p{L}'’-]*(?:\s+(?:of|the|a|an|and|in|on|at|with|de|la|le|du|des|von|van|to|for|&|\p{Lu}[\p{L}'’-]*))*)/u;
+// Shared by more than this share of descriptions (and at least 3): text in the image.
+const MAX_TITLE_SHARE = 0.1;
+// Spelling variants count as the same title above this bigram similarity.
+const SAME_TITLE_SIMILARITY = 0.7;
+// A title is read off the image when OCR found at least this share of its words.
+const MIN_TITLE_WORDS_READ = 0.5;
+
+// Lower case, no accents or punctuation, no leading articles.
+function titleKey(text) {
+  return String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z0-9\s]/g, ' ').replace(/\b(?:the|a|an|le|la|les|il|der|die|das)\b/g, ' ')
+    .replace(/\s+/g, ' ').trim();
+}
+
+// Dice similarity of two strings' letter pairs: 1 for the same, ~0.7 for
+// "modestia e vanita" and "modesta e vanita".
+function similarity(a, b) {
+  const pairs = s => { const t = s.replace(/\s/g, ''), out = []; for (let i = 0; i < t.length - 1; i++) out.push(t.slice(i, i + 2)); return out; };
+  const A = pairs(a), B = pairs(b);
+  if (!A.length || !B.length) return a === b ? 1 : 0;
+  const pool = [...B];
+  let shared = 0;
+  for (const pair of A) { const i = pool.indexOf(pair); if (i >= 0) { shared++; pool.splice(i, 1); } }
+  return 2 * shared / (A.length + B.length);
+}
+
+// The titles a description gives, from its raw text (markdown emphasis kept,
+// since *The Theatre Box* is a quoted title).
+function claimedTitles(text) {
+  const titles = [];
+  for (const cue of String(text || '').matchAll(TITLE_CUE)) {
+    const rest = text.slice(cue.index + cue[0].length, cue.index + cue[0].length + 140);
+    const quoted = QUOTED_TITLE.exec(rest);
+    const run = !quoted && TITLE_CASE_RUN.exec(rest);
+    const title = quoted ? quoted[1] : run && run[1].split(/\s+/).length >= 2 ? run[1].replace(/\s+(?:by|in|from|of|and|the)$/i, '') : null;
+    if (!title) continue;
+    const clean = title.trim().replace(/[.,;:]$/, '');
+    // Mostly letters, at least four of them: not "20/100" or "L.F".
+    const letters = (clean.match(/\p{L}/gu) || []).length;
+    if (letters >= 4 && letters / clean.replace(/\s/g, '').length >= 0.6) titles.push(clean);
+  }
+  return titles;
+}
+
+// Does a claimed title match one of the record's? Equal, one contains the
+// other, the record title is a whole word of the claim ("Madonna: Sex" for
+// "Sex"), or they're spelled closely. Each record title is also tried in parts
+// split at brackets and colons: "Chief of the Dwarfs (Goojez Bashi)".
+function isRecordedTitle(claim, recordTitles) {
+  const c = titleKey(claim);
+  if (!c) return true;
+  for (const full of recordTitles) {
+    const parts = [full, ...String(full || '').split(/[():;]|\bknown as\b/i)].map(titleKey).filter(Boolean);
+    for (const r of parts) {
+      if (c === r || (c.length >= 5 && r.includes(c)) || (r.length >= 5 && c.includes(r)) ||
+          new RegExp('\\b' + escapeRegExp(r) + '\\b').test(c) || similarity(c, r) >= SAME_TITLE_SIMILARITY) return true;
+    }
+  }
+  return false;
+}
+
+// Share of a title's words (3+ letters) that OCR also read, allowing misreadings.
+function shareReadInImage(title, ocrWords) {
+  const words = titleKey(title).split(' ').filter(w => w.length >= 3);
+  if (!words.length || !ocrWords.length) return 0;
+  return words.filter(w => ocrWords.some(o => o === w || similarity(o, w) >= 0.75)).length / words.length;
+}
+
+function computeDivergence(descriptions, objectInfo, ocrText) {
   const signals = [];
   const recordedWords = recordedNameWords(objectInfo);
   const media = recordedMedia(objectInfo);
@@ -366,6 +451,25 @@ function computeDivergence(descriptions, objectInfo) {
     for (const key of new Set(names.map(nameKey))) nameUsage.set(key, (nameUsage.get(key) || 0) + 1);
   }
   const maxNameUsage = Math.max(1, Math.floor(descriptions.length * MAX_NAME_SHARE));
+
+  // Titles first: a wrong title is the most specific claim. A title shared
+  // (with spelling variants) by many descriptions, or read by OCR, is text in
+  // the image rather than a claim about what the work is called.
+  const recordTitles = [objectInfo && objectInfo.title,
+    ...((objectInfo && objectInfo.titles) || []).map(t => t.title)].filter(Boolean);
+  if (recordTitles.length) {
+    const ocrWords = [...new Set(titleKey(ocrText).split(' ').filter(w => w.length >= 3))];
+    const titlesById = new Map(descriptions.map(d => [d.id, claimedTitles(d.raw || d.body)
+      .filter(title => !isRecordedTitle(title, recordTitles))]));
+    const maxTitleUsage = Math.max(2, Math.floor(descriptions.length * MAX_TITLE_SHARE));
+    const all = [...titlesById.entries()].flatMap(([id, titles]) => titles.map(title => ({ id, key: titleKey(title) })));
+    const usage = title => new Set(all.filter(t => similarity(t.key, titleKey(title)) >= SAME_TITLE_SIMILARITY).map(t => t.id)).size;
+    for (const d of descriptions) {
+      const titles = [...new Set(titlesById.get(d.id))].filter(title =>
+        usage(title) <= maxTitleUsage && shareReadInImage(title, ocrWords) < MIN_TITLE_WORDS_READ);
+      if (titles.length) signals.push({ kind: 'unrecorded_title', annotation_id: d.id, titles, record_title: recordTitles[0] });
+    }
+  }
 
   for (const d of descriptions) {
     const names = namesById.get(d.id).filter(name => nameUsage.get(nameKey(name)) <= maxNameUsage);
@@ -394,14 +498,16 @@ function computeDivergence(descriptions, objectInfo) {
 
 /**
  * @param {Object}   input
- * @param {Array}    input.descriptions   [{id, source, body}] — plain text, non-empty
+ * @param {Array}    input.descriptions   [{id, source, body, raw}] — body is plain text, non-empty;
+ *                                       raw keeps markdown, for quoted titles
  * @param {Object}   input.observations   perspectives observations, by category
  * @param {Array}    input.moodPalette    perspectives mood palette
  * @param {Object}   input.coverageRadar  perspectives coverage radar
  * @param {Map}      input.phrasesByDescription  annotation id → Set of noun phrases
  * @param {Object}   input.objectInfo     HAM object record
+ * @param {string}   input.ocrText        the image's OCR text, joined (optional)
  */
-function computeOverview({ descriptions, observations, moodPalette, coverageRadar, phrasesByDescription, objectInfo }) {
+function computeOverview({ descriptions, observations, moodPalette, coverageRadar, phrasesByDescription, objectInfo, ocrText }) {
   const texts = descriptions.map(d => ({ ...d, words: d.body.split(/\s+/).filter(Boolean).length }));
   // Words from the classification ("Paintings", "Coins") describe the object
   // type, so they never headline agreement ("All 38 descriptions mention a coin").
@@ -418,7 +524,7 @@ function computeOverview({ descriptions, observations, moodPalette, coverageRada
     colour_words: computeColourWords(texts),
     attention: computeAttention(coverageRadar),
     distinctive: computeDistinctive(phrasesByDescription || new Map()),
-    divergence: computeDivergence(texts, objectInfo),
+    divergence: computeDivergence(texts, objectInfo, ocrText),
   };
 }
 

@@ -178,9 +178,10 @@ test('the card shows at most three claims, each placed by at least three descrip
   assert.ok(rows.every(c => c.placed.length >= 3));
 });
 
-test('Different Nations: figures split into left and right claims', () => {
+test('Different Nations: figures split into left and right claims, labelled by place', () => {
   const figures = groupClaims(differentNations.descriptions, { objectWords: ['Prints'] }).filter(c => c.heads.includes('figure'));
   assert.deepEqual(figures.map(c => c.usual), ['left', 'right']);
+  assert.deepEqual(figures.map(c => c.label), ['figures on the left', 'figures on the right']);
 });
 
 // --- Checks against detected boxes -------------------------------------------
@@ -227,6 +228,7 @@ test('Young Rabbit: the "Bird" boxes on the leaves are a detection-only flag', (
   assert.equal(flag.head, 'bird');
   assert.ok(flag.count >= 9);
   assert.equal(flag.mentioned, 4);
+  assert.deepEqual(flag.by_source[0], ['AWS Rekognition', 9]);
 });
 
 test('Different Nations: face tags are not flagged when the descriptions talk about people', () => {
@@ -272,4 +274,9 @@ test('compute adds a positions block: claims, card, flags, set-aside, by descrip
   assert.equal(Object.keys(positions.by_description).length, youngRabbit.descriptions.length);
   // Stored as JSON in the perspectives cache.
   assert.deepEqual(JSON.parse(JSON.stringify(positions)), positions);
+});
+
+test('sentences drop markdown list markers', () => {
+  const [p] = placesIn('- A stylized rabbit is depicted in the center of the image.\n*   Mid-Right: bamboo leaves on the right side.');
+  assert.equal(p.sentence, 'A stylized rabbit is depicted in the center of the image.');
 });

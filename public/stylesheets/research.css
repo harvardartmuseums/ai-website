@@ -171,16 +171,13 @@ html:has(.research-page) body { background: var(--c-white); }
 .overview-word-count { font-size: 12px; color: var(--c-grayblack); }
 /* Colour card: a dot of the named colour; the outline keeps white visible. */
 .overview-word-dot { display: inline-block; width: 10px; height: 10px; margin-right: 6px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .25); vertical-align: -1px; }
-/* "Where they looked" card: the image with the chosen place spotlit, then
-   one row per claim (3×3 locator, subject, place, check, count). */
-.positions-figure { margin: 0 -20px; background: var(--c-lightgray); display: flex; justify-content: center; }
-.positions-frame { position: relative; overflow: hidden; line-height: 0; }
-.positions-frame img { display: block; max-width: 100%; max-height: 240px; }
-.positions-spot { position: absolute; box-shadow: 0 0 0 2000px rgba(24, 24, 24, .55); outline: 2px solid #fff; transition: all .25s ease; }
-.positions-figure.is-dimmed .positions-frame::after { content: ""; position: absolute; inset: 0; background: rgba(24, 24, 24, .3); }
-.positions-boxes { position: absolute; inset: 0; z-index: 1; pointer-events: none; }
-.positions-box { position: absolute; border: 2px solid #6fa8ff; }
-.positions-box--flag { border: 2px dashed #f0b54a; }
+/* Where they looked: claim rows (3×3 locator, subject, place, check, count)
+   on the Overview card and the Positions tab, and the spotlight they draw on
+   the left-pane image (OpenSeadragon overlays). */
+.positions-viewer-spot { box-shadow: 0 0 0 4000px rgba(24, 24, 24, .55); outline: 2px solid #fff; pointer-events: none; }
+.positions-viewer-dim { background: rgba(24, 24, 24, .3); pointer-events: none; }
+.positions-viewer-box { border: 2px solid #6fa8ff; pointer-events: none; }
+.positions-viewer-box--flag { border: 2px dashed #f0b54a; }
 .positions-rows { display: flex; flex-direction: column; }
 .positions-row { display: grid; grid-template-columns: 22px minmax(0, 1fr) auto; gap: 12px; align-items: start; width: 100%; background: none; border: 0; border-top: 1px solid var(--c-lightgray); padding: 10px 6px; font: inherit; color: inherit; text-align: left; cursor: pointer; }
 .positions-row:first-child { border-top: 0; }
@@ -193,9 +190,32 @@ html:has(.research-page) body { background: var(--c-white); }
 .positions-glyph { display: grid; grid-template-columns: repeat(3, 6px); grid-template-rows: repeat(3, 6px); gap: 1px; margin-top: 4px; }
 .positions-glyph span { background: var(--c-lightgray); }
 .positions-glyph span.is-lit { background: var(--c-orangered); }
-.positions-row--flag { grid-template-columns: 22px minmax(0, 1fr); align-items: center; }
-.positions-flag-mark { text-align: center; color: #a86b00; }
+.positions-row--flag { grid-template-columns: 22px minmax(0, 1fr); }
+.positions-flag-mark { text-align: center; color: #a86b00; line-height: 1.4; }
+.positions-row-check.is-flag { color: #a86b00; }
 .positions-row:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: -2px; }
+/* Positions tab: each claim opens to its spread, quotes and links. */
+.positions-rows--panel { margin-top: 12px; }
+.positions-item + .positions-item { border-top: 1px solid var(--c-lightgray); }
+.positions-item .positions-row { border-top: 0; }
+.positions-detail { display: flex; flex-direction: column; gap: 12px; padding: 4px 6px 18px 40px; }
+.positions-spread { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 5px; max-width: 420px; }
+.positions-spread li { display: grid; grid-template-columns: 96px minmax(0, 1fr) 28px; gap: 10px; align-items: center; font-size: 13px; }
+.positions-spread li.is-usual .positions-spread-label { font-weight: 600; }
+.positions-spread-track { height: 8px; background: var(--c-lightgray); }
+.positions-spread-fill { display: block; height: 100%; background: #e2a49d; }
+.positions-spread li.is-usual .positions-spread-fill { background: var(--c-orangered); }
+.positions-spread-count { text-align: right; color: var(--c-grayblack); font-variant-numeric: tabular-nums; }
+.positions-quote { margin: 0; padding-left: 12px; border-left: 3px solid #f1d2cd; display: flex; flex-direction: column; gap: 4px; }
+.positions-quote.is-dissent { border-left-color: var(--c-lightgray); }
+.positions-quote-text { font-size: 15px; line-height: 1.5; }
+.positions-quote mark { background: #fbe3df; color: inherit; padding: 0 2px; }
+.positions-quote-source { font-size: 12px; }
+.positions-subhead { margin: 24px 0 4px; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--c-grayblack); font-weight: normal; }
+.positions-aside { margin-top: 24px; font-size: 13px; color: var(--c-grayblack); border-top: 1px solid var(--c-lightgray); padding-top: 12px; }
+.positions-aside summary { cursor: pointer; }
+.positions-aside-kind { margin: 12px 0 4px; color: var(--c-nearblack); }
+.positions-aside-example { margin: 2px 0 0 12px; line-height: 1.5; }
 .overview-card-subhead { margin: 0 0 6px; font-size: 12px; color: var(--c-grayblack); }
 .overview-card .image-palette { margin-top: 0; max-width: none; }
 

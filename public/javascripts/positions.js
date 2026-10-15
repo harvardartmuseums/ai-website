@@ -98,9 +98,13 @@ const GENERIC = new Set(('image picture painting composition frame canvas print 
   'distance ground view detail element feature appearance style color colour tone quality way ' +
   'something there it this that which').split(' '));
 
+// Sentences, without markdown emphasis or list markers ("- ", "* ", "1. "),
+// so quotes read cleanly.
 function sentencesOf(text) {
   return String(text || '').replace(/\*\*|__|#+\s|`/g, ' ')
-    .split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+    .split(/(?<=[.!?])\s+|\n+/)
+    .map(s => s.trim().replace(/^(?:[-*+•]|\d+[.)])\s+/, '').trim())
+    .filter(Boolean);
 }
 
 // Clause boundaries: ; and : (so a list item's heading, "Bamboo: on the right
@@ -442,6 +446,23 @@ function groupClaims(descriptions, options = {}) {
     .sort((a, b) => b.placed.length - a.placed.length);
 }
 
+// How a split claim names its place: "figures on the left".
+const PLACE_PHRASES = {
+  'top-left': 'in the top left', top: 'at the top', 'top-right': 'in the top right',
+  left: 'on the left', center: 'in the centre', right: 'on the right',
+  'bottom-left': 'in the bottom left', bottom: 'at the bottom', 'bottom-right': 'in the bottom right',
+};
+
+// A claim's label. Two or more words for people ("figure", "man") read as
+// "figures"; otherwise the two most-placed heads ("seal and signature"). A
+// claim split by place adds its place, since its twin shares the words:
+// "figures on the left", "bird on the right".
+function claimLabel(members, zone, split) {
+  const people = members.filter(h => FAMILY_OF.get(h) === 'people');
+  const base = people.length >= 2 && people.length === members.length ? 'figures' : members.slice(0, 2).join(' and ');
+  return split ? base + ' ' + PLACE_PHRASES[zone] : base;
+}
+
 // One claim per place for a group of heads; usually just one.
 function splitByPlace(members, heads, descriptions) {
   // Each description's places for the group, and the descriptions per cell.
@@ -487,7 +508,7 @@ function splitByPlace(members, heads, descriptions) {
     const zoneSpread = Object.entries(cells).sort((a, b) => b[1] - a[1]);
     return {
       heads: members,
-      label: members.slice(0, 2).join(' and '),
+      label: claimLabel(members, zone, zones.length > 1),
       placed,
       spread: zoneSpread,
       usual: zoneSpread[0][0],
@@ -640,7 +661,7 @@ function checkClaims(claims, records, image) {
 // Region tags boxed at least MIN_DETECTION_BOXES times that fewer than
 // MAX_DETECTION_MENTION_SHARE of descriptions mention (by the label or a
 // narrower word for it). Generic labels are skipped. Most-boxed first:
-//   [{ label, head, count, sources, mentioned, boxes }]
+//   [{ label, head, count, sources, by_source, mentioned, boxes }]
 //   mentioned  how many descriptions do mention it
 function detectionOnly(descriptions, records, image) {
   const byHead = new Map();
@@ -659,6 +680,9 @@ function detectionOnly(descriptions, records, image) {
     .map(([head, list]) => ({
       label: list[0].label, head, count: list.length,
       sources: [...new Set(list.map(b => b.source))],
+      // [[source, boxes]], most first: "AWS Rekognition 9, Clarifai 1".
+      by_source: Object.entries(list.reduce((n, b) => ({ ...n, [b.source]: (n[b.source] || 0) + 1 }), {}))
+        .sort((a, b) => b[1] - a[1]),
       mentioned: mentionedBy(head), boxes: list,
     }))
     .filter(flag => flag.mentioned < MAX_DETECTION_MENTION_SHARE * descriptions.length)

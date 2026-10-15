@@ -257,6 +257,12 @@
   // short label for the index row and a full sentence for the reader.
   // (The length range is also a divergence signal, but not a disagreement.)
   var FLAG_KINDS = {
+    unrecorded_title: {
+      label: 'title differs from record',
+      text: function (s) {
+        return 'Calls it ' + s.titles.map(function (t) { return '“' + t + '”'; }).join(' and ') + '; the record’s title is ' + s.record_title;
+      },
+    },
     unrecorded_names: {
       label: 'names a person not in the record',
       text: function (s) { return 'Names ' + s.names.join(' and ') + ', not in the museum record'; },

@@ -124,3 +124,41 @@ test('perspectives.compute includes an overview whose ids are real description a
   assert.ok(overview.agreement.some(term => term.term === 'hat'));
   assert.equal(overview.attention.length, 9);
 });
+
+// --- Titles ------------------------------------------------------------------
+
+const titlesOf = ({ descriptions, objectInfo, ocrText = '' }) => computeOverview({
+  descriptions, observations: {}, moodPalette: [], coverageRadar: null,
+  phrasesByDescription: new Map(), objectInfo, ocrText,
+}).divergence.filter(s => s.kind === 'unrecorded_title');
+const milliner = { title: "At the Milliner's", titles: [{ title: "At the Milliner's" }, { title: 'Chez la Modiste' }] };
+
+test('a title the record does not have is divergence (object 230941)', () => {
+  const found = titlesOf({ objectInfo: milliner, descriptions: [
+    d(1, 'This is a painting titled "The Reader" by Pierre-Auguste Renoir.'),
+    { ...d(2, 'The painting titled The Theatre Box (La Loge), painted in 1874.'), raw: 'The painting titled ***The Theatre Box*** (*La Loge*), painted in 1874.' },
+    d(3, 'A painting of women in a hat shop.'),
+  ] });
+  assert.deepEqual(found.map(s => [s.annotation_id, s.titles]), [[1, ['The Reader']], [2, ['The Theatre Box']]]);
+  assert.equal(found[0].record_title, "At the Milliner's");
+});
+
+test('the record title, an alternate title, or a close spelling is not divergence', () => {
+  const found = titlesOf({ objectInfo: { title: 'Modesta e Vanità (Modesty and Vanity)', titles: [] }, descriptions: [
+    d(1, 'An engraving titled "Modestia e Vanita" shows two women.'),
+    d(2, 'The print, titled "Modesty and Vanity", is Italian.'),
+  ] });
+  assert.deepEqual(found, []);
+  assert.deepEqual(titlesOf({ objectInfo: milliner, descriptions: [d(1, 'A canvas titled "Chez la Modiste".')] }), []);
+});
+
+test('a title many descriptions share, or that OCR read, is text in the image', () => {
+  const shared = Array.from({ length: 4 }, (_, i) => d(i + 1, 'The engraving titled "Plan Général de la Ville de Rheims" shows a map.'));
+  assert.deepEqual(titlesOf({ objectInfo: { title: 'Allegory of Reims' }, descriptions: shared }), []);
+  const read = [d(1, 'A document titled "To the Board of Health" with a form.')];
+  assert.deepEqual(titlesOf({ objectInfo: { title: 'Health, General' }, descriptions: read, ocrText: 'TO THE BOARD OF HEALTH Cambridge' }), []);
+});
+
+test('"called" and "known as" introduce terms, not titles', () => {
+  assert.deepEqual(titlesOf({ objectInfo: { title: 'Chestnut' }, descriptions: [d(1, 'The script is known as "sōsho", also called "grass script".')] }), []);
+});

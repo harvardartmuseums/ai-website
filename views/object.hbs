@@ -44,6 +44,7 @@
     <a href="#overview" data-research-tab="overview">Overview</a>
     <a href="#descriptions" data-research-tab="descriptions">Descriptions <span class="research-tab-count">{{workspace_stats.descriptions}}</span></a>
     <a href="#vocabulary" data-research-tab="vocabulary">Vocabulary <span class="beta-badge">Beta</span></a>
+    <a href="#positions" data-research-tab="positions">Positions <span class="research-tab-count" data-positions-count></span> <span class="beta-badge">Beta</span></a>
     <a href="#detections" data-research-tab="detections">Tags &amp; detections <span class="research-tab-count">{{workspace_stats.detections}}</span></a>
     <a href="#data" data-research-tab="data">Data &amp; method</a>
   </nav>
@@ -80,18 +81,12 @@
           <div data-overview-slot="attention"><p class="research-note">Loading…</p></div>
         </article>
         {{!-- Where they looked: the places the descriptions agree on, each
-              checked against the boxes the vision services detected. Filled by
-              positions-card.js from the perspectives JSON's positions block. --}}
+              checked against the boxes the vision services detected. Rows
+              spotlight the place on the image in the left pane. Filled by
+              positions-ui.js from the perspectives JSON's positions block. --}}
         <article class="overview-card positions-card">
-          <h2 class="overview-card-title">Where they looked</h2>
-          <div class="positions-figure" data-positions-figure hidden>
-            <div class="positions-frame">
-              <img src="{{display_image.baseimageurl}}/full/!640,360/0/default.jpg" alt="" loading="lazy">
-              <div class="positions-spot" data-positions-spot></div>
-              <div class="positions-boxes" data-positions-boxes></div>
-            </div>
-          </div>
-          <div data-positions-slot><p class="research-note">Loading…</p></div>
+          <h2 class="overview-card-title">Where they looked <span class="beta-badge">Beta</span></h2>
+          <div data-positions-card><p class="research-note">Loading…</p></div>
         </article>
         {{!-- Colour: the image's measured palette beside the colour words the
               descriptions use. The palette covers the whole photograph,
@@ -147,6 +142,16 @@
       data-research-section name, so #vocabulary/<name> opens the tab at it
       (see research-workspace.js). Content is rendered by the inline script
       below from the perspectives JSON; section counts fill in once it loads. --}}
+{{!-- Positions: every place the descriptions give, as claims grouped by
+      subject and checked against detected boxes, plus the detections few
+      descriptions mention and the position phrases set aside. Choosing a
+      claim spotlights it on the image in the left pane. #positions/<claim id>
+      opens the tab at that claim. Filled by positions-ui.js. --}}
+<section id="research-positions" data-research-panel="positions" aria-label="Where the descriptions place things">
+  <h2>Where they looked</h2>
+  <p class="research-note">Each claim is a subject and where the descriptions put it. Counts are of descriptions. A ✓ means a box detected by a vision service sits in that place; – means nothing detected there to check against. Choose a claim to see it on the image.</p>
+  <div data-positions-panel><p class="research-note">Loading…</p></div>
+</section>
 <div id="research-vocabulary" data-research-panel="vocabulary"><section class="ai-section attention-section" id="attention-section">
           <h2>Vocabulary</h2>
           <p class="attention-intro">The words behind the Overview, with the excerpts they came from.</p>
@@ -547,7 +552,7 @@
   // `data` is null when the request failed.
   function shareWithWorkspace(data) {
     if (window.renderResearchOverview) window.renderResearchOverview(data);
-    if (window.renderPositionsCard) window.renderPositionsCard(data);
+    if (window.renderPositions) window.renderPositions(data);
     if (data && data.overview && window.researchOutputs) window.researchOutputs.setOverview(data.overview);
     var version = document.getElementById('research-algorithm-version');
     if (version && data && data.algorithm_version) version.textContent = 'Algorithm ' + data.algorithm_version + ' · generated ' + data.generated_at;
@@ -703,7 +708,7 @@
 <script src="/javascripts/research-workspace.js"></script>
 <script src="/javascripts/outputs-index.js"></script>
 <script src="/javascripts/overview-panel.js"></script>
-<script src="/javascripts/positions-card.js"></script>
+<script src="/javascripts/positions-ui.js"></script>
 <script src="/javascripts/coverage-panel.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
 <script src="/vocabularies/stopwords.js"></script>

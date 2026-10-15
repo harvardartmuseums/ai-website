@@ -104,7 +104,12 @@
       var button = outputsButton('overview-item', function (outputs) { outputs.select(signal.annotation_id); });
       var name = el('strong', null, modelName(signal.annotation_id));
       button.appendChild(name);
-      if (signal.kind === 'unrecorded_names') {
+      if (signal.kind === 'unrecorded_title') {
+        button.appendChild(document.createTextNode(' calls it ' + signal.titles.map(function (t) { return '“' + t + '”'; }).join(' and ')
+          + '; the record’s title is '));
+        button.appendChild(el('cite', null, signal.record_title));
+        button.appendChild(document.createTextNode('.'));
+      } else if (signal.kind === 'unrecorded_names') {
         button.appendChild(document.createTextNode(' names ' + signal.names.join(' and ') + ', who ' + (signal.names.length === 1 ? 'is' : 'are') + ' not in the museum record.'));
       } else if (signal.kind === 'unrecorded_medium') {
         button.appendChild(document.createTextNode(' mentions ' + signal.media.join(' and ')
@@ -129,7 +134,7 @@
     }
 
     var children = [];
-    if (!claims.length) children.push(note('No description names a person or a paint medium that contradicts the museum record.'));
+    if (!claims.length) children.push(note('No description gives a title, names a person or a paint medium that contradicts the museum record.'));
     if (items.children.length) children.push(items);
     target.replaceChildren.apply(target, children);
   }
