@@ -137,7 +137,23 @@ html:has(.research-page) body { background: var(--c-white); }
 .overview-link:hover { text-decoration: underline; }
 
 /* --- Overview cards ------------------------------------------------------ */
-.overview-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+/* Overview cards, by the tab's width:
+   - under 600px: one column;
+   - 600–860px: two columns, with the museum-record card across both;
+   - 860px and up: two columns of cards beside the record card, which runs
+     the full height of the grid on the right. It's placed explicitly, so the
+     other eight cards fill the left two columns in their template order.
+   Either way the record card's height doesn't stretch a card beside it. */
+#research-overview { container-type: inline-size; }
+.overview-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 16px; }
+@container (min-width: 600px) {
+  .overview-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .overview-grid > .record-card { grid-column: 1 / -1; }
+}
+@container (min-width: 860px) {
+  .overview-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .overview-grid > .record-card { grid-column: 3; grid-row: 1 / span 4; }
+}
 .overview-card { border: 1px solid var(--c-lightgray); padding: 20px; display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 /* A trailing "go to…" link sits at the bottom of its card. */
 .overview-card > .overview-link:last-child { margin-top: auto; }
@@ -170,9 +186,10 @@ html:has(.research-page) body { background: var(--c-white); }
 .overview-item { display: block; width: 100%; background: none; border: 0; padding: 10px 0; font: inherit; font-size: 14px; line-height: 1.45; color: inherit; text-align: left; cursor: pointer; }
 .overview-item:hover strong { text-decoration: underline; }
 
-/* Attention tiles: four steps of emphasis, each with readable contrast. */
-.overview-tiles { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
-.overview-tile { display: flex; flex-direction: column; gap: 2px; min-height: 58px; padding: 8px; border: 0; font: inherit; font-size: 12px; text-align: left; cursor: pointer; }
+/* Attention tiles: four steps of emphasis, each with readable contrast. Four
+   across, or fewer where the card is narrow (no tile under 72px). */
+.overview-tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(max(72px, calc((100% - 18px) / 4)), 1fr)); gap: 6px; }
+.overview-tile { display: flex; flex-direction: column; gap: 2px; min-height: 58px; padding: 8px; border: 0; font: inherit; font-size: 12px; text-align: left; cursor: pointer; hyphens: auto; overflow-wrap: break-word; }
 .overview-tile:disabled { cursor: default; }
 .overview-tile-count { font-size: 18px; }
 .overview-tile--4 { background: var(--c-nearblack); color: #fff; }
@@ -252,6 +269,13 @@ html:has(.research-page) body { background: var(--c-white); }
 .record-row.is-none .record-track { display: none; }
 .record-row.is-none .record-count { color: #9a9a9a; }
 .record-row:focus-visible { outline: 2px solid var(--c-orangered); outline-offset: 2px; }
+/* Where the record card is wide (across the grid, or the one-column
+   layout), its fields sit in two rows of three: what's visible, then context. */
+.record-card { container-type: inline-size; }
+@container (min-width: 520px) {
+  .record-card .record-rows { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); column-gap: 32px; align-items: start; }
+  .record-card .record-row:nth-child(-n+3) { border-top: 0; padding-top: 0; }
+}
 .overview-card-subhead { margin: 0 0 6px; font-size: 12px; color: var(--c-grayblack); }
 .overview-card .image-palette { margin-top: 0; max-width: none; }
 
