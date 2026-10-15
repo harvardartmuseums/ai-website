@@ -79,6 +79,20 @@
           <h2 class="overview-card-title">What they pay attention to</h2>
           <div data-overview-slot="attention"><p class="research-note">Loading…</p></div>
         </article>
+        {{!-- Where they looked: the places the descriptions agree on, each
+              checked against the boxes the vision services detected. Filled by
+              positions-card.js from the perspectives JSON's positions block. --}}
+        <article class="overview-card positions-card">
+          <h2 class="overview-card-title">Where they looked</h2>
+          <div class="positions-figure" data-positions-figure hidden>
+            <div class="positions-frame">
+              <img src="{{display_image.baseimageurl}}/full/!640,360/0/default.jpg" alt="" loading="lazy">
+              <div class="positions-spot" data-positions-spot></div>
+              <div class="positions-boxes" data-positions-boxes></div>
+            </div>
+          </div>
+          <div data-positions-slot><p class="research-note">Loading…</p></div>
+        </article>
         {{!-- Colour: the image's measured palette beside the colour words the
               descriptions use. The palette covers the whole photograph,
               including bare canvas, mounts and background. --}}
@@ -533,6 +547,7 @@
   // `data` is null when the request failed.
   function shareWithWorkspace(data) {
     if (window.renderResearchOverview) window.renderResearchOverview(data);
+    if (window.renderPositionsCard) window.renderPositionsCard(data);
     if (data && data.overview && window.researchOutputs) window.researchOutputs.setOverview(data.overview);
     var version = document.getElementById('research-algorithm-version');
     if (version && data && data.algorithm_version) version.textContent = 'Algorithm ' + data.algorithm_version + ' · generated ' + data.generated_at;
@@ -688,6 +703,7 @@
 <script src="/javascripts/research-workspace.js"></script>
 <script src="/javascripts/outputs-index.js"></script>
 <script src="/javascripts/overview-panel.js"></script>
+<script src="/javascripts/positions-card.js"></script>
 <script src="/javascripts/coverage-panel.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/diff@5/dist/diff.min.js"></script>
 <script src="/vocabularies/stopwords.js"></script>

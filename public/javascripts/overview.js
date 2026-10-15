@@ -422,4 +422,4 @@ function computeOverview({ descriptions, observations, moodPalette, coverageRada
   };
 }
 
-module.exports = { computeOverview, headNoun, mentions };
+module.exports = { computeOverview, headNoun, mentions, nounPattern };

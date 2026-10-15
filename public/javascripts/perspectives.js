@@ -5,6 +5,7 @@ var _ = require('lodash');
 var stopwords = require('../vocabularies/stopwords');
 var MODELS = require('../../models');
 var overview = require('./overview');
+var positions = require('./positions');
 
 // ---------------------------------------------------------------------------
 // Versioned config — bump algorithm_version on any change (see semver rules
@@ -27,7 +28,10 @@ var overview = require('./overview');
 //     .plans/vocabulary-additions-draft.md.
 // 4.6 vocabulary matching (radar, grid, pose/condition phrases, concept
 //     families, excerpts) also matches plurals of listed nouns.
-const ALGORITHM_VERSION = 'ace-v4.6.0';
+// 4.7 adds the additive `positions` block (see positions.js): where the
+//     descriptions place things, grouped into claims and checked against
+//     detected boxes. No existing field changes.
+const ALGORITHM_VERSION = 'ace-v4.7.0';
 
 const CONFIG = {
   min_services:                2,
@@ -1490,6 +1494,18 @@ function compute(ai_data, object_info, display_image) {
   });
 
   // -------------------------------------------------------------------------
+  // Positions block — where the descriptions place things (see positions.js)
+  // -------------------------------------------------------------------------
+  const positionsBlock = positions.computePositions({
+    descriptions: descAnnotations
+      .map(ann => ({ id: ann.id, source: ann.source, body: (ann.body || '').trim() }))
+      .filter(d => d.body),
+    records: ai_data,
+    image: display_image,
+    objectInfo: object_info,
+  });
+
+  // -------------------------------------------------------------------------
   // Catalogue block
   // -------------------------------------------------------------------------
   const catalogue = buildCatalogue(object_info, display_image);
@@ -1524,6 +1540,7 @@ function compute(ai_data, object_info, display_image) {
     mood_palette:        moodPalette,
     coverage_radar:      coverageRadar,
     overview:            overviewBlock,
+    positions:           positionsBlock,
   };
 }
 
