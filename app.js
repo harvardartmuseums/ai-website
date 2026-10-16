@@ -66,7 +66,7 @@ app.use((req, res, next) => {
 
 // Rate limiter — 100 requests per minute per IP
 app.use(rateLimit({
-  windowMs: 60 * 1000,
+  windowMs: 15 * 60 * 1000,
   max: 100,
   standardHeaders: true,
   legacyHeaders: false,
