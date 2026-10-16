@@ -3,6 +3,7 @@ require('dotenv').config({path: '.env'})
 var express = require('express');
 var router = express.Router();
 var { apiJSON } = require('../lib/request-protection');
+var { sharedCache } = require('../lib/shared-cache');
 var querystring = require('querystring');
 var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
@@ -26,39 +27,16 @@ const API_KEY = process.env['API_KEY']
 
 let statsCache = null;
 
-// In-memory perspectives cache: object ID + image ID + algorithm version.
-// TTL 12 hours, max 1000 entries and 16 MiB of serialized results.
-const PERSPECTIVES_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
-const PERSPECTIVES_CACHE_MAX    = 1000;
-const PERSPECTIVES_CACHE_BYTES = 16 * 1024 * 1024;
-const perspectivesCache = new Map();
-let perspectivesCacheBytes = 0;
+// Byte-bounded public data caches; CACHE_TTL_HOURS controls expiry for all three.
+const cachedObject = sharedCache({ maxBytes: 4 * 1024 * 1024 });
+const cachedWorkspace = sharedCache();
+const cachedPerspectives = sharedCache({ maxEntries: 1000 });
 
-function perspectivesCacheDelete(key) {
-  const entry = perspectivesCache.get(key);
-  if (entry) perspectivesCacheBytes -= entry.bytes;
-  perspectivesCache.delete(key);
-}
-
-function perspectivesCacheGet(key) {
-  const entry = perspectivesCache.get(key);
-  if (!entry) return null;
-  if (Date.now() - entry.ts > PERSPECTIVES_CACHE_TTL_MS) {
-    perspectivesCacheDelete(key);
-    return null;
-  }
-  return entry.result;
-}
-
-function perspectivesCacheSet(key, result) {
-  const bytes = Buffer.byteLength(JSON.stringify(result));
-  perspectivesCacheDelete(key);
-  if (bytes > PERSPECTIVES_CACHE_BYTES) return;
-  while (perspectivesCache.size >= PERSPECTIVES_CACHE_MAX || perspectivesCacheBytes + bytes > PERSPECTIVES_CACHE_BYTES) {
-    perspectivesCacheDelete(perspectivesCache.keys().next().value);
-  }
-  perspectivesCache.set(key, { result, bytes, ts: Date.now() });
-  perspectivesCacheBytes += bytes;
+function loadObject(objectID, signal) {
+  return cachedObject(String(objectID), sharedSignal => apiJSON(
+    `https://api.harvardartmuseums.org/object/${encodeURIComponent(objectID)}?apikey=${API_KEY}`,
+    sharedSignal
+  ), signal);
 }
 
 async function refreshStatsCache() {
@@ -826,84 +804,78 @@ function buildResearchDescriptions(ai_sorted, object_info, display_image) {
   return descriptions_list;
 }
 
+// Reuse the image workspace across annotation links until the entry expires.
+// The request's annotation is selected from untouched records.
+function loadWorkspace(objectID, imageID, signal) {
+  const key = JSON.stringify([String(objectID), imageID == null ? null : String(imageID)]);
+  return cachedWorkspace(key, async sharedSignal => {
+    const object_info = await loadObject(objectID, sharedSignal);
+    const selected = imageID
+      ? (object_info.images || []).find(image => image.imageid === Number(imageID))
+      : (object_info.images || [])[0];
+    if (!selected) throw Object.assign(new Error('No matching image is available for this object.'), { status: 404 });
+    const imageid = selected.imageid;
+    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=${imageid}&size=2000&apikey=${API_KEY}`;
+    const image_url = `https://api.harvardartmuseums.org/image/${imageid}?apikey=${API_KEY}`;
+    const [ai_info, image_info] = await Promise.all([
+      apiJSON(ai_url, sharedSignal),
+      apiJSON(image_url, sharedSignal).catch(error => {
+        if (sharedSignal.aborted) throw error;
+        return null;
+      })
+    ]);
+    const raw_annotations = _.cloneDeep(ai_info.records || []);
+    let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
+    // Divide data into general categories
+    let ai_sorted = organize.divide(ai_data)
+    const image_summary = _buildImageSummary(ai_sorted);
+
+    // The embedded summary keeps fields only it has (displayorder,
+    // publiccaption); the full image record adds colors, fingerprints, etc.
+    const embedded_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+    const display_image = image_info && image_info.imageid === embedded_image.imageid
+      ? { ...embedded_image, ...image_info } : embedded_image;
+    const descriptions_list = buildResearchDescriptions(ai_sorted, object_info, display_image);
+    const image_choices = buildImageChoices(object_info, imageid);
+    return {
+      title: 'How AI describes ' + object_info.title + ' (image ' + imageid + ')',
+      raw_annotations,
+      descriptions_list,
+      output_rows: buildOutputRows(descriptions_list),
+      workspace_stats: buildWorkspaceStats(ai_info.records || []),
+      // Same display order as the image strip, so "(2 of 7)" matches it.
+      image_position: image_choices.findIndex(choice => choice.selected) + 1,
+      has_other_analysis: Boolean(display_image.colors && display_image.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
+      multiple_images: object_info.images.length > 1,
+      object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
+      image_choices,
+      navbar: true,
+      year: new Date().getFullYear(),
+      ai_data,
+      ai_sorted,
+      object_info,
+      display_image,
+      image_summary,
+    };
+  }, signal);
+}
+
 /* GET object info. */
 router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
   if (req.params.image === 'compare' && !req.params.image_id) return res.redirect('/object/' + encodeURIComponent(req.params.object_id) + '#compare');
-  let tag_list = _.sampleSize(example_tags.tags_list, 5);
-  let mobile_tag_list = _.sampleSize(example_tags.tags_list, 4);
-  let image_list = _.sampleSize(example_images.image_list, 6);
-
-  const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
-  
-  apiJSON(object_url, req.upstreamSignal)
-  .then(object_info => {
-    const selected = req.params.image_id
-      ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
-      : (object_info.images || [])[0];
-    if (!selected) {
-      const error = new Error('No matching image is available for this object.');
-      error.status = 404;
-      return next(error);
-    }
-    const imageid = selected.imageid;
-
-    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
-    // The full image record carries data the summary embedded in the object
-    // record lacks, notably this image's own colour palette. It is optional:
-    // if the request fails, the page renders without those fields.
-    const image_url = `https://api.harvardartmuseums.org/image/` + imageid + `?apikey=` + API_KEY;
-    const image_record = apiJSON(image_url, req.upstreamSignal)
-      .catch(error => {
-        if (req.upstreamSignal && req.upstreamSignal.aborted) throw error;
-        return null;
-      });
-
-    return Promise.all([apiJSON(ai_url, req.upstreamSignal), image_record])
-    .then(([ai_info, image_info]) => {
-      // Evidence links retain the complete, original annotation body and model
-      // identifier before organize.divide enriches/mutates the display records.
+  loadWorkspace(req.params.object_id, req.params.image_id, req.upstreamSignal)
+    .then(context => {
+      if (req.upstreamSignal && req.upstreamSignal.aborted) return;
       const selected_annotation = req.query && req.query.annotation
-        ? _.cloneDeep((ai_info.records || []).find(record => String(record.id) === req.query.annotation)) : null;
-      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
-      // Divide data into general categories
-      let ai_sorted = organize.divide(ai_data)
-      const image_summary = _buildImageSummary(ai_sorted);
-
-      // The embedded summary keeps fields only it has (displayorder,
-      // publiccaption); the full image record adds colors, fingerprints, etc.
-      const embedded_image = _.find(object_info.images, {imageid: parseInt(imageid)});
-      const display_image = image_info && image_info.imageid === embedded_image.imageid
-        ? { ...embedded_image, ...image_info } : embedded_image;
-      const descriptions_list = buildResearchDescriptions(ai_sorted, object_info, display_image);
-      // An evidence link to a description opens it in the Descriptions reader;
-      // any other annotation (tags, faces, regions) is shown as a source record.
+        ? context.raw_annotations.find(record => String(record.id) === req.query.annotation) : null;
       const linksToDescription = selected_annotation && selected_annotation.type === 'description';
-      const image_choices = buildImageChoices(object_info, imageid);
-
-      // Matches the page heading; the layout appends "| AI Explorer | Harvard Art Museums".
-      res.render('object', { title: 'How AI describes ' + object_info.title + ' (image ' + imageid + ')',
-                             selected_annotation: linksToDescription ? null : selected_annotation,
-                             selected_output_id: linksToDescription ? selected_annotation.id : null,
-                             descriptions_list,
-                             output_rows: buildOutputRows(descriptions_list),
-                             workspace_stats: buildWorkspaceStats(ai_info.records || []),
-                             // Same display order as the image strip, so "(2 of 7)" matches it.
-                             image_position: image_choices.findIndex(choice => choice.selected) + 1,
-                             has_other_analysis: Boolean(display_image.colors && display_image.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
-                             multiple_images: object_info.images.length > 1,
-                             object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
-                             image_choices,
-                             navbar: true,
-                             year: new Date().getFullYear(),
-                             ai_data: ai_data,
-                             ai_sorted: ai_sorted,
-                             object_info: object_info,
-                             display_image: display_image,
-                             image_summary: image_summary,
-                           });
-    })
-  })
-  .catch(next);
+      delete context.raw_annotations;
+      res.render('object', {
+        ...context,
+        selected_annotation: linksToDescription ? null : selected_annotation,
+        selected_output_id: linksToDescription ? selected_annotation.id : null
+      });
+    }).catch(next);
 });
 
 /* Legacy comparison links now open the selected image workspace. */
@@ -914,9 +886,7 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res) {
 
 /* GET AI Perspectives JSON for an object/image. */
 router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, res, next) {
-  const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
-
-  apiJSON(object_url, req.upstreamSignal)
+  loadObject(req.params.object_id, req.upstreamSignal)
   .then(object_info => {
     const selected = req.params.image_id
       ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
@@ -929,20 +899,15 @@ router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, r
     const imageid = selected.imageid;
 
     const cacheKey = `${object_info.id}_${imageid}_${perspectives.ALGORITHM_VERSION}`;
-    const cached = perspectivesCacheGet(cacheKey);
-    if (cached) {
-      return res.json(cached);
-    }
-
-    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
-    return apiJSON(ai_url, req.upstreamSignal)
-    .then(ai_info => {
-      const ai_data      = ai_info.records || [];
-      const display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
-      const result       = perspectives.compute(ai_data, object_info, display_image);
-      perspectivesCacheSet(cacheKey, result);
-      res.json(result);
-    })
+    return cachedPerspectives(cacheKey, async sharedSignal => {
+      const ai_url = `https://api.harvardartmuseums.org/annotation/?image=${imageid}&size=2000&apikey=${API_KEY}`;
+      const ai_info = await apiJSON(ai_url, sharedSignal);
+      const display_image = object_info.images.find(image => image.imageid === imageid);
+      return perspectives.compute(ai_info.records || [], object_info, display_image);
+    }, req.upstreamSignal).then(result => {
+      if (req.upstreamSignal && req.upstreamSignal.aborted) return;
+      return res.json(result);
+    });
   })
   .catch(next);
 });

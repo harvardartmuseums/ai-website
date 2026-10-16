@@ -60,7 +60,29 @@ from downloading snippets for every preceding page. Search supports pages 1–10
 invalid or unavailable pages return 404. Perspectives caching is limited to
 1,000 entries and 16 MiB of serialized results (actual heap use is higher).
 
-Run `npm run test:server` for request lifecycle and search regression checks,
+Object records, prepared image workspaces and Perspectives results are cached
+for 12 hours by default. Set `CACHE_TTL_HOURS` to change this for all three caches
+(for example, `12` for 12 hours, `1` for one hour, or `0.5` for 30 minutes).
+Missing, invalid or nonpositive values fall back to 12 hours. The setting is read
+when the server starts; restarting or deploying also clears these in-memory caches.
+In Heroku, add it under Settings → Config Vars. Memory limits can evict entries
+before expiry. Changing
+an annotation link reuses the same workspace but selects that link's original
+annotation separately. Concurrent requests for the same data share one load;
+Perspectives requests also share one analysis computation. Each caller receives
+an independent copy, so display processing cannot change another request's data.
+Shared upstream work is cancelled when its last waiting request disconnects.
+Failed loads are not cached. Optional image-record failures can leave a cached
+workspace without those optional fields until its cache entry expires.
+
+The object-record cache holds at most 100 entries and 4 MiB of serialized data;
+the workspace cache holds at most 100 entries and 16 MiB. These bounds are in
+addition to the Perspectives cache above. Each cache evicts least recently used
+entries and skips results that exceed its byte limit. Dataset updates do not
+automatically invalidate cached entries; expiry is measured from each entry's
+creation rather than synchronized with dataset refreshes.
+
+Run `npm run test:server` for request lifecycle, caching and search regression checks,
 and `npm run test:research` for research workspace checks. After deployment,
 monitor H12/H19 errors, memory, response times and 503s before raising concurrency.
 An incident with R14 and heavy crawling also needs traffic controls at the proxy
