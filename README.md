@@ -41,11 +41,12 @@ Results can be sorted by:
 
 ## Heroku request protection
 
-Dynamic requests are limited to eight concurrent requests per process by default.
+Dynamic requests are limited to 16 concurrent requests per process by default.
 Set `MAX_CONCURRENT_REQUESTS` to a positive integer to tune this after observing
 memory and response times under load. Excess requests receive a 503 response and
-`Retry-After: 5`; static assets bypass this concurrency limit. The existing per-IP
-limit remains 100 requests per 15 minutes.
+`Retry-After: 5`. The per-IP limit allows 120 dynamic requests per minute.
+Static assets bypass both limits, so loading images, stylesheets and scripts
+does not consume a visitor's request quota.
 
 Museum API calls have a 10-second timeout, including downloading the body.
 Dynamic requests have a 20-second deadline; completing or disconnecting aborts

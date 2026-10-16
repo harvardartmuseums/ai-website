@@ -65,17 +65,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiter — 100 requests per 15 minutes per IP
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+// Limit dynamic requests only; static assets must not consume a visitor's quota.
+const dynamicRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  max: 120,
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
     console.log(`Rate limited: ${req.ip} | ${req.method} ${req.originalUrl}`);
-    res.status(429).end();
+    res.status(429).send('Too many requests. Please try again in a minute.');
   },
-}));
+});
 
 app.use(redirectToSSL(['staging', 'production']));
 app.use(logger('dev'));
@@ -83,6 +83,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(dynamicRateLimit);
 app.use(requestProtection());
 app.use('/', routes);
 
