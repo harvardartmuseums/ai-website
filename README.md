@@ -39,6 +39,32 @@ Results can be sorted by:
 - **Confidence** (default) — images where the AI had the highest confidence in the search term appear first
 - **Frequency** — images with the most matching annotations appear first
 
+## Heroku request protection
+
+Dynamic requests are limited to eight concurrent requests per process by default.
+Set `MAX_CONCURRENT_REQUESTS` to a positive integer to tune this after observing
+memory and response times under load. Excess requests receive a 503 response and
+`Retry-After: 5`; static assets bypass this concurrency limit. The existing per-IP
+limit remains 100 requests per 15 minutes.
+
+Museum API calls have a 10-second timeout, including downloading the body.
+Dynamic requests have a 20-second deadline; completing or disconnecting aborts
+their remaining API calls. API failures reach the Express error handler instead
+of leaving rejected promises unhandled or reporting false empty search results.
+These deadlines cannot interrupt synchronous JavaScript computation.
+
+Search ranks images using count/confidence buckets, then fetches up to 75
+annotation snippets for each of the 24 visible images. This keeps deep pages
+from downloading snippets for every preceding page. Search supports pages 1–100;
+invalid or unavailable pages return 404. Perspectives caching is limited to
+1,000 entries and 16 MiB of serialized results (actual heap use is higher).
+
+Run `npm run test:server` for request lifecycle and search regression checks,
+and `npm run test:research` for research workspace checks. After deployment,
+monitor H12/H19 errors, memory, response times and 503s before raising concurrency.
+An incident with R14 and heavy crawling also needs traffic controls at the proxy
+or CDN; per-IP limits alone do not bound traffic spread across many addresses.
+
 ## AI Perspectives (Beta)
 
 The selected image is the unit of analysis. `/object/:object_id/image/:image_id` provides Perspectives, Descriptions, Compare, Tags, and Other analyses in one workspace. Switching images changes the image and its annotations while retaining the active view. The associated object’s catalog metadata and wall label remain separate in the image sidebar.

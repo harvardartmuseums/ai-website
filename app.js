@@ -10,6 +10,7 @@ var logger = require('morgan');
 var path = require('path');
 var rateLimit = require('express-rate-limit');
 var routes = require('./routes/routes');
+var { requestProtection } = require('./lib/request-protection');
 var app = express();
 
 app.set('trust proxy', 1);
@@ -64,7 +65,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Rate limiter — 100 requests per minute per IP
+// Rate limiter — 100 requests per 15 minutes per IP
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -82,6 +83,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(requestProtection());
 app.use('/', routes);
 
 // catch 404 and forward to error handler
@@ -91,6 +93,8 @@ app.use(function(req, res, next) {
 
 // error handler
 app.use(function(err, req, res, next) {
+  if (res.destroyed || res.writableEnded) return;
+  if (res.headersSent) return next(err);
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

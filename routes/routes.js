@@ -2,6 +2,7 @@ require('dotenv').config({path: '.env'})
 
 var express = require('express');
 var router = express.Router();
+var { apiJSON } = require('../lib/request-protection');
 var querystring = require('querystring');
 var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
@@ -26,27 +27,38 @@ const API_KEY = process.env['API_KEY']
 let statsCache = null;
 
 // In-memory perspectives cache: object ID + image ID + algorithm version.
-// TTL 12 hours, max 1000 entries (oldest-first eviction).
+// TTL 12 hours, max 1000 entries and 16 MiB of serialized results.
 const PERSPECTIVES_CACHE_TTL_MS = 12 * 60 * 60 * 1000;
 const PERSPECTIVES_CACHE_MAX    = 1000;
+const PERSPECTIVES_CACHE_BYTES = 16 * 1024 * 1024;
 const perspectivesCache = new Map();
+let perspectivesCacheBytes = 0;
+
+function perspectivesCacheDelete(key) {
+  const entry = perspectivesCache.get(key);
+  if (entry) perspectivesCacheBytes -= entry.bytes;
+  perspectivesCache.delete(key);
+}
 
 function perspectivesCacheGet(key) {
   const entry = perspectivesCache.get(key);
   if (!entry) return null;
   if (Date.now() - entry.ts > PERSPECTIVES_CACHE_TTL_MS) {
-    perspectivesCache.delete(key);
+    perspectivesCacheDelete(key);
     return null;
   }
   return entry.result;
 }
 
 function perspectivesCacheSet(key, result) {
-  if (perspectivesCache.size >= PERSPECTIVES_CACHE_MAX) {
-    // Evict the oldest entry
-    perspectivesCache.delete(perspectivesCache.keys().next().value);
+  const bytes = Buffer.byteLength(JSON.stringify(result));
+  perspectivesCacheDelete(key);
+  if (bytes > PERSPECTIVES_CACHE_BYTES) return;
+  while (perspectivesCache.size >= PERSPECTIVES_CACHE_MAX || perspectivesCacheBytes + bytes > PERSPECTIVES_CACHE_BYTES) {
+    perspectivesCacheDelete(perspectivesCache.keys().next().value);
   }
-  perspectivesCache.set(key, { result, ts: Date.now() });
+  perspectivesCache.set(key, { result, bytes, ts: Date.now() });
+  perspectivesCacheBytes += bytes;
 }
 
 async function refreshStatsCache() {
@@ -98,11 +110,7 @@ async function refreshStatsCache() {
     const results = await Promise.all(queries.map(async (aggs) => {
       const qs = { size: 0, apikey: API_KEY, aggregation: JSON.stringify(aggs) };
       const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
-      const res = await fetch(url);
-      if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText}`);
-      }
-      return res.json();
+      return apiJSON(url);
     }));
 
     const aggregations = Object.assign({}, ...results.map(r => r.aggregations));
@@ -402,6 +410,9 @@ router.get('/explore', function(req, res, next) {
 router.get('/search/:tag/:page?', function(req, res, next) {
   const PAGE_SIZE = 24;
   const PAGE_CAP = 100;
+  if (req.params.page && (!/^\d+$/.test(req.params.page) || Number(req.params.page) < 1 || Number(req.params.page) > PAGE_CAP)) {
+    return next(Object.assign(new Error('Search page not found.'), { status: 404 }));
+  }
   let page = 1;
   if (req.params.page > 1 && req.params.page <= PAGE_CAP) {
     page = parseFloat(req.params.page);
@@ -430,14 +441,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
       },
       "aggs": {
         "max_confidence": {"max": {"field": "confidence"}},
-        "min_confidence": {"min": {"field": "confidence"}},
-        "top_annotations": {
-          "top_hits": {
-            "size": 75,
-            "sort": [{"confidence": "desc"}],
-            "_source": ["body", "confidence", "source", "type", "feature"]
-          }
-        }
+        "min_confidence": {"min": {"field": "confidence"}}
       }
     },
     "image_count": {
@@ -475,8 +479,8 @@ router.get('/search/:tag/:page?', function(req, res, next) {
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
-  fetch(tag_url).then(response => response.json())
-  .then(tag_results => {
+  apiJSON(tag_url, req.upstreamSignal)
+  .then(async tag_results => {
     if (tag_results.info.totalrecords === 0) {
       return res.render('search', {title: `No search results for '${req.params.tag}'`,
                                   navbar: true, error: true,
@@ -487,7 +491,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
     let page_buckets = all_buckets.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
     let total_images = tag_results.aggregations.image_count.value;
     let total_sources = tag_results.aggregations.source_count.value;
-    let total_pages = Math.ceil(total_images / PAGE_SIZE);
+    let total_pages = Math.min(PAGE_CAP, Math.ceil(total_images / PAGE_SIZE));
     let tag_stats = tag_results.aggregations;
     let sourceBucketsByCount = _.orderBy(tag_stats.by_source.buckets, 'doc_count', 'desc');
     let source_summary = sourceDistributionSummary(sourceBucketsByCount);
@@ -510,8 +514,37 @@ router.get('/search/:tag/:page?', function(req, res, next) {
     };
 
     let imageid_list = page_buckets.map(b => b.key);
+    if (!imageid_list.length) {
+      return next(Object.assign(new Error('Search page not found.'), { status: 404 }));
+    }
+    // Rank using lightweight buckets, then fetch text for only the visible page.
+    // Previously page 100 downloaded up to 180,000 hits to display 24 images.
+    const detailQS = {
+      ...qs,
+      q: `(${q}) AND imageid:(${imageid_list.join(' OR ')})`,
+      aggregation: JSON.stringify({
+        top_images: {
+          terms: { field: 'imageid', size: PAGE_SIZE },
+          aggs: {
+            top_annotations: {
+              top_hits: {
+                size: 75,
+                sort: [{ confidence: 'desc' }],
+                _source: ['body', 'confidence', 'source', 'type', 'feature']
+              }
+            }
+          }
+        }
+      })
+    };
+    const details = await apiJSON(`https://api.harvardartmuseums.org/annotation/?${querystring.encode(detailQS)}`, req.upstreamSignal);
+    const hitsByImage = new Map(details.aggregations.top_images.buckets.map(bucket => [String(bucket.key), bucket.top_annotations]));
+    page_buckets = page_buckets.map(bucket => ({
+      ...bucket,
+      top_annotations: hitsByImage.get(String(bucket.key)) || { hits: { hits: [] } }
+    }));
     let object_url = appendscript.idappend(imageid_list);
-    fetch(object_url).then(response => response.json())
+    return apiJSON(object_url, req.upstreamSignal)
     .then(object_results => {
       let results = appendscript.bucketappend(page_buckets, object_results.records || [], _.lowerCase(req.params.tag));
       let filterParts = [];
@@ -545,13 +578,8 @@ router.get('/search/:tag/:page?', function(req, res, next) {
         filterParamsNoSort: filterParamsNoSort
       });
     })
-    .catch(() => {res.render('search', {title: `No search results for '${req.params.tag}'`,
-                                        navbar: true, error: true,
-                                        tag_list: tag_list, mobile_tag_list: mobile_tag_list, image_list: image_list})})
   })
-  .catch(() => {res.render('search', {title: `No search results for '${req.params.tag}'`,
-                                      navbar: true, error: true,
-                                      tag_list: tag_list, mobile_tag_list: mobile_tag_list, image_list: image_list})})
+  .catch(next);
 });
 
 router.get('/feature/:tag/:page?', function(req, res, next) {
@@ -573,7 +601,7 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
-  fetch(tag_url).then(response => response.json())
+  apiJSON(tag_url, req.upstreamSignal)
   .then(tag_results => {
     let feature_results_info = tag_results.info;
     feature_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1};
@@ -587,7 +615,7 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
 
     let imageid_list = _.map(tag_results.records, 'imageid');
     let object_url = appendscript.idappend(imageid_list);
-    fetch(object_url).then(response => response.json())
+    return apiJSON(object_url, req.upstreamSignal)
     .then(object_results => {
       tag_results.records = appendscript.objectappend(tag_results.records, object_results.records);
       
@@ -599,7 +627,7 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
                               results: tag_results.records,
                               feature_results_info: feature_results_info});
       });
-  });
+  }).catch(next);
 });
 
 router.get('/face/:page?', function(req, res, next) {
@@ -621,7 +649,7 @@ router.get('/face/:page?', function(req, res, next) {
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
-  fetch(tag_url).then(response => response.json())
+  apiJSON(tag_url, req.upstreamSignal)
   .then(tag_results => {
     let feature_results_info = tag_results.info;
     feature_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1};
@@ -635,7 +663,7 @@ router.get('/face/:page?', function(req, res, next) {
 
     let imageid_list = _.map(tag_results.records, 'imageid');
     let object_url = appendscript.idappend(imageid_list);
-    fetch(object_url).then(response => response.json())
+    return apiJSON(object_url, req.upstreamSignal)
     .then(object_results => {
       tag_results.records = appendscript.objectappend(tag_results.records, object_results.records);
       
@@ -647,7 +675,7 @@ router.get('/face/:page?', function(req, res, next) {
                               results: tag_results.records,
                               feature_results_info: feature_results_info});
       });
-  });
+  }).catch(next);
 });
 
 /* GET category results. */
@@ -677,7 +705,7 @@ router.get('/category/:category/:page?', function(req, res, next) {
     'aggregation': JSON.stringify(aggs)
   };  
   const category_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
-  fetch(category_url).then(response => response.json())
+  apiJSON(category_url, req.upstreamSignal)
   .then(category_results => {
     let category_results_info = category_results.info;
     let category_stats = category_results.aggregations;
@@ -685,7 +713,7 @@ router.get('/category/:category/:page?', function(req, res, next) {
     category_results = _.orderBy(category_results.records, ['confidence'], ['desc'])
     let imageid_results = _.map(category_results, 'imageid')
     let object_url = appendscript.idappend(imageid_results)
-    fetch(object_url).then(response => response.json())
+    return apiJSON(object_url, req.upstreamSignal)
     .then(object_results => {
       object_results = object_results.records
       object_results = appendscript.categoryappend(object_results, category_results)
@@ -700,7 +728,7 @@ router.get('/category/:category/:page?', function(req, res, next) {
                              category_results_info: category_results_info,
                            });
     })
-  })
+  }).catch(next);
 });
 
 // Counts for the research page header and the Overview's detections card.
@@ -807,7 +835,7 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
 
   const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
   
-  fetch(object_url).then(response => response.json())
+  apiJSON(object_url, req.upstreamSignal)
   .then(object_info => {
     const selected = req.params.image_id
       ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
@@ -824,11 +852,13 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
     // record lacks, notably this image's own colour palette. It is optional:
     // if the request fails, the page renders without those fields.
     const image_url = `https://api.harvardartmuseums.org/image/` + imageid + `?apikey=` + API_KEY;
-    const image_record = fetch(image_url)
-      .then(response => response.ok ? response.json() : null)
-      .catch(() => null);
+    const image_record = apiJSON(image_url, req.upstreamSignal)
+      .catch(error => {
+        if (req.upstreamSignal && req.upstreamSignal.aborted) throw error;
+        return null;
+      });
 
-    Promise.all([fetch(ai_url).then(response => response.json()), image_record])
+    return Promise.all([apiJSON(ai_url, req.upstreamSignal), image_record])
     .then(([ai_info, image_info]) => {
       // Evidence links retain the complete, original annotation body and model
       // identifier before organize.divide enriches/mutates the display records.
@@ -872,21 +902,8 @@ router.get('/object/:object_id/:image?/:image_id?', function(req, res, next) {
                              image_summary: image_summary,
                            });
     })
-    .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
-                                            navbar: true,
-                                            year: new Date().getFullYear(),
-                                            error: true,
-                                            tag_list: tag_list,
-                                            mobile_tag_list: mobile_tag_list,
-                                            image_list: image_list})})
   })
-  .catch(() => {res.render('search', {title: "No AI data for object ID '" + req.params.object_id + "'",
-                                          navbar: true,
-                                          year: new Date().getFullYear(),
-                                          error: true,
-                                          tag_list: tag_list,
-                                          mobile_tag_list: mobile_tag_list,
-                                          image_list: image_list})})
+  .catch(next);
 });
 
 /* Legacy comparison links now open the selected image workspace. */
@@ -899,7 +916,7 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res) {
 router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, res, next) {
   const object_url = `https://api.harvardartmuseums.org/object/` + req.params.object_id + `?apikey=` + API_KEY;
 
-  fetch(object_url).then(response => response.json())
+  apiJSON(object_url, req.upstreamSignal)
   .then(object_info => {
     const selected = req.params.image_id
       ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
@@ -918,7 +935,7 @@ router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, r
     }
 
     const ai_url = `https://api.harvardartmuseums.org/annotation/?image=` + imageid + `&size=2000&apikey=` + API_KEY;
-    fetch(ai_url).then(response => response.json())
+    return apiJSON(ai_url, req.upstreamSignal)
     .then(ai_info => {
       const ai_data      = ai_info.records || [];
       const display_image = _.find(object_info.images, {imageid: parseInt(imageid)});
@@ -926,9 +943,8 @@ router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, r
       perspectivesCacheSet(cacheKey, result);
       res.json(result);
     })
-    .catch(err => res.status(500).json({ status: 'error', message: 'Failed to fetch annotations' }))
   })
-  .catch(err => res.status(500).json({ status: 'error', message: 'Failed to fetch object' }))
+  .catch(next);
 });
 
 router.get('/statistics', function(req, res, next) {
