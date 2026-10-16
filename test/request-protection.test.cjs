@@ -10,8 +10,73 @@ function response() {
   res.set = (key, value) => { res.headers[key] = value; return res; };
   res.status = code => { res.statusCode = code; return res; };
   res.send = body => { res.body = body; res.writableEnded = true; res.emit('finish'); return res; };
+  res.destroy = () => { res.destroyed = true; res.emit('close'); };
   return res;
 }
+
+test('requests closed before admission never start work or consume capacity', async () => {
+  const protect = requestProtection({ maxConcurrent: 1, timeoutMs: 10 });
+  let accepted = 0;
+  const closed = response();
+  closed.destroy();
+  protect({}, closed, () => accepted++);
+  protect({ aborted: true }, response(), () => accepted++);
+  protect({}, Object.assign(response(), { writableEnded: true }), () => accepted++);
+  assert.equal(accepted, 0);
+  await delay(30);
+  const healthy = response();
+  protect({}, healthy, () => accepted++);
+  assert.equal(accepted, 1);
+  assert.equal(healthy.statusCode, undefined);
+  healthy.emit('finish');
+});
+
+test('deadline frees a slot even when a destroyed response never emits close', async () => {
+  const protect = requestProtection({ maxConcurrent: 1, timeoutMs: 10 });
+  const req = {}, departed = response();
+  protect(req, departed, () => {});
+  departed.destroyed = true; // Simulate an unavailable/already missed close event.
+  await delay(30);
+  assert.equal(req.upstreamSignal.aborted, true);
+  let accepted = false;
+  const healthy = response();
+  protect({}, healthy, () => { accepted = true; });
+  assert.equal(accepted, true);
+  healthy.emit('finish');
+});
+
+test('deadline closes partially written responses and releases capacity', async () => {
+  const protect = requestProtection({ maxConcurrent: 1, timeoutMs: 10 });
+  const req = {}, partial = response();
+  protect(req, partial, () => {});
+  partial.headersSent = true;
+  await delay(30);
+  assert.equal(partial.destroyed, true);
+  assert.equal(req.upstreamSignal.aborted, true);
+  const healthy = response();
+  let accepted = false;
+  protect({}, healthy, () => { accepted = true; });
+  assert.equal(accepted, true);
+  healthy.emit('finish');
+});
+
+test('request abort releases capacity once even if response close arrives later', () => {
+  const protect = requestProtection({ maxConcurrent: 1 });
+  const req = new EventEmitter(), departed = response();
+  protect(req, departed, () => {});
+  req.emit('aborted');
+  departed.emit('close');
+  assert.equal(req.upstreamSignal.aborted, true);
+  assert.equal(req.listenerCount('aborted'), 0);
+  const healthy = response();
+  let accepted = 0;
+  protect({}, healthy, () => accepted++);
+  const busy = response();
+  protect({}, busy, () => accepted++);
+  assert.equal(accepted, 1);
+  assert.equal(busy.statusCode, 503);
+  healthy.emit('finish');
+});
 
 test('overload fails fast, and finish/close release each slot only once', () => {
   const protect = requestProtection({ maxConcurrent: 1 });
