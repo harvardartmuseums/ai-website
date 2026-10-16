@@ -2,7 +2,7 @@ require('dotenv').config({path: '.env'})
 
 var express = require('express');
 var router = express.Router();
-var { apiJSON } = require('../lib/request-protection');
+var { apiJSON, runWork, limitWork } = require('../lib/request-protection');
 var { sharedCache } = require('../lib/shared-cache');
 var querystring = require('querystring');
 var _ = require('lodash');
@@ -33,10 +33,10 @@ const cachedWorkspace = sharedCache();
 const cachedPerspectives = sharedCache({ maxEntries: 1000 });
 
 function loadObject(objectID, signal) {
-  return cachedObject(String(objectID), sharedSignal => apiJSON(
+  return cachedObject(String(objectID), sharedSignal => runWork(workSignal => apiJSON(
     `https://api.harvardartmuseums.org/object/${encodeURIComponent(objectID)}?apikey=${API_KEY}`,
-    sharedSignal
-  ), signal);
+    workSignal
+  ), sharedSignal), signal);
 }
 
 async function refreshStatsCache() {
@@ -85,11 +85,11 @@ async function refreshStatsCache() {
 
   const start = Date.now();
   try {
-    const results = await Promise.all(queries.map(async (aggs) => {
+    const results = await runWork(workSignal => Promise.all(queries.map(async (aggs) => {
       const qs = { size: 0, apikey: API_KEY, aggregation: JSON.stringify(aggs) };
       const url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
-      return apiJSON(url);
-    }));
+      return apiJSON(url, workSignal);
+    })));
 
     const aggregations = Object.assign({}, ...results.map(r => r.aggregations));
     aggregations.by_source.buckets.forEach(a => {
@@ -308,13 +308,13 @@ function _keyPhrases(textA, textB) {
   return { shared: tA.filter(function(t) { return sB[t]; }), onlyA: tA.filter(function(t) { return !sB[t]; }), onlyB: tB.filter(function(t) { return !sA[t]; }) };
 }
 
-router.post('/api/analyze', express.json(), function(req, res) {
+router.post('/api/analyze', express.json(), limitWork(function(req, res) {
   var text = (req.body && req.body.text) || '';
   if (!text) return res.status(400).json({ error: 'text required' });
   res.json(_computeStats(text) || {});
-});
+}));
 
-router.post('/api/compare', express.json(), function(req, res) {
+router.post('/api/compare', express.json(), limitWork(function(req, res) {
   var textA = (req.body && req.body.textA) || '';
   var textB = (req.body && req.body.textB) || '';
   if (!textA || !textB) return res.status(400).json({ error: 'textA and textB required' });
@@ -324,7 +324,7 @@ router.post('/api/compare', express.json(), function(req, res) {
     sentenceOverlap: _sentenceOverlap(textA, textB),
     keyPhrases:     _keyPhrases(textA, textB)
   });
-});
+}));
 
 router.post('/api/consensus', express.json(), function(req, res) {
   var texts = (req.body && Array.isArray(req.body.texts)) ? req.body.texts : [];
@@ -385,7 +385,7 @@ router.get('/explore', function(req, res, next) {
 
 
 /* GET search results. */
-router.get('/search/:tag/:page?', function(req, res, next) {
+router.get('/search/:tag/:page?', limitWork(function(req, res, next) {
   const PAGE_SIZE = 24;
   const PAGE_CAP = 100;
   if (req.params.page && (!/^\d+$/.test(req.params.page) || Number(req.params.page) < 1 || Number(req.params.page) > PAGE_CAP)) {
@@ -457,7 +457,7 @@ router.get('/search/:tag/:page?', function(req, res, next) {
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
-  apiJSON(tag_url, req.upstreamSignal)
+  return apiJSON(tag_url, req.upstreamSignal)
   .then(async tag_results => {
     if (tag_results.info.totalrecords === 0) {
       return res.render('search', {title: `No search results for '${req.params.tag}'`,
@@ -558,9 +558,9 @@ router.get('/search/:tag/:page?', function(req, res, next) {
     })
   })
   .catch(next);
-});
+}));
 
-router.get('/feature/:tag/:page?', function(req, res, next) {
+router.get('/feature/:tag/:page?', limitWork(function(req, res, next) {
   let tag = _.lowerCase(req.params.tag);
   let page = 1;
   if (req.params.page > 1 && req.params.page < 9616) { // This is to keep the search request from going deeper than 500K records in to the dataset. Elasticsearch will throw an error. 500,000/52 = 9615.38
@@ -579,7 +579,7 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
-  apiJSON(tag_url, req.upstreamSignal)
+  return apiJSON(tag_url, req.upstreamSignal)
   .then(tag_results => {
     let feature_results_info = tag_results.info;
     feature_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1};
@@ -606,9 +606,9 @@ router.get('/feature/:tag/:page?', function(req, res, next) {
                               feature_results_info: feature_results_info});
       });
   }).catch(next);
-});
+}));
 
-router.get('/face/:page?', function(req, res, next) {
+router.get('/face/:page?', limitWork(function(req, res, next) {
   let tag = _.lowerCase(req.params.tag);
   let page = 1;
   if (req.params.page > 1 && req.params.page < 9616) { // This is to keep the search request from going deeper than 500K records in to the dataset. Elasticsearch will throw an error. 500,000/52 = 9615.38
@@ -627,7 +627,7 @@ router.get('/face/:page?', function(req, res, next) {
   };
   const tag_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
 
-  apiJSON(tag_url, req.upstreamSignal)
+  return apiJSON(tag_url, req.upstreamSignal)
   .then(tag_results => {
     let feature_results_info = tag_results.info;
     feature_results_info.pagenumber = {nextpage: parseFloat(page) + 1, previouspage:  parseFloat(page) - 1};
@@ -654,10 +654,10 @@ router.get('/face/:page?', function(req, res, next) {
                               feature_results_info: feature_results_info});
       });
   }).catch(next);
-});
+}));
 
 /* GET category results. */
-router.get('/category/:category/:page?', function(req, res, next) {
+router.get('/category/:category/:page?', limitWork(function(req, res, next) {
   let page = 1;
   if (req.params.page > 1 && req.params.page < 5000) { // This is to keep the search request from going deeper than 500K records in to the dataset. Elasticsearch will throw an error. 500,000/100 = 5000
     page = req.params.page;
@@ -683,7 +683,7 @@ router.get('/category/:category/:page?', function(req, res, next) {
     'aggregation': JSON.stringify(aggs)
   };  
   const category_url = `https://api.harvardartmuseums.org/annotation/?${querystring.encode(qs)}`;
-  apiJSON(category_url, req.upstreamSignal)
+  return apiJSON(category_url, req.upstreamSignal)
   .then(category_results => {
     let category_results_info = category_results.info;
     let category_stats = category_results.aggregations;
@@ -707,7 +707,7 @@ router.get('/category/:category/:page?', function(req, res, next) {
                            });
     })
   }).catch(next);
-});
+}));
 
 // Counts for the research page header and the Overview's detections card.
 // Counted from the raw annotation records so every number matches the data
@@ -814,49 +814,51 @@ function loadWorkspace(objectID, imageID, signal) {
       ? (object_info.images || []).find(image => image.imageid === Number(imageID))
       : (object_info.images || [])[0];
     if (!selected) throw Object.assign(new Error('No matching image is available for this object.'), { status: 404 });
-    const imageid = selected.imageid;
-    const ai_url = `https://api.harvardartmuseums.org/annotation/?image=${imageid}&size=2000&apikey=${API_KEY}`;
-    const image_url = `https://api.harvardartmuseums.org/image/${imageid}?apikey=${API_KEY}`;
-    const [ai_info, image_info] = await Promise.all([
-      apiJSON(ai_url, sharedSignal),
-      apiJSON(image_url, sharedSignal).catch(error => {
-        if (sharedSignal.aborted) throw error;
-        return null;
-      })
-    ]);
-    const raw_annotations = _.cloneDeep(ai_info.records || []);
-    let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
-    // Divide data into general categories
-    let ai_sorted = organize.divide(ai_data)
-    const image_summary = _buildImageSummary(ai_sorted);
+    return runWork(async workSignal => {
+      const imageid = selected.imageid;
+      const ai_url = `https://api.harvardartmuseums.org/annotation/?image=${imageid}&size=2000&apikey=${API_KEY}`;
+      const image_url = `https://api.harvardartmuseums.org/image/${imageid}?apikey=${API_KEY}`;
+      const [ai_info, image_info] = await Promise.all([
+        apiJSON(ai_url, workSignal),
+        apiJSON(image_url, workSignal).catch(error => {
+          if (workSignal.aborted) throw error;
+          return null;
+        })
+      ]);
+      const raw_annotations = _.cloneDeep(ai_info.records || []);
+      let ai_data = _.orderBy(ai_info.records, ['confidence'], ['desc']);
+      // Divide data into general categories
+      let ai_sorted = organize.divide(ai_data)
+      const image_summary = _buildImageSummary(ai_sorted);
 
-    // The embedded summary keeps fields only it has (displayorder,
-    // publiccaption); the full image record adds colors, fingerprints, etc.
-    const embedded_image = _.find(object_info.images, {imageid: parseInt(imageid)});
-    const display_image = image_info && image_info.imageid === embedded_image.imageid
-      ? { ...embedded_image, ...image_info } : embedded_image;
-    const descriptions_list = buildResearchDescriptions(ai_sorted, object_info, display_image);
-    const image_choices = buildImageChoices(object_info, imageid);
-    return {
-      title: 'How AI describes ' + object_info.title + ' (image ' + imageid + ')',
-      raw_annotations,
-      descriptions_list,
-      output_rows: buildOutputRows(descriptions_list),
-      workspace_stats: buildWorkspaceStats(ai_info.records || []),
-      // Same display order as the image strip, so "(2 of 7)" matches it.
-      image_position: image_choices.findIndex(choice => choice.selected) + 1,
-      has_other_analysis: Boolean(display_image.colors && display_image.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
-      multiple_images: object_info.images.length > 1,
-      object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
-      image_choices,
-      navbar: true,
-      year: new Date().getFullYear(),
-      ai_data,
-      ai_sorted,
-      object_info,
-      display_image,
-      image_summary,
-    };
+      // The embedded summary keeps fields only it has (displayorder,
+      // publiccaption); the full image record adds colors, fingerprints, etc.
+      const embedded_image = _.find(object_info.images, {imageid: parseInt(imageid)});
+      const display_image = image_info && image_info.imageid === embedded_image.imageid
+        ? { ...embedded_image, ...image_info } : embedded_image;
+      const descriptions_list = buildResearchDescriptions(ai_sorted, object_info, display_image);
+      const image_choices = buildImageChoices(object_info, imageid);
+      return {
+        title: 'How AI describes ' + object_info.title + ' (image ' + imageid + ')',
+        raw_annotations,
+        descriptions_list,
+        output_rows: buildOutputRows(descriptions_list),
+        workspace_stats: buildWorkspaceStats(ai_info.records || []),
+        // Same display order as the image strip, so "(2 of 7)" matches it.
+        image_position: image_choices.findIndex(choice => choice.selected) + 1,
+        has_other_analysis: Boolean(display_image.colors && display_image.colors.length || ai_sorted.facesect || ai_sorted.featuresect || ai_sorted.categories && ai_sorted.categories.length || ai_sorted.captions && ai_sorted.captions.length || ai_sorted.textsect && ai_sorted.textsect.length),
+        multiple_images: object_info.images.length > 1,
+        object_images: object_info.images.map(image => ({...image, selected: image.imageid === Number(imageid)})),
+        image_choices,
+        navbar: true,
+        year: new Date().getFullYear(),
+        ai_data,
+        ai_sorted,
+        object_info,
+        display_image,
+        image_summary,
+      };
+    }, sharedSignal);
   }, signal);
 }
 
@@ -886,33 +888,26 @@ router.get('/object/:object_id/:image?/:image_id?/compare', function(req, res) {
 
 /* GET AI Perspectives JSON for an object/image. */
 router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, res, next) {
-  loadObject(req.params.object_id, req.upstreamSignal)
-  .then(object_info => {
+  // Check the finished analysis before fetching even the object metadata.
+  const cacheKey = JSON.stringify([String(req.params.object_id), req.params.image_id || null, perspectives.ALGORITHM_VERSION]);
+  cachedPerspectives(cacheKey, async sharedSignal => {
+    const object_info = await loadObject(req.params.object_id, sharedSignal);
     const selected = req.params.image_id
       ? (object_info.images || []).find(image => image.imageid === Number(req.params.image_id))
       : (object_info.images || [])[0];
-    if (!selected) {
-      const error = new Error('No matching image is available for this object.');
-      error.status = 404;
-      return next(error);
-    }
-    const imageid = selected.imageid;
-
-    const cacheKey = `${object_info.id}_${imageid}_${perspectives.ALGORITHM_VERSION}`;
-    return cachedPerspectives(cacheKey, async sharedSignal => {
-      const ai_url = `https://api.harvardartmuseums.org/annotation/?image=${imageid}&size=2000&apikey=${API_KEY}`;
-      const ai_info = await apiJSON(ai_url, sharedSignal);
-      const display_image = object_info.images.find(image => image.imageid === imageid);
-      return perspectives.compute(ai_info.records || [], object_info, display_image);
-    }, req.upstreamSignal).then(result => {
-      if (req.upstreamSignal && req.upstreamSignal.aborted) return;
-      return res.json(result);
-    });
-  })
-  .catch(next);
+    if (!selected) throw Object.assign(new Error('No matching image is available for this object.'), { status: 404 });
+    return runWork(async workSignal => {
+      const ai_url = `https://api.harvardartmuseums.org/annotation/?image=${selected.imageid}&size=2000&apikey=${API_KEY}`;
+      const ai_info = await apiJSON(ai_url, workSignal);
+      return perspectives.compute(ai_info.records || [], object_info, selected);
+    }, sharedSignal);
+  }, req.upstreamSignal).then(result => {
+    if (req.upstreamSignal && req.upstreamSignal.aborted) return;
+    return res.json(result);
+  }).catch(next);
 });
 
-router.get('/statistics', function(req, res, next) {
+router.get('/statistics', limitWork(function(req, res, next) {
   if (!statsCache) {
     return res.status(503).send('Statistics are loading, please try again in a moment.');
   }
@@ -955,7 +950,7 @@ router.get('/statistics', function(req, res, next) {
                               organizations: organizations,
                               stats: stats
                             });
-});
+}));
 
 /* REDIRECT to search page through post request from search bar */
 router.post('/search', function(req, res){

@@ -8,7 +8,10 @@ global.fetch = async () => ({ ok: true, json: async () => ({ info: {}, aggregati
 global.setInterval = (...args) => { const timer = originalInterval(...args); timer.unref(); return timer; };
 const router = require('../routes/routes');
 global.setInterval = originalInterval;
-global.fetch = originalFetch;
+test.before(async () => {
+  await new Promise(resolve => setImmediate(resolve));
+  global.fetch = originalFetch;
+});
 const search = router.stack.find(layer => layer.route?.path === '/search/:tag/:page?').route.stack[0].handle;
 function invoke(page, query = {}) {
   return new Promise(resolve => search({ params: { tag: 'bird', page }, query }, {

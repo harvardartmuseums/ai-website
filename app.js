@@ -96,6 +96,10 @@ app.use(function(req, res, next) {
 app.use(function(err, req, res, next) {
   if (res.destroyed || res.writableEnded) return;
   if (res.headersSent) return next(err);
+  if (err.status === 503 && err.retryAfter) {
+    res.set('Retry-After', String(err.retryAfter));
+    return res.status(503).send(err.message);
+  }
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

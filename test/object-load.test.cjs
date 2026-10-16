@@ -6,7 +6,10 @@ global.fetch = async () => ({ ok: true, json: async () => ({ info: {}, aggregati
 global.setInterval = (...args) => { const timer = originalInterval(...args); timer.unref(); return timer; };
 const router = require('../routes/routes');
 global.setInterval = originalInterval;
-global.fetch = originalFetch;
+test.before(async () => {
+  await new Promise(resolve => setImmediate(resolve));
+  global.fetch = originalFetch;
+});
 const organize = require('../public/javascripts/organize');
 const perspectives = require('../public/javascripts/perspectives');
 const objectPath = '/object/:object_id/:image?/:image_id?';

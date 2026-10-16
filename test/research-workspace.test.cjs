@@ -103,6 +103,7 @@ test('object routes bind analysis to the requested image, reject mismatches, and
   global.fetch = async () => ({ ok: true, json: async () => ({ aggregations: { by_source: { buckets: [] } } }) });
   const router = require('../routes/routes');
   global.setInterval = originalInterval;
+  await new Promise(resolve => setImmediate(resolve));
   function invoke(routePath, params, query = {}) {
     const route = router.stack.find(layer => layer.route && layer.route.path === routePath);
     return new Promise(resolve => route.route.stack[0].handle({ params, query }, {

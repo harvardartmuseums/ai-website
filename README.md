@@ -41,15 +41,28 @@ Results can be sorted by:
 
 ## Heroku request protection
 
-Dynamic requests are limited to 16 concurrent requests per process by default.
-Set `MAX_CONCURRENT_REQUESTS` to a positive integer to tune this after observing
-memory and response times under load. Excess requests receive a 503 response and
-`Retry-After: 5`. The per-IP limit allows 120 dynamic requests per minute.
-Static assets bypass both limits, so loading images, stylesheets and scripts
-does not consume a visitor's request quota.
+New expensive jobs are limited to 16 concurrent jobs per process by default.
+`MAX_CONCURRENT_REQUESTS` retains its existing name but now sets the job limit,
+not a global limit on visitors. Jobs include object metadata cache misses,
+workspace/analysis cache misses, searches, feature/face/category browsing, text
+analysis, statistics rendering, and the background statistics refresh. Metadata
+loads finish before acquiring a workspace/analysis job, avoiding nested permits.
+Each job may fetch multiple API resources in parallel.
+
+Completed cache hits, Home, About, Explore, and redirects do not need a job slot.
+Visitors sharing a cache miss consume only that loader's job slots. There is no
+queue for new jobs: excess jobs receive a 503 response and `Retry-After: 5`.
+Each cache separately allows at most 128 pending subscriptions across its keys;
+set `MAX_CACHE_WAITERS` to a positive integer to adjust that cap. Internal cache
+dependencies also count as subscriptions. Completed cache hits bypass the waiting
+cap. This bounds waiting connections without blocking lightweight pages.
+
+The per-IP limit still allows 120 dynamic requests per minute, including cached
+pages and lightweight routes. Static assets bypass rate limiting. Set job and
+waiting limits conservatively after observing memory and response times.
 
 Museum API calls have a 10-second timeout, including downloading the body.
-Dynamic requests have a 20-second deadline; completing or disconnecting aborts
+Dynamic requests and expensive jobs have 20-second deadlines. Completing or disconnecting aborts
 their remaining API calls. API failures reach the Express error handler instead
 of leaving rejected promises unhandled or reporting false empty search results.
 These deadlines cannot interrupt synchronous JavaScript computation.
