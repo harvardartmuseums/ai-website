@@ -253,7 +253,7 @@ If you have any questions or concerns, please reach out to AWS Support [5].
         date_of_change: "2026-06-17",
         service: "Google",
         summary: "Added Google Gemini 3.1 Flash-Lite",
-        details: `Started using gemini-3.1-flash-lite on Google Cloudto generate descriptions. See model info at https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite.`
+        details: `Started using gemini-3.1-flash-lite on Google Cloud to generate descriptions. See model info at https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite.`
       },    
       {
         date_of_change: "2026-07-16",
@@ -283,9 +283,14 @@ The Clarifai Team
 
 [1] https://nebius.com
 [2] https://huggingface.co/blog/vlms-2025
-[3] https://docs.tokenfactory.nebius.com/quickstart
-`
+[3] https://docs.tokenfactory.nebius.com/quickstart`
       },
+      {
+        date_of_change: "2026-10-27",
+        service: "AWS",
+        summary: "Added Kimi K3 and NVIDIA Nemotron Nano 12B V2",
+        details: `Started using moonshotai.kimi-k3 and nvidia.nemotron-nano-12b-v2on AWS Bedrock to generate descriptions.`
+      },          
       {
         date_of_change: "2027-03-30",
         date_of_notification: "2026-10-02",
@@ -376,6 +381,44 @@ If you have any questions or concerns, please reach out to AWS Support [7].
 [5] https://docs.aws.amazon.com/bedrock/latest/userguide/advanced-prompt-optimization-how.html
 [6] https://aws.amazon.com/blogs/aws/amazon-bedrock-introduces-new-advanced-prompt-optimization-and-migration-tool/
 [7] https://aws.amazon.com/support`
+      },
+      {
+        date_of_change: "2027-04-25",
+        date_of_notification: "2026-10-26",
+        service: "AWS",
+        summary: "Amazon Bedrock — Deprecation of Select Models (Kimi, Mistral)",
+        details: `Hello,
+
+[Dynamic resource status updates are not provided for this Planned Lifecycle Event (PLE) and resources associated with this event will not be assigned any status even if the requisite action has been taken or the resource has been deleted. For more details about PLEs, please consult the user guide for AWS Health Planned Lifecycle Events [1].]
+
+We are contacting you because you have used one or more of the models on the Amazon Bedrock deprecation list.
+
+Effective immediately, by moving the following models into the Legacy state [2], AWS is initiating the deprecation process for these models. Once a model enters the Legacy state, no additional Service Quota increases [3] will be granted for it. Each model will remain in the Legacy state until April 25, 2027. On April 25, 2027, these models will reach end-of-life and will no longer be accessible in Amazon Bedrock.
+
+Consistent with the Amazon Bedrock model lifecycle policy [2], AWS may remove access to a Legacy model for accounts that show no recent usage, in advance of the end-of-life date. We recommend migrating to a supported model as soon as possible to avoid interruption.
+
+Information about your affected model(s), based on usage in the last 30 days, is available in the 'Affected resources' section of the Health Dashboard, the 'affectedEntities' field in the EventBridge event details, or the 'entities' field in the Health DescribeAffectedEntities API responses.
+
+Important dates:
+* October 25, 2026: Legacy state begins
+* April 25, 2027: Models reach end-of-life requests made to these model IDs will fail.
+
+Affected models:
+
+Model Model ID
+GLM 5 zai.glm-5
+Kimi K2.5 moonshotai.kimi-k2.5
+Ministral 3 8B mistral.ministral-3-8b-instruct
+Ministral 3 14B mistral.ministral-3-14b-instruct
+Ministral 3 3B mistral.ministral-3-3b-instruct
+
+
+If you have any questions or concerns, please reach out to AWS Support [4].
+
+[1] https://docs.aws.amazon.com/health/latest/ug/aws-health-planned-lifecycle-events.html
+[2] https://docs.aws.amazon.com/bedrock/latest/userguide/model-lifecycle.html
+[3] https://docs.aws.amazon.com/bedrock/latest/userguide/quotas-increase.html
+[4] https://aws.amazon.com/support`
       },
       {
         date_of_change: "2028-09-25",

@@ -47,13 +47,16 @@ module.exports = {
   'mistral.ministral-3-8b-instruct':                 { name: 'Ministral 8B',          released: '2025-12-02', openWeight: true, modelCardUrl: 'https://docs.mistral.ai/models/model-cards/ministral-3-8b-25-12'  },
   'mistral.mistral-large-3-675b-instruct':           { name: 'Mistral Large 3 675B',  released: '2025-12-02', openWeight: true, modelCardUrl: 'https://docs.mistral.ai/models/model-cards/mistral-large-3-25-12'  },
   // Qwen
-  'Qwen/Qwen2.5-VL-7B-Instruct':                    { name: 'Qwen 2.5 VL 7B',         released: '2025-01-26', openWeight: true  },
-  'Qwen/Qwen2.5-VL-72B-Instruct':                   { name: 'Qwen 2.5 VL 72B',        released: '2025-01-26', openWeight: true  },
+  'Qwen/Qwen2.5-VL-7B-Instruct':                     { name: 'Qwen 2.5 VL 7B',         released: '2025-01-26', openWeight: true  },
+  'Qwen/Qwen2.5-VL-72B-Instruct':                    { name: 'Qwen 2.5 VL 72B',        released: '2025-01-26', openWeight: true  },
   'qwen.qwen3-vl-235b-a22b':                         { name: 'Qwen3 VL 235B',         released: '2025-09-23', openWeight: true, modelCardUrl: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-qwen-qwen3-vl-235b-a22b.html'  },
   // Moonshot
   'moonshotai.kimi-k2.5':                            { name: 'Kimi K2.5',             released: '2026-01-27', openWeight: true, modelCardUrl: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-moonshot-ai-kimi-k2-5.html'  },
+  'us.moonshotai.kimi-k3':                           { name: 'Kimi K3',               released: '2026-09-18', openWeight: true, modelCardUrl: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-moonshot-ai-kimi-k3.html'  },
   // Writer
   'writer.palmyra-vision-7b':                        { name: 'Palmyra Vision 7B',     released: '2026-03-26', openWeight: false, modelCardUrl: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-writer-palmyra-vision-7b.html' },
+  // NVIDIA
+  'nvidia.nemotron-nano-12b-v2':                     { name: 'Nemotron Nano 12B V2',  released: '2025-10-28', openWeight: false, modelCardUrl: 'https://docs.aws.amazon.com/bedrock/latest/userguide/model-card-nvidia-nvidia-nemotron-nano-12b-v2-vl-bf16.html' },
   // Clarifai / legacy
   'general-image-detection':                         { name: 'General Image Detection',   released: null,     openWeight: false },
   'general-image-recognition':                       { name: 'General Image Recognition', released: null,     openWeight: false },
