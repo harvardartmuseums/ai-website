@@ -416,7 +416,7 @@ These files are loaded at server startup and used for autocomplete, the statisti
 
 ### Statistics cache
 
-On startup, the server fires a background query to the annotation API to fetch aggregated statistics (annotation counts, image coverage by source, annotation type breakdowns, date range). The result is stored in memory and reused by the `/statistics`, `/`, and `/about` routes — eliminating per-request API calls that were causing timeouts. The cache refreshes automatically every 24 hours. If the refresh fails, the server continues serving the last successful result. A timestamp of the last successful refresh is displayed at the bottom of the statistics page.
+On startup, the server fires a background query to the annotation API to fetch aggregated statistics (annotation counts, image coverage by source, annotation type breakdowns, date range). The result is stored in memory and reused by the `/statistics`, `/`, and `/about` routes — eliminating per-request API calls that were causing timeouts. After success, the next refresh is scheduled for 24 hours later. Failed attempts retry after 60 seconds, including failures during startup or when the job limit is full. Only one refresh runs at a time, and page visits do not trigger additional attempts. Existing successful data remains available during refreshes and after failures. Until the first successful load, `/statistics` returns 503. A timestamp of the last successful refresh is displayed at the bottom of the statistics page.
 
 ```json
 {

@@ -85,6 +85,7 @@ async function refreshStatsCache() {
   ];
 
   const start = Date.now();
+  let nextRefreshMs = 24 * 60 * 60 * 1000;
   try {
     const results = await runWork(workSignal => Promise.all(queries.map(async (aggs) => {
       const qs = { size: 0, apikey: API_KEY, aggregation: JSON.stringify(aggs) };
@@ -105,12 +106,16 @@ async function refreshStatsCache() {
     };
     console.log(`Stats cache refreshed at ${statsCache.refreshed_at} (${Date.now() - start}ms)`);
   } catch (e) {
-    console.error(`Stats cache refresh failed after ${Date.now() - start}ms:`, e.message);
+    nextRefreshMs = 60 * 1000;
+    console.error(`Stats cache refresh failed after ${Date.now() - start}ms; retrying in 60 seconds:`, e.message);
+  } finally {
+    // Schedule only after this attempt settles: one refresh at a time, with
+    // a short retry on failure and the normal daily interval after success.
+    setTimeout(refreshStatsCache, nextRefreshMs).unref();
   }
 }
 
 refreshStatsCache();
-setInterval(refreshStatsCache, 24 * 60 * 60 * 1000);
 
 function termDistributionSummary(tagAnnotations, totalAnnotations, tagImages, totalImages) {
   if (!totalAnnotations || !totalImages || !tagImages) return null;
