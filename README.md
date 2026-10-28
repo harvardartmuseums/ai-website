@@ -39,6 +39,60 @@ Results can be sorted by:
 - **Confidence** (default) — images where the AI had the highest confidence in the search term appear first
 - **Frequency** — images with the most matching annotations appear first
 
+## CloudFront and WAF in front of Heroku
+
+Use `ham-ai.herokuapp.com` as the HTTPS-only CloudFront origin, with origin path
+blank. The default behavior must allow POST requests, redirect viewers to HTTPS,
+use `CachingDisabled` during rollout, and use `AllViewerExceptHostHeader` to
+preserve query parameters and cookies while routing to the correct Heroku app.
+Enable WAF and explicitly switch rate limiting from monitor to blocking after
+reviewing its threshold. WAF only filters traffic passing through CloudFront.
+
+Add an origin custom header named `X-Origin-Verify` in CloudFront with a random
+secret of at least 32 characters (32 random bytes or more is recommended). Keep
+the value out of source control, browser code, and logs. Configure Heroku with:
+
+| Config variable | Initial value |
+| --- | --- |
+| `CLOUDFRONT_ORIGIN_SECRET` | The same secret as the CloudFront origin header |
+| `CLOUDFRONT_ORIGIN_MODE` | `monitor` |
+
+Deploy the app with these settings before switching public DNS. With `monitor`,
+all requests remain allowed, but matching origin headers authenticate the extra
+CloudFront proxy hop for the app's per-visitor rate limiter. Direct requests keep
+the existing one-hop Heroku behavior. Viewer-supplied forwarding prefixes are
+ignored; IPv6 addresses retain the rate limiter's default /56 grouping. Keep
+Express's global `trust proxy` setting at `1`; do not change it to `true` or `2`.
+This assumes the origin path is CloudFront directly to the Heroku router.
+
+The app logs `CloudFront origin: verified; mode=monitor` or `unverified` at most
+once per outcome per minute per process. These are sampled confirmations, not
+traffic counts. No header values are logged. Verify that CloudFront requests
+produce `verified` before proceeding. Requests through the distribution's
+assigned hostname can be tested before certificate or DNS changes.
+
+After attaching the issued ACM certificate and `ai.harvardartmuseums.org` to the
+distribution, switch the public DNS record to CloudFront. Wait at least the
+previous DNS TTL from the time of the switch, verify normal traffic arrives
+through CloudFront, then set `CLOUDFRONT_ORIGIN_MODE=enforce`. Missing or incorrect
+headers now receive a non-cacheable 403 before redirects, body parsing, static
+files, or routes. Test that the public site works and direct Heroku requests
+return 403. Requests still reach Heroku's app process before rejection; this
+does not provide a private origin or network-level isolation.
+
+The default mode is `off`, which preserves the existing behavior. Unknown modes,
+or enabled modes with secrets shorter than 32 characters, stop startup rather
+than silently disabling protection. Config changes require a process restart
+(Heroku restarts automatically when config vars change). To roll back public DNS
+to Heroku, switch to `monitor` first. To rotate the secret without interrupting
+traffic, switch to `monitor`, update both copies, confirm verified requests, then
+return to `enforce`.
+
+Route 53 can remain in a different AWS account. The certificate must be in the
+CloudFront account in `us-east-1`; add its validation CNAME in the authoritative
+public Route 53 hosted zone and retain it for renewal. Save the original website
+DNS record for rollback and leave the origin pointing at the Heroku hostname.
+
 ## Heroku request protection
 
 New expensive jobs are limited to 16 concurrent jobs per process by default.

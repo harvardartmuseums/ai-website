@@ -11,6 +11,7 @@ var path = require('path');
 var rateLimit = require('express-rate-limit');
 var routes = require('./routes/routes');
 var { requestProtection } = require('./lib/request-protection');
+var { cloudfrontOrigin } = require('./lib/cloudfront-origin');
 var app = express();
 
 app.set('trust proxy', 1);
@@ -19,6 +20,8 @@ require('dotenv').config({path: '.env'})
 
 const API_KEY = process.env['API_KEY']
 
+// Run before redirects, body parsing, static files, and expensive routes.
+app.use(cloudfrontOrigin());
 
 //------------------------------------------------------------------------------
 //
@@ -59,7 +62,7 @@ app.use((req, res, next) => {
   const ua = (req.get('user-agent') || '').toLowerCase();
   const match = botPatterns.find(p => ua.includes(p));
   if (match) {
-    console.log(`Blocked bot: ${match} | ${req.method} ${req.originalUrl} | ${req.ip}`);
+    console.log(`Blocked bot: ${match} | ${req.method} ${req.originalUrl} | ${req.clientIp}`);
     return res.status(403).end();
   }
   next();
@@ -71,8 +74,9 @@ const dynamicRateLimit = rateLimit({
   max: 120,
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: req => rateLimit.ipKeyGenerator(req.clientIp || req.ip),
   handler: (req, res) => {
-    console.log(`Rate limited: ${req.ip} | ${req.method} ${req.originalUrl}`);
+    console.log(`Rate limited: ${req.clientIp} | ${req.method} ${req.originalUrl}`);
     res.status(429).send('Too many requests. Please try again in a minute.');
   },
 });
