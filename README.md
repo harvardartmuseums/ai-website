@@ -119,7 +119,17 @@ Museum API calls have a 10-second timeout, including downloading the body.
 Dynamic requests and expensive jobs have 20-second deadlines. Completing or disconnecting aborts
 their remaining API calls. API failures reach the Express error handler instead
 of leaving rejected promises unhandled or reporting false empty search results.
-These deadlines cannot interrupt synchronous JavaScript computation.
+Perspectives analysis runs in one reusable Node worker thread per web process,
+so its text analysis does not block the web event loop. It uses the same
+algorithm and cache as before. The worker runs one analysis at a time, with
+running plus waiting analyses bounded by `MAX_CONCURRENT_REQUESTS`; excess work
+receives the existing 503 response. The existing 20-second job deadline includes
+time waiting for the worker. When all subscribers leave or the job expires, a
+running analysis is terminated; a replacement worker starts for subsequent work.
+Completed analyses reuse the worker. No additional service, dependency, or config
+variable is required. Keep `MAX_CONCURRENT_REQUESTS=4` for the initial rollout.
+Other synchronous work, including template rendering and JSON serialization,
+still runs on the web thread and cannot be interrupted by these deadlines.
 
 Search ranks images using count/confidence buckets, then fetches up to 75
 annotation snippets for each of the 24 visible images. This keeps deep pages

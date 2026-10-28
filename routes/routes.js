@@ -9,6 +9,7 @@ var _ = require('lodash');
 var appendscript = require('../public/javascripts/appendscript')
 var organize = require('../public/javascripts/organize')
 var perspectives = require('../public/javascripts/perspectives')
+var perspectivesWorker = require('../lib/perspectives-worker');
 var models = require('../models')
 var imagga_categories = require('../public/categories/imagga_categories')
 var example_tags = require('../public/examples/exampletags')
@@ -899,7 +900,7 @@ router.get('/object/:object_id/:image?/:image_id?/perspectives', function(req, r
     return runWork(async workSignal => {
       const ai_url = `https://api.harvardartmuseums.org/annotation/?image=${selected.imageid}&size=2000&apikey=${API_KEY}`;
       const ai_info = await apiJSON(ai_url, workSignal);
-      return perspectives.compute(ai_info.records || [], object_info, selected);
+      return perspectivesWorker.compute(ai_info.records || [], object_info, selected, workSignal);
     }, sharedSignal);
   }, req.upstreamSignal).then(result => {
     if (req.upstreamSignal && req.upstreamSignal.aborted) return;

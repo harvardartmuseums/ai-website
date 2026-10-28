@@ -11,7 +11,7 @@ test.before(async () => {
   global.fetch = originalFetch;
 });
 const organize = require('../public/javascripts/organize');
-const perspectives = require('../public/javascripts/perspectives');
+const perspectivesWorker = require('../lib/perspectives-worker');
 const objectPath = '/object/:object_id/:image?/:image_id?';
 function invoke(path, objectID, imageID, annotation) {
   const handler = router.stack.find(layer => layer.route?.path === path).route.stack[0].handle;
@@ -73,7 +73,7 @@ test('simultaneous Perspectives requests compute once and warm requests need no 
       ? { id: 357409, title: 'Test', images: [{ imageid: 485206 }] }
       : { records: [] } };
   });
-  const compute = t.mock.method(perspectives, 'compute', () => ({ observations: { count: 3 } }));
+  const compute = t.mock.method(perspectivesWorker, 'compute', async () => ({ observations: { count: 3 } }));
   const path = objectPath + '/perspectives';
   const results = await Promise.all(Array.from({ length: 16 }, () => invoke(path, 357409, 485206)));
   assert.equal(calls, 2);
