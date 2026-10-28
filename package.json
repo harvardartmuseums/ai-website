@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node ./bin/www",
     "build-vocab": "node vocab.js",
-    "test:research": "node --test test/research-workspace.test.cjs test/perspectives-evidence.test.cjs test/overview.test.cjs",
+    "test:research": "node --test test/research-workspace.test.cjs test/perspectives-evidence.test.cjs test/perspectives-parsing.test.cjs test/overview.test.cjs",
     "test:server": "node --test test/cloudfront-origin.test.cjs test/perspectives-worker.test.cjs test/request-protection.test.cjs test/search-load.test.cjs test/shared-cache.test.cjs test/object-load.test.cjs test/work-limits.test.cjs"
   },
   "dependencies": {

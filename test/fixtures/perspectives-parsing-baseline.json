@@ -1,0 +1,603 @@
+{
+  "algorithm_version": "ace-v4.12.0",
+  "baseline_source_sha256": "2b2941c449b1349109ae783208c229526a3106547db68de178f13884bfa291f3",
+  "note": "Full output hashes captured before sharing description parsing; only generated_at is excluded. Changes to analysis rules require intentional reference review.",
+  "cases": [
+    {
+      "name": "Young Rabbit: all saved annotations and 39 descriptions",
+      "fixture": "positions-201162.json",
+      "sha256": "514ceb48eca66a3246a27c4c13ca4b9eb316ad7c1265c11f84b9fb18ede81e4a"
+    },
+    {
+      "name": "Different Nations: all saved annotations and 42 descriptions",
+      "fixture": "positions-241300.json",
+      "sha256": "c9f17916e8d136ee3c53d35421fd3470af90c0f621e64cd6e28d6d97f8715b64"
+    },
+    {
+      "name": "no supported annotations",
+      "input": {
+        "records": [],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "33cc034cbe8fd02f1144250ec440fe5cd351afcfc2fc7b69d0e001ec8265d59d"
+    },
+    {
+      "name": "region tags, OCR and face records without prose",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "body": "red coat",
+            "feature": "region",
+            "source": "Amazon",
+            "type": "tag"
+          },
+          {
+            "id": 2,
+            "type": "text",
+            "source": "Amazon",
+            "body": "A name"
+          },
+          {
+            "id": 3,
+            "type": "face",
+            "source": "Amazon",
+            "body": "face"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "d2ff7e66972993281b39267c50a1e3fc2aa0de84b61d2e85cadc78e11ad0b968"
+    },
+    {
+      "name": "empty, missing and whitespace-only description bodies",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "   \n\t",
+            "type": "description",
+            "model": "unknown-model-2"
+          },
+          {
+            "id": 3,
+            "source": "New Provider",
+            "body": null,
+            "type": "description",
+            "model": "unknown-model-3"
+          },
+          {
+            "id": 4,
+            "type": "description",
+            "source": "Amazon"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "fc39439bd077d248facb7a54fcb756fc1c72be8ae190c83077312e6b45c6586e"
+    },
+    {
+      "name": "Markdown links, lists, punctuation and emphasis",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "## Looking\n- **A red coat** beside [a horse](https://example.org/panda).\n1. A small palm tree.\n* Faded text.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "A red coat. A horse and a palm tree stand nearby.",
+            "type": "description",
+            "model": "unknown-model-2"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "1a6475a9c92c8b690370b82323e23f7d6c726426ebfddff4ca54e63b35ead73b"
+    },
+    {
+      "name": "repeated mentions across providers and models",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "A red coat. Another red coat. A giant panda wears a red coat.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "A red coat beside a giant panda.",
+            "type": "description",
+            "model": "unknown-model-2"
+          },
+          {
+            "id": 3,
+            "source": "Amazon",
+            "body": "A giant panda wears a red coat.",
+            "type": "description",
+            "model": "another-model"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "66376a355101e94e9d1c71d6eb2bd92dfbd34fa5c5952502aa7e1a33dd3cd96f"
+    },
+    {
+      "name": "noun and adjective-noun extraction overlap",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "A beautiful red coat and a small green tree. The old wooden door is open.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "A red coat hangs beside an old wooden door.",
+            "type": "description",
+            "model": "unknown-model-2"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "872947caefe3775642d5508926ade04c0f5e3a69dc7c6d7dcbd2d85ae39be812"
+    },
+    {
+      "name": "duplicate annotation IDs with different bodies and providers",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "A red coat and a horse.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 1,
+            "source": "Anthropic",
+            "body": "A blue boat beside palm trees.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "New Provider",
+            "body": "A red coat beside a blue boat.",
+            "type": "description",
+            "model": "unknown-model-2"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "c521ed2cf3c7026cf7483f7d1993b922e61a4467e6fd0c115c95eee2aa90bece"
+    },
+    {
+      "name": "identical text retains separate annotation provenance",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "A red coat beside a horse.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "A red coat beside a horse.",
+            "type": "description",
+            "model": "unknown-model-2"
+          },
+          {
+            "id": 3,
+            "source": "New Provider",
+            "body": "A red coat beside a horse.",
+            "type": "description",
+            "model": "unknown-model-3"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "91ab47429ab01fb1d8eeeb016af6a2797fa844b36c4b38b8a9995ea059870681"
+    },
+    {
+      "name": "plural nouns, hyphens, parentheses and apostrophes",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "Three women wear black tricorn hats near palm trees. A horse-drawn carriage (with two wheels) stands by the artist's door.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "The women wear hats. A black tricorn hat (possibly velvet rests on a chair.",
+            "type": "description",
+            "model": "unknown-model-2"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "b1b3ef1fc2c15153fa496486d0698f24129ca11039f714e62b80df646fd1cafe"
+    },
+    {
+      "name": "Unicode and non-English descriptions",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "Une femme à côté d’un arbre. 赤い服を着た人物。",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "New Provider",
+            "body": "A woman’s red coat — beside a café, with naïve decorative forms.",
+            "type": "description",
+            "model": "unknown-model-2"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "60021b0ef2929a1193fda7c93db83b2a319861c4ef448152e8e4b9dc3a9f488a"
+    },
+    {
+      "name": "sentence boundaries, overlapping seeds and word boundaries",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "A woman looks at a giant panda. A small palm tree stands nearby. It is giant. Panda is written separately.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "A panda and a palm tree beside the woman.",
+            "type": "description",
+            "model": "unknown-model-2"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "1c421d1112b726e3fc3f1983f15abf82cb3f3a29ef7bb2275e9b5637b36defd4"
+    },
+    {
+      "name": "pose, condition, mood, evidence and region support",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "Amazon",
+            "body": "A seated woman with clasped hands wears a red coat. The faded print has torn edges and a solemn atmosphere.",
+            "type": "description",
+            "model": "unknown-model-1"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "The woman is seated with clasped hands. Faded text and torn paper suggest a solemn mood.",
+            "type": "description",
+            "model": "unknown-model-2"
+          },
+          {
+            "id": 3,
+            "body": "red coat",
+            "feature": "region",
+            "source": "Amazon",
+            "type": "tag"
+          },
+          {
+            "id": 4,
+            "body": "woman",
+            "feature": "full",
+            "source": "Amazon",
+            "type": "tag"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "0465bf9f0661847ebdb237b2f2c924d32d26288bedadae9e4303a5994af1465f"
+    },
+    {
+      "name": "long description, late evidence and uncommon model metadata",
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "source": "New Provider",
+            "body": "The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. The scene contains delicate marks. A small red coat appears beside a giant panda at the bottom right.",
+            "type": "description",
+            "model": "unlisted-model",
+            "createdate": "2025-01-01",
+            "url": "https://example.org/source"
+          },
+          {
+            "id": 2,
+            "source": "Anthropic",
+            "body": "A small red coat and a giant panda at the bottom right.",
+            "type": "description",
+            "model": "unknown-model-2"
+          }
+        ],
+        "object": {
+          "id": 10,
+          "title": "The Reader",
+          "classification": "Prints",
+          "medium": "Engraving",
+          "labeltext": "A woman beside a palm tree.",
+          "people": [
+            {
+              "name": "Example Artist",
+              "role": "Artist"
+            }
+          ]
+        },
+        "image": {
+          "imageid": 20,
+          "alttext": "A seated figure.",
+          "description": "A human-authored image description."
+        }
+      },
+      "sha256": "41809d1dff1d9fdefcf6bd1b12ecf2129c38ee1459617dbd4fca9ad10de55129"
+    },
+    {
+      "name": "same annotation object repeated retains existing counting behavior",
+      "repeatFirstRecord": true,
+      "input": {
+        "records": [
+          {
+            "id": 1,
+            "type": "description",
+            "source": "Amazon",
+            "body": "A red coat beside a small palm tree."
+          },
+          {
+            "id": 2,
+            "type": "description",
+            "source": "Anthropic",
+            "body": "A red coat beside a small palm tree."
+          }
+        ],
+        "object": {
+          "id": 10
+        },
+        "image": {
+          "imageid": 20
+        }
+      },
+      "sha256": "554791998ab6192a4e9e1fa32bd99faaa2c0dba324788b8802e71578d6ba668f"
+    }
+  ]
+}

@@ -659,11 +659,26 @@ function canonicalize(phrase) {
   return TERM_TO_CANONICAL.get(phrase) || phrase;
 }
 
-function extractFromDescription(annotation) {
-  const raw = stripMarkdown(annotation.body || '');
-  if (!raw.trim()) return [];
-  const doc = nlp(raw);
-  const chunks = doc.nouns().out('array');
+// Share plain phrase arrays, not mutable NLP documents. This map lasts for one
+// image analysis and is keyed by record identity, so duplicate IDs or identical
+// text never combine the evidence of separate annotations.
+function parseDescriptions(annotations) {
+  const parsed = new Map();
+  for (const annotation of annotations) {
+    if (parsed.has(annotation)) continue;
+    const clean = stripMarkdown(annotation.body || '');
+    const doc = clean.trim() ? nlp(clean) : null;
+    parsed.set(annotation, {
+      clean,
+      nouns: doc ? doc.nouns().out('array') : [],
+      adjNouns: doc ? doc.match('#Adjective+ #Noun+').out('array') : [],
+    });
+  }
+  return parsed;
+}
+
+function extractFromDescription(annotation, parsedDescriptions) {
+  const chunks = parsedDescriptions.get(annotation).nouns;
   const results = [];
   for (const chunk of chunks) {
     let phrase = normalizeText(chunk);
@@ -1099,7 +1114,7 @@ function categorizePhrase(phrase) {
   return 'other';
 }
 
-function extractObservations(descAnnotations, regionAnnotations, context) {
+function extractObservations(descAnnotations, regionAnnotations, context, parsedDescriptions) {
   if (descAnnotations.length === 0 && (!regionAnnotations || regionAnnotations.length === 0)) return {};
 
   // Stage 1 count contract: count/occurrences_count are textual matches plus
@@ -1116,14 +1131,10 @@ function extractObservations(descAnnotations, regionAnnotations, context) {
 
   // --- LLM description extraction (existing logic) ---
   for (const ann of descAnnotations) {
-    const clean = stripMarkdown(ann.body || '');
+    const { clean, nouns, adjNouns } = parsedDescriptions.get(ann);
     if (!clean.trim()) continue;
     const source = ann.source;
     const annId = ann.id;
-    const doc = nlp(clean);
-
-    const nouns = doc.nouns().out('array');
-    const adjNouns = doc.match('#Adjective+ #Noun+').out('array');
     const candidates = [...nouns, ...adjNouns];
 
     const matchedCanonicals = new Set();
@@ -1189,7 +1200,7 @@ function extractObservations(descAnnotations, regionAnnotations, context) {
   // Noun-phrase extraction misses "clasped", "seated" or "faded"; list each
   // word found as a phrase of its own, with an excerpt for context.
   for (const ann of descAnnotations) {
-    const clean = stripMarkdown(ann.body || '');
+    const { clean } = parsedDescriptions.get(ann);
     if (!clean.trim()) continue;
     for (const key of VOCABULARY_PHRASE_CATEGORIES) {
       for (const [term, hits] of matchVocabulary(clean, categorySeeds(key))) {
@@ -1371,17 +1382,18 @@ function compute(ai_data, object_info, display_image) {
   }
 
   const context = { objectid: object_info ? object_info.id : null, imageid: display_image ? display_image.imageid : null };
+  const parsedDescriptions = parseDescriptions(descAnnotations);
 
   // Extract concept occurrences (tags + noun chunks from descriptions)
   const occurrences = [];
   for (const ann of tagAnnotations)  occurrences.push(...extractFromTag(ann));
-  for (const ann of descAnnotations) occurrences.push(...extractFromDescription(ann));
+  for (const ann of descAnnotations) occurrences.push(...extractFromDescription(ann, parsedDescriptions));
 
   // Thematic extraction — TF-IDF across LLM descriptions only
   const thematicConcepts = extractThematicConcepts(descAnnotations, annotationsById, context);
 
   // Observations — broad extraction, categorized, no agreement threshold
-  const observations = extractObservations(descAnnotations, regionAnnotations, context);
+  const observations = extractObservations(descAnnotations, regionAnnotations, context, parsedDescriptions);
 
   // Mood palette — expressive/interpretive language from descriptions
   const moodPalette = extractMoodPalette(descAnnotations, context);
