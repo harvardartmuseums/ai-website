@@ -3,6 +3,7 @@ const assert = require('node:assert/strict');
 const path = require('node:path');
 const { setTimeout: delay } = require('node:timers/promises');
 const { createPerspectivesWorker } = require('../lib/perspectives-worker');
+const { createWorkLimiter } = require('../lib/request-protection');
 const { compute } = require('../public/javascripts/perspectives');
 const fixture = require('./fixtures/positions-201162.json');
 const workerPath = path.join(__dirname, 'fixtures/perspectives-worker.cjs');
@@ -36,7 +37,7 @@ test('real analysis matches the existing output while the web thread keeps runni
 });
 
 test('one thread is reused and queued work is bounded; cancelling a waiter frees capacity', async t => {
-  const worker = pool(t, { maxPending: 2 });
+  const worker = pool(t);
   const state = new Int32Array(new SharedArrayBuffer(8));
   const first = worker.compute(['busy'], { state: state.buffer }, {});
   await started(state);
@@ -51,6 +52,25 @@ test('one thread is reused and queued work is bounded; cancelling a waiter frees
   const a = await first, b = await next;
   assert.equal(a.threadId, b.threadId);
   assert.equal(b.action, 'next');
+});
+
+test('the default analysis backlog leaves general job slots available for other routes', async t => {
+  const worker = pool(t);
+  const run = createWorkLimiter({ maxConcurrent: 4, timeoutMs: 5000 });
+  const state = new Int32Array(new SharedArrayBuffer(8));
+  const first = run(signal => worker.compute(['busy'], { state: state.buffer }, {}, signal));
+  await started(state);
+  const second = run(signal => worker.compute(['queued'], {}, {}, signal));
+  await assert.rejects(run(signal => worker.compute(['excess'], {}, {}, signal)), { status: 503 });
+
+  let release;
+  const gate = new Promise(resolve => { release = resolve; });
+  const search = run(() => gate);
+  assert.equal(await run(() => 'object page'), 'object page', 'two general slots remain usable');
+  release('search results');
+  assert.equal(await search, 'search results');
+  Atomics.store(state, 1, 1);
+  await Promise.all([first, second]);
 });
 
 test('cancelling running CPU work terminates it before queued work starts', async t => {

@@ -121,9 +121,13 @@ their remaining API calls. API failures reach the Express error handler instead
 of leaving rejected promises unhandled or reporting false empty search results.
 Perspectives analysis runs in one reusable Node worker thread per web process,
 so its text analysis does not block the web event loop. It uses the same
-algorithm and cache as before. The worker runs one analysis at a time, with
-running plus waiting analyses bounded by `MAX_CONCURRENT_REQUESTS`; excess work
-receives the existing 503 response. The existing 20-second job deadline includes
+algorithm and cache as before. The worker allows one running analysis and one
+waiting analysis per process, independently of `MAX_CONCURRENT_REQUESTS`.
+Additional analyses receive the existing 503 response rather than occupying all
+general job slots waiting for the same worker. Their API fetching still uses the
+general job limit; this does not reserve slots during those fetches. Concurrent
+visitors requesting the same analysis still share its single cached load.
+The existing 20-second job deadline includes
 time waiting for the worker. When all subscribers leave or the job expires, a
 running analysis is terminated; a replacement worker starts for subsequent work.
 Completed analyses reuse the worker. No additional service, dependency, or config
